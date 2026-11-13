@@ -13,7 +13,7 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 3. Restart `dsh web` once. The Host loads the package the first time it appears in the profile, so the new settings section does not exist until that restart. Refresh the page after it.
 4. Open **Settings › 鲸跃**.
 
-**Updating an installed copy.** Pull or edit this directory, run `pnpm run build`, then restart `dsh web` once more. The Host reads the settings schema only at startup, so new fields (for example the running-icon switch) do not persist until that restart.
+**Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup.
 
 The plugin is the bundle `dsh-whale-leap`; the same package is prepared for npm and mirrored by npmmirror. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
 

@@ -13,7 +13,7 @@
 3. 重启一次 `dsh web`。Host 第一次看到该包时才会加载它，新的设置分区在那次重启后才存在；随后刷新页面。
 4. 打开 **设置 › 鲸跃**。
 
-**更新已安装的副本。** 拉取或修改本目录后先 `pnpm run build`，再重启一次 `dsh web`。Host 只在启动时读取设置 schema，因此新增字段（例如任务图标开关）要等这次重启后才能保存。
+**更新已安装的副本。** 拉取或修改本目录后运行 `pnpm run build`。Harness 会自动热替换已加载的客户端 bundle（网页端常驻 client HMR 链路），新的设置界面无需重启也无需手动刷新即可生效。只有 Host 半发生变化时才需要重启 `dsh web`——`index.js`、设置 schema、`cordis.patch.yml` 或 `locale/` 下的包元数据；Host 只在启动时读取这些内容。
 
 插件即 bundle `dsh-whale-leap`，同一份包已准备发布到 npm，并由 npmmirror 自动镜像。仓库：[yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap)。
 
