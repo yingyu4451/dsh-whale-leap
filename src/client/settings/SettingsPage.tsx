@@ -171,6 +171,7 @@ function SliderRow(props: {
   display: string
   disabled: boolean
   onChange: (value: number) => void
+  onCommit?: () => void
 }) {
   return (
     <Row
@@ -191,6 +192,7 @@ function SliderRow(props: {
             onChange={event => {
               props.onChange(Number(event.target.value))
             }}
+            onPointerUp={props.onCommit}
           />
           <span className={css.sliderValue}>{props.display}</span>
         </span>
@@ -643,15 +645,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             >
               {t('replay')}
             </button>
-            <button
-              type="button"
-              className={css.stagePeek}
-              onClick={() => {
-                setPeeking(true)
-              }}
-            >
-              {t('peek')}
-            </button>
           </div>
         </div>
       ) : (
@@ -723,6 +716,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={`${Math.round(settings.size * 100)}%`}
                 disabled={disabled}
                 onChange={actions.setSize}
+                onCommit={() => {
+                  setPeeking(true)
+                }}
               />
 
               <SliderRow
@@ -736,6 +732,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={formatOffsetPx(settings.bgOffsetX)}
                 disabled={disabled}
                 onChange={actions.setBgOffsetX}
+                onCommit={() => {
+                  setPeeking(true)
+                }}
               />
 
               <SliderRow
@@ -749,6 +748,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={formatOffsetPx(settings.bgOffsetY)}
                 disabled={disabled}
                 onChange={actions.setBgOffsetY}
+                onCommit={() => {
+                  setPeeking(true)
+                }}
               />
 
 
@@ -780,6 +782,8 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 }
               />
             </Group>
+
+            <p className={css.note}>{t('peekAutoHint')}</p>
 
             <Group title={t('groupPlayback')}>
               <ToggleRow

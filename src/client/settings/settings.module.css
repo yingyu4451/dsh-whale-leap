@@ -270,8 +270,7 @@
   gap: 6px;
 }
 
-.stageReplay,
-.stagePeek {
+.stageReplay {
   height: 22px;
   padding: 0 8px;
   border: 0.5px solid var(--dsw-alias-border-l2);
@@ -284,12 +283,7 @@
   cursor: pointer;
 }
 
-.stagePeek {
-  color: var(--dsw-alias-state-business-primary);
-}
-
-.stageReplay:hover,
-.stagePeek:hover {
+.stageReplay:hover {
   color: var(--dsw-alias-label-primary);
 }
 
@@ -361,7 +355,8 @@
   gap: 6px;
   height: 28px;
   max-width: 100%;
-  color: var(--dsw-alias-label-primary);
+  /* Same semantic color as the real running row: the mark inherits it. */
+  color: var(--dsw-alias-label-deep-diving);
 }
 
 .markIcon {

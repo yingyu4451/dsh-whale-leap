@@ -44,13 +44,13 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. “Preview in conversation” hides the settings dialog and keeps the whale playing on a loop in the real conversation, while a small floating bar lets you adjust the background size and the horizontal/vertical start offsets; press Esc or Back to settings to return.
+A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. Releasing the background size or a position slider hides the settings dialog automatically and keeps the whale playing on a loop in the real conversation, while a small floating bar lets you adjust the background size and the horizontal/vertical start offsets; press Esc or Back to settings to return.
 
 ### Running icon tab
 
 **Running icon**
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label — stays pinned while the settings list scrolls, and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker; a custom label color also re-mixes the shimmer highlight token, so the moving sweep follows it. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
+**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label (the same deep-diving blue as the real row when following the theme) — stays pinned while the settings list scrolls, and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker; a custom label color also re-mixes the shimmer highlight token, so the moving sweep follows it. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
 
 **Motion**
 
@@ -64,7 +64,7 @@ The motion cards each preview their own preset, and the selected card carries a 
 - Reduced motion: all playback and sway stop; the mark stays static.
 - Each appearance — on a conversation switch or on the interval — alternates between the dotted and code-lettered frames; a single playback never switches.
 - Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
-- The background start offsets can also be tuned in the live conversation: hide the settings, then drag the sliders in the floating bar.
+- The background size and start offsets also preview live in the conversation: release a slider to hide the settings, then keep dragging the floating bar's sliders.
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
 - **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, the DOM adapter mounts the mark and hides the shipped icon.
