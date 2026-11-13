@@ -12,6 +12,18 @@ const INK_GAIN = 1.5
 const atlasCache = new Map<string, Uint8ClampedArray>()
 
 /**
+ * Phase of the next playback, shared across renderer attachments.
+ *
+ * Each conversation switch mounts a new decoration; a per-attachment phase
+ * would make every switch start on the same fill. Keeping it module-wide lets
+ * consecutive appearances alternate between dots and code frames.
+ */
+let nextFill: 'pixels' | 'code' = 'pixels'
+
+/** Playback phase source: the whole page, or this attachment only. */
+export type WhaleFillPhase = 'shared' | 'local'
+
+/**
  * Backing-store budget. Large / high-DPI windows would otherwise allocate and
  * composite tens of megabytes of transparent canvas for sparse dots; the
  * decoration caps the buffer instead and keeps the CSS box unchanged.
@@ -56,9 +68,10 @@ const NO_WHALE: PixelWhaleHandle = {
  * @param canvas - presentation-owned output, with its neutral color supplied by CSS.
  * @param options - artwork opacity, scale, lettering, frame rate, and duration.
  * @param atlasUrl - URL of the packaged frame atlas, loaded once on the first eligible playback.
+ * @param phase - playback phase source; the settings preview uses 'local' so it never advances the page sequence.
  * @returns the playback trigger and its teardown.
  */
-export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwork, atlasUrl: string): PixelWhaleHandle {
+export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwork, atlasUrl: string, phase: WhaleFillPhase = 'shared'): PixelWhaleHandle {
   const context = canvas.getContext('2d')
   if (context === null) return NO_WHALE
   const ctx = context
@@ -84,6 +97,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let left = 0
   let top = 0
   let fill: 'pixels' | 'code' = 'code'
+  let localFill: 'pixels' | 'code' = 'pixels'
   let code: ReturnType<typeof createCodeFill> | undefined
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
@@ -208,12 +222,16 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
 
   function begin(): void {
     if (!moving() || !drawable()) return
-    if (fill === 'pixels') {
+    const playing = phase === 'local' ? localFill : nextFill
+    if (phase === 'local') localFill = playing === 'pixels' ? 'code' : 'pixels'
+    else nextFill = playing === 'pixels' ? 'code' : 'pixels'
+    if (playing === 'code') {
       code ??= createCodeFill(artwork, ATLAS)
       if (code === undefined) { fail(new Error('Home whale code Canvas context is unavailable')); return }
       code.resize(canvas, sceneWidth)
     }
-    fill = fill === 'pixels' ? 'code' : 'pixels'
+    fill = playing
+    canvas.dataset.whaleFill = playing
     started = performance.now()
     resume()
   }

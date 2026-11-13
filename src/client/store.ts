@@ -6,7 +6,7 @@
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
 import { DEFAULT_SETTINGS, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
-import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
+import { INITIAL_SETTINGS, type WhaleAppearMode, type WhaleColorMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
 export const WRITE_DELAY_MS = 150
@@ -150,21 +150,12 @@ export class WhaleSettingsRuntime {
   }
 
   /**
-   * Enable or disable automatic appearance in started conversations.
-   * @param enabled - whether replays should run.
+   * Choose which appearance triggers replay the whale.
+   * @param mode - accepted appearance mode.
    */
-  setAutoAppear(enabled: boolean): void {
-    this.patch({ autoAppear: enabled })
-    this.commit('autoAppear', enabled)
-  }
-
-  /**
-   * Choose whether entering a conversation replays immediately.
-   * @param enabled - whether the whale appears as soon as the conversation opens.
-   */
-  setPlayOnSwitch(enabled: boolean): void {
-    this.patch({ playOnSwitch: enabled })
-    this.commit('playOnSwitch', enabled)
+  setAppearMode(mode: WhaleAppearMode): void {
+    this.patch({ appearMode: mode })
+    this.commit('appearMode', mode)
   }
 
   /**
@@ -184,6 +175,44 @@ export class WhaleSettingsRuntime {
   setReplaceMark(enabled: boolean): void {
     this.patch({ replaceMark: enabled })
     this.commit('replaceMark', enabled)
+  }
+
+  /**
+   * Switch the running mark color source.
+   * @param mode - next color source.
+   */
+  setMarkColorMode(mode: WhaleColorMode): void {
+    this.patch({ markColorMode: mode })
+    this.commit('markColorMode', mode)
+  }
+
+  /**
+   * Pick a custom running mark color.
+   * @param color - lowercase '#rrggbb' color.
+   */
+  setMarkColor(color: string): void {
+    if (!CUSTOM_COLOR_PATTERN.test(color)) return
+    this.patch({ markColor: color })
+    this.schedule('markColor', color)
+  }
+
+  /**
+   * Switch the running status label color source.
+   * @param mode - next color source.
+   */
+  setLabelColorMode(mode: WhaleColorMode): void {
+    this.patch({ labelColorMode: mode })
+    this.commit('labelColorMode', mode)
+  }
+
+  /**
+   * Pick a custom running status label color.
+   * @param color - lowercase '#rrggbb' color.
+   */
+  setLabelColor(color: string): void {
+    if (!CUSTOM_COLOR_PATTERN.test(color)) return
+    this.patch({ labelColor: color })
+    this.schedule('labelColor', color)
   }
 
   /**

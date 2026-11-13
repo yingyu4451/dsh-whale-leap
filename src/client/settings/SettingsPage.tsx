@@ -7,8 +7,8 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
-import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
+import { APPEAR_MODES, COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import type { WhaleAppearMode, WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
@@ -35,14 +35,20 @@ export interface SettingsPageActions {
   setSize: (size: number) => void
   /** Change the ink strength response. */
   setOpacity: (opacity: number) => void
-  /** Enable or disable automatic appearances. */
-  setAutoAppear: (enabled: boolean) => void
-  /** Choose immediate playback on conversation switch. */
-  setPlayOnSwitch: (enabled: boolean) => void
+  /** Choose which appearance triggers replay the whale. */
+  setAppearMode: (mode: WhaleAppearMode) => void
   /** Set the replay interval. */
   setInterval: (seconds: number) => void
   /** Replace the shipped running icon with the fish mark. */
   setReplaceMark: (enabled: boolean) => void
+  /** Switch the running mark color source. */
+  setMarkColorMode: (mode: WhaleColorMode) => void
+  /** Pick a custom running mark color. */
+  setMarkColor: (color: string) => void
+  /** Switch the running status label color source. */
+  setLabelColorMode: (mode: WhaleColorMode) => void
+  /** Pick a custom running status label color. */
+  setLabelColor: (color: string) => void
   /** Set the running mark size. */
   setMarkSize: (px: number) => void
   /** Set the running status label size. */
@@ -83,6 +89,19 @@ const MOTION_LABELS: Record<WhaleMarkMotion, LocaleKey> = {
   explore: 'motionExplore',
   hero: 'motionHero',
   sway: 'motionSway',
+}
+
+/** Labels for the appearance triggers. */
+const APPEAR_LABELS: Record<WhaleAppearMode, LocaleKey> = {
+  all: 'appearAll',
+  switch: 'appearSwitch',
+  timed: 'appearTimed',
+  off: 'appearOff',
+}
+
+/** Whether an appearance mode also replays on the auto interval. */
+function isTimed(mode: WhaleAppearMode): boolean {
+  return mode === 'all' || mode === 'timed'
 }
 
 /** Replay cadence of the background preview stage. */
@@ -201,6 +220,55 @@ function ChoiceRow<Value extends string>(props: {
   )
 }
 
+/** One color-source row: theme/custom choice plus the picker for a custom pick. */
+function ColorPickerRow(props: {
+  id: string
+  label: string
+  hint: string
+  themeLabel: string
+  customLabel: string
+  mode: WhaleColorMode
+  color: string
+  disabled: boolean
+  onMode: (mode: WhaleColorMode) => void
+  onColor: (color: string) => void
+}) {
+  return (
+    <Row
+      stack
+      label={props.label}
+      hint={props.hint}
+      control={
+        <span className={css.colorGroup} id={props.id}>
+          <ChoiceRow
+            label={props.label}
+            value={props.mode}
+            disabled={props.disabled}
+            options={COLOR_MODES.map(mode => ({ value: mode, label: mode === 'theme' ? props.themeLabel : props.customLabel }))}
+            onChange={props.onMode}
+          />
+          {props.mode === 'custom' && (
+            <span className={css.colorField}>
+              <input
+                id={`${props.id}-picker`}
+                className={css.colorInput}
+                type="color"
+                aria-label={props.customLabel}
+                value={props.color}
+                disabled={props.disabled}
+                onChange={event => {
+                  props.onColor(event.target.value)
+                }}
+              />
+              <span className={css.colorValue}>{props.color.toUpperCase()}</span>
+            </span>
+          )}
+        </span>
+      }
+    />
+  )
+}
+
 /** One switch row. */
 function ToggleRow(props: { label: string; hint: string; checked: boolean; disabled: boolean; onChange: (checked: boolean) => void }) {
   return (
@@ -244,7 +312,7 @@ function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
       whale.current = undefined
       return
     }
-    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL)
+    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL, 'local')
     whale.current = handle
     handle.prefetch()
     const current = latest.current
@@ -280,7 +348,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   const [tab, setTab] = useState<Tab>(initialTab)
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
   const disabled = !settings.writable
-  const custom = settings.colorMode === 'custom'
 
   const checkForUpdates = useCallback(async (): Promise<void> => {
     setUpdate({ status: 'checking' })
@@ -368,36 +435,17 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             </div>
 
             <Group title={t('groupAppearance')}>
-              <Row
-                stack
+              <ColorPickerRow
+                id="whale-leap-custom-color"
                 label={t('color')}
                 hint={t('colorHint')}
-                control={
-                  <span className={css.colorGroup}>
-                    <ChoiceRow
-                      label={t('color')}
-                      value={settings.colorMode}
-                      disabled={disabled}
-                      options={COLOR_MODES.map(mode => ({ value: mode, label: t(mode === 'theme' ? 'colorTheme' : 'colorCustom') }))}
-                      onChange={actions.setColorMode}
-                    />
-                    {custom && (
-                      <span className={css.colorField}>
-                        <input
-                          className={css.colorInput}
-                          type="color"
-                          aria-label={t('colorCustom')}
-                          value={settings.customColor}
-                          disabled={disabled}
-                          onChange={event => {
-                            actions.setCustomColor(event.target.value)
-                          }}
-                        />
-                        <span className={css.colorValue}>{settings.customColor.toUpperCase()}</span>
-                      </span>
-                    )}
-                  </span>
-                }
+                themeLabel={t('colorTheme')}
+                customLabel={t('colorCustom')}
+                mode={settings.colorMode}
+                color={settings.customColor}
+                disabled={disabled}
+                onMode={actions.setColorMode}
+                onColor={actions.setCustomColor}
               />
 
               <SliderRow
@@ -428,36 +476,34 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             </Group>
 
             <Group title={t('groupPlayback')}>
-              <ToggleRow
-                label={t('auto')}
-                hint={t('autoHint')}
-                checked={settings.autoAppear}
-                disabled={disabled}
-                onChange={actions.setAutoAppear}
+              <Row
+                stack
+                label={t('appearMode')}
+                hint={t('appearModeHint')}
+                control={
+                  <ChoiceRow
+                    label={t('appearMode')}
+                    value={settings.appearMode}
+                    disabled={disabled}
+                    options={APPEAR_MODES.map(mode => ({ value: mode, label: t(APPEAR_LABELS[mode]) }))}
+                    onChange={actions.setAppearMode}
+                  />
+                }
               />
 
-              {settings.autoAppear && (
-                <>
-                  <ToggleRow
-                    label={t('playOnSwitch')}
-                    hint={t('playOnSwitchHint')}
-                    checked={settings.playOnSwitch}
-                    disabled={disabled}
-                    onChange={actions.setPlayOnSwitch}
-                  />
-                  <SliderRow
-                    id="whale-leap-interval"
-                    label={t('interval')}
-                    hint={t('intervalHint')}
-                    value={settings.intervalSeconds}
-                    min={INTERVAL_RANGE.min}
-                    max={INTERVAL_RANGE.max}
-                    step={INTERVAL_RANGE.step}
-                    display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                    disabled={disabled}
-                    onChange={actions.setInterval}
-                  />
-                </>
+              {isTimed(settings.appearMode) && (
+                <SliderRow
+                  id="whale-leap-interval"
+                  label={t('interval')}
+                  hint={t('intervalHint')}
+                  value={settings.intervalSeconds}
+                  min={INTERVAL_RANGE.min}
+                  max={INTERVAL_RANGE.max}
+                  step={INTERVAL_RANGE.step}
+                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                  disabled={disabled}
+                  onChange={actions.setInterval}
+                />
               )}
             </Group>
           </div>
@@ -480,11 +526,15 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                         swing={settings.markSwing}
                         offsetX={settings.markOffsetX}
                         offsetY={settings.markOffsetY}
+                        color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
                       />
                     </span>
                     <span
                       className={css.markRunningLabel}
-                      style={{ fontSize: `${settings.markLabelSize}px` }}
+                      style={{
+                        fontSize: `${settings.markLabelSize}px`,
+                        color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
+                      }}
                       data-running-label
                     >
                       {t('runningLabel')}
@@ -504,6 +554,32 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 checked={settings.replaceMark}
                 disabled={disabled}
                 onChange={actions.setReplaceMark}
+              />
+
+              <ColorPickerRow
+                id="whale-leap-mark-color"
+                label={t('markColor')}
+                hint={t('markColorHint')}
+                themeLabel={t('colorTheme')}
+                customLabel={t('colorCustom')}
+                mode={settings.markColorMode}
+                color={settings.markColor}
+                disabled={disabled || !settings.replaceMark}
+                onMode={actions.setMarkColorMode}
+                onColor={actions.setMarkColor}
+              />
+
+              <ColorPickerRow
+                id="whale-leap-label-color"
+                label={t('labelColor')}
+                hint={t('labelColorHint')}
+                themeLabel={t('colorTheme')}
+                customLabel={t('colorCustom')}
+                mode={settings.labelColorMode}
+                color={settings.labelColor}
+                disabled={disabled || !settings.replaceMark}
+                onMode={actions.setLabelColorMode}
+                onColor={actions.setLabelColor}
               />
 
               <SliderRow

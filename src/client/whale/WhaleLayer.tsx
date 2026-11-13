@@ -11,7 +11,7 @@ import { WHALE_ARTWORK } from './artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from './renderer.js'
 import { ATLAS_URL } from '../atlas.js'
 import type { Store } from '../store.js'
-import type { WhaleSettingsState } from '../settings.js'
+import type { WhaleAppearMode, WhaleSettingsState } from '../settings.js'
 import css from './whale.module.css'
 
 /** Elements that keep a click from triggering a replay. */
@@ -31,6 +31,16 @@ export interface WhaleLayerProps {
   children?: ReactNode
   /** Live whale settings. */
   state: Store<WhaleSettingsState>
+}
+
+/** Whether an appearance mode also replays on the auto interval. */
+function isTimed(mode: WhaleAppearMode): boolean {
+  return mode === 'all' || mode === 'timed'
+}
+
+/** Whether an appearance mode replays as soon as a conversation opens. */
+function isSwitched(mode: WhaleAppearMode): boolean {
+  return mode === 'all' || mode === 'switch'
 }
 
 /**
@@ -68,6 +78,8 @@ function canvasPresentation(state: WhaleSettingsState): CanvasPresentation {
 export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const whale = useRef<PixelWhaleHandle | undefined>(undefined)
+  const played = useRef(false)
+  const lastMode = useRef<WhaleAppearMode | undefined>(undefined)
   const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
     whale.current?.dispose()
     if (canvas === null) {
@@ -84,22 +96,31 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size })
   }, [opacity, size, colorMode, customColor])
 
-  const { autoAppear, intervalSeconds, playOnSwitch } = settings
+  const { appearMode, intervalSeconds } = settings
   useEffect(() => {
-    whale.current?.setAutoPlay(autoAppear && !hero ? intervalSeconds * 1000 : undefined, playOnSwitch)
-  }, [autoAppear, intervalSeconds, playOnSwitch, hero])
+    whale.current?.setAutoPlay(isTimed(appearMode) && !hero ? intervalSeconds * 1000 : undefined, false)
+    if (hero || !isSwitched(appearMode)) {
+      lastMode.current = appearMode
+      return
+    }
+    if (played.current && lastMode.current === appearMode) return
+    played.current = true
+    lastMode.current = appearMode
+    whale.current?.play()
+  }, [appearMode, intervalSeconds, hero])
 
   const onClick = (event: MouseEvent<HTMLDivElement>) => {
     if (isBlankClick(event)) whale.current?.play()
   }
 
+  const visible = hero || appearMode !== 'off'
   return (
     <div
-      className={hero || !settings.autoAppear ? css.layer : css.autoLayer}
-      data-whale-layer={hero ? 'hero' : settings.autoAppear ? 'auto' : 'plain'}
+      className={hero || !visible ? css.layer : css.autoLayer}
+      data-whale-layer={hero ? 'hero' : appearMode === 'off' ? 'plain' : appearMode}
       onClick={onClick}
     >
-      {(hero || settings.autoAppear) && (
+      {visible && (
         <canvas
           ref={canvasRef}
           className={css.canvas}
@@ -112,4 +133,3 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     </div>
   )
 }
-

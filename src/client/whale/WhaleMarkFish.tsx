@@ -16,6 +16,8 @@ export interface WhaleMarkFishProps {
   offsetX?: number
   /** Vertical start offset in pixels; negative moves up. */
   offsetY?: number
+  /** Custom fish color; omitted follows the surrounding running-status tone. */
+  color?: string
 }
 
 /**
@@ -33,9 +35,10 @@ function prefersReducedMotion(): boolean {
  * @param props.swing - horizontal swing amplitude multiplier.
  * @param props.offsetX - horizontal start offset in pixels.
  * @param props.offsetY - vertical start offset in pixels.
+ * @param props.color - custom fish color.
  * @returns the animated mark.
  */
-export function WhaleMarkFish({ size, motion, swing = 1, offsetX = 0, offsetY = 0 }: WhaleMarkFishProps) {
+export function WhaleMarkFish({ size, motion, swing = 1, offsetX = 0, offsetY = 0, color }: WhaleMarkFishProps) {
   const [swimming, setSwimming] = useState(() => !prefersReducedMotion())
 
   useEffect(() => {
@@ -61,6 +64,7 @@ export function WhaleMarkFish({ size, motion, swing = 1, offsetX = 0, offsetY = 
     '--wl-offset-x': `${offsetX}px`,
     '--wl-offset-y': `${offsetY}px`,
   }
+  if (color !== undefined) offsetStyle.color = color
 
   return (
     <span className={css.offset} style={offsetStyle}>

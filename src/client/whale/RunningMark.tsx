@@ -1,4 +1,4 @@
-/** Running-status fish mark: settings-driven size and motion. */
+/** Running-status fish mark: settings-driven size, motion, offsets, and color. */
 import { useSyncExternalStore } from 'react'
 import type { Store } from '../store.js'
 import type { WhaleSettingsState } from '../settings.js'
@@ -24,7 +24,7 @@ export function RunningMark({ state }: RunningMarkProps) {
       swing={settings.markSwing}
       offsetX={settings.markOffsetX}
       offsetY={settings.markOffsetY}
+      color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
     />
   )
 }
-

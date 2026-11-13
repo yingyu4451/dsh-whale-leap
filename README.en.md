@@ -4,8 +4,8 @@
 
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
-- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets have a live preview that mirrors the real status row (hairline divider, 28 px row) and shows the status label.
+- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate between the dotted and code-lettered frames. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
+- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its icon color and status-label color can follow the theme or be picked. Its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets have a live preview that mirrors the real status row (hairline divider, 28 px row) and shows the status label.
 - **Settings page** — everything above lives under Settings › Whale leap. The top tab bar switches between Background and Running icon; the interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
 ## Install
@@ -37,9 +37,8 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 
 | Control | Meaning |
 | --- | --- |
-| Show in conversations | Whether the whale reappears by itself in started conversations. |
-| Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
-| Appearance interval | 5–300 s between automatic replays. |
+| Appearance mode | Both (play on a conversation switch and repeat on the interval), Switch only, Interval only, or Off. |
+| Appearance interval | 5–300 s between automatic replays; shown for Both and Interval only. |
 
 A live preview canvas sits above the controls and replays with the current settings.
 
@@ -47,7 +46,7 @@ A live preview canvas sits above the controls and replays with the current setti
 
 **Running icon**
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label — and shows the selected motion at the exact configured size, so the label follows the interface language. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
+**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label — and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
 
 **Motion**
 
@@ -58,6 +57,7 @@ The motion cards each preview their own preset, and the selected card carries a 
 - Web client only. It registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`, so it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
 - Settings are workspace-scoped and stored in the section namespace `whale-leap`.
 - Reduced motion: all playback and sway stop; the mark stays static.
+- Each appearance — on a conversation switch or on the interval — alternates between the dotted and code-lettered frames; a single playback never switches.
 - Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.

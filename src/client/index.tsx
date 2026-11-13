@@ -9,7 +9,7 @@
 import { DICTIONARIES } from './i18n.js'
 import { SettingsPage, type SettingsPageActions } from './settings/SettingsPage.js'
 import { RunningMark } from './whale/RunningMark.js'
-import { applyRunningLabelSize } from './whale/running-label.js'
+import { applyRunningLabelStyle } from './whale/running-label.js'
 import { WhaleLayer } from './whale/WhaleLayer.js'
 import { WhaleSettingsRuntime, type RuntimeContextLike, type SettingsFormLike } from './store.js'
 import { SETTINGS_NAMESPACE } from '../../shared/settings.js'
@@ -55,17 +55,26 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setOpacity: opacity => {
       runtime.setOpacity(opacity)
     },
-    setAutoAppear: enabled => {
-      runtime.setAutoAppear(enabled)
-    },
-    setPlayOnSwitch: enabled => {
-      runtime.setPlayOnSwitch(enabled)
+    setAppearMode: mode => {
+      runtime.setAppearMode(mode)
     },
     setInterval: seconds => {
       runtime.setInterval(seconds)
     },
     setReplaceMark: enabled => {
       runtime.setReplaceMark(enabled)
+    },
+    setMarkColorMode: mode => {
+      runtime.setMarkColorMode(mode)
+    },
+    setMarkColor: color => {
+      runtime.setMarkColor(color)
+    },
+    setLabelColorMode: mode => {
+      runtime.setLabelColorMode(mode)
+    },
+    setLabelColor: color => {
+      runtime.setLabelColor(color)
     },
     setMarkSize: px => {
       runtime.setMarkSize(px)
@@ -132,15 +141,22 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => {
     const syncLabel = (): void => {
       const snapshot = runtime.store.getSnapshot()
-      applyRunningLabelSize(snapshot.replaceMark ? snapshot.markLabelSize : undefined)
+      if (!snapshot.replaceMark) {
+        applyRunningLabelStyle(undefined)
+        return
+      }
+      applyRunningLabelStyle({
+        size: snapshot.markLabelSize,
+        color: snapshot.labelColorMode === 'custom' ? snapshot.labelColor : undefined,
+      })
     }
     const stopWatching = runtime.store.subscribe(syncLabel)
     syncLabel()
     return () => {
       stopWatching()
-      applyRunningLabelSize(undefined)
+      applyRunningLabelStyle(undefined)
     }
-  }, 'whale-leap: running label size')
+  }, 'whale-leap: running label style')
 
   ctx.slots.inject('settings.section', () =>
     ctx.slots.register(

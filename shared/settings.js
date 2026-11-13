@@ -20,17 +20,26 @@ export const SIZE_FIELD = 'size'
 /** Field holding the ink strength response. */
 export const OPACITY_FIELD = 'opacity'
 
-/** Field holding whether the whale reappears on its own in a started conversation. */
-export const AUTO_APPEAR_FIELD = 'autoAppear'
-
-/** Field holding whether entering a conversation replays the whale at once. */
-export const PLAY_ON_SWITCH_FIELD = 'playOnSwitch'
+/** Field holding which appearance triggers replay the whale. */
+export const APPEAR_MODE_FIELD = 'appearMode'
 
 /** Field holding seconds between automatic replays. */
 export const INTERVAL_FIELD = 'intervalSeconds'
 
 /** Field holding whether the plugin's fish replaces the shipped running mark. */
 export const REPLACE_MARK_FIELD = 'replaceMark'
+
+/** Field holding the running mark color source: theme tone or a user color. */
+export const MARK_COLOR_MODE_FIELD = 'markColorMode'
+
+/** Field holding the lowercase custom running mark color. */
+export const MARK_COLOR_FIELD = 'markColor'
+
+/** Field holding the running status label color source: theme tone or a user color. */
+export const LABEL_COLOR_MODE_FIELD = 'labelColorMode'
+
+/** Field holding the lowercase custom running status label color. */
+export const LABEL_COLOR_FIELD = 'labelColor'
 
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
@@ -52,6 +61,9 @@ export const MARK_MOTION_FIELD = 'markMotion'
 
 /** Ink source choices. */
 export const COLOR_MODES = ['theme', 'custom']
+
+/** Appearance triggers, in display order: both, switch only, interval only, off. */
+export const APPEAR_MODES = ['all', 'switch', 'timed', 'off']
 
 /** Background size multiplier bounds. */
 export const SIZE_RANGE = { min: 0.5, max: 1.5, step: 0.05 }
@@ -86,10 +98,13 @@ export const DEFAULT_SETTINGS = {
   customColor: '#7d9bff',
   size: 1,
   opacity: 0.6,
-  autoAppear: false,
-  playOnSwitch: true,
+  appearMode: 'all',
   intervalSeconds: 30,
   replaceMark: true,
+  markColorMode: 'theme',
+  markColor: '#345ebe',
+  labelColorMode: 'theme',
+  labelColor: '#345ebe',
   markSize: 14,
   markLabelSize: 12,
   markSwing: 1,
