@@ -17,6 +17,10 @@ export interface WhaleArtwork {
   rippleDurationMs: number
   /** Drawing-area multiplier, applied to the authored scene size. */
   scale: number
+  /** Horizontal start offset in CSS pixels, measured against a 1000 px wide scene. */
+  offsetX: number
+  /** Vertical start offset in CSS pixels, measured against a 1000 px wide scene. */
+  offsetY: number
 }
 
 /** The authored artwork. Opacity and scale are user settings; the rest is part of the design. */
@@ -33,4 +37,6 @@ export const WHALE_ARTWORK: WhaleArtwork = {
   frameRate: 24,
   rippleDurationMs: 5700,
   scale: 1,
+  offsetX: 0,
+  offsetY: 0,
 }

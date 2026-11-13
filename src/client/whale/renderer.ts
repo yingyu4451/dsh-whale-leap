@@ -100,6 +100,9 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let lastHeight = -1
   let lastColor = ''
   let sceneWidth = 0
+  let lastSceneWidth = -1
+  let lastOffsetX = Number.NaN
+  let lastOffsetY = Number.NaN
   let left = 0
   let top = 0
   let fill: WhaleFrameMode = 'code'
@@ -198,12 +201,19 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     const pixelHeight = Math.round(height * dpr)
     const nextSceneWidth = Math.min(Math.max(width * 0.94, 720), height * 1.6, 1120) * 1.12 * artwork.scale
     const nextColor = getComputedStyle(canvas).color
+    const offsetScale = width / 1000
+    const nextOffsetX = artwork.offsetX * offsetScale
+    const nextOffsetY = artwork.offsetY * offsetScale
     // ResizeObserver + theme mutation fire on unrelated attribute churn; layout,
     // ink, and scale unchanged means there is nothing to redraw.
-    if (width === lastWidth && height === lastHeight && nextColor === lastColor && nextSceneWidth === sceneWidth) return
+    if (width === lastWidth && height === lastHeight && nextColor === lastColor
+      && nextSceneWidth === sceneWidth && nextOffsetX === lastOffsetX && nextOffsetY === lastOffsetY) return
     lastColor = nextColor
     lastWidth = width
     lastHeight = height
+    lastSceneWidth = nextSceneWidth
+    lastOffsetX = nextOffsetX
+    lastOffsetY = nextOffsetY
     // Reallocating the backing buffer clears it and is the expensive part of a layout pass.
     if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
       canvas.width = pixelWidth
@@ -213,8 +223,8 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     ctx.fillStyle = nextColor
     sceneWidth = nextSceneWidth
     const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
-    left = (width - sceneWidth) / 2
-    top = height * 0.43 - sceneHeight / 2
+    left = (width - sceneWidth) / 2 + nextOffsetX
+    top = height * 0.43 - sceneHeight / 2 + nextOffsetY
     if (code !== undefined && sceneWidth > 0) code.resize(canvas, sceneWidth)
     resume()
   }

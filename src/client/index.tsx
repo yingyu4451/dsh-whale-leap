@@ -71,6 +71,12 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setReplaceMark: enabled => {
       runtime.setReplaceMark(enabled)
     },
+    setBgOffsetX: px => {
+      runtime.setBgOffsetX(px)
+    },
+    setBgOffsetY: px => {
+      runtime.setBgOffsetY(px)
+    },
     setMarkColorMode: mode => {
       runtime.setMarkColorMode(mode)
     },

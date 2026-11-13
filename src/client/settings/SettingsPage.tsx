@@ -7,12 +7,14 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import { createRoot, type Root } from 'react-dom/client'
+import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
 import type { WhaleColorMode, WhaleFrameMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
+import { PEEK_INTERVAL_MS, replayPeek, setPeekMode } from '../whale/peek.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
@@ -63,6 +65,10 @@ export interface SettingsPageActions {
   setMarkOffsetX: (px: number) => void
   /** Set the animated mark's vertical start offset. */
   setMarkOffsetY: (px: number) => void
+  /** Move the background scene horizontally. */
+  setBgOffsetX: (px: number) => void
+  /** Move the background scene vertically. */
+  setBgOffsetY: (px: number) => void
   /** Choose the running mark motion. */
   setMarkMotion: (motion: WhaleMarkMotion) => void
 }
@@ -317,18 +323,18 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
     whale.current = handle
     handle.prefetch()
     const current = latest.current
-    handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size * PREVIEW_SCALE })
+    handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size * PREVIEW_SCALE, offsetX: current.bgOffsetX, offsetY: current.bgOffsetY })
     handle.setFrameMode(current.frameMode)
     handle.setAutoPlay(PREVIEW_INTERVAL_MS)
   }, [])
 
-  const { opacity, size, colorMode, customColor, frameMode } = settings
+  const { opacity, size, colorMode, customColor, frameMode, bgOffsetX, bgOffsetY } = settings
   useEffect(() => {
     const handle = whale.current
     if (handle === undefined) return
-    handle.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE })
+    handle.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE, offsetX: bgOffsetX, offsetY: bgOffsetY })
     handle.play()
-  }, [opacity, size, colorMode, customColor])
+  }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
 
   useEffect(() => {
     const handle = whale.current
@@ -353,6 +359,124 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
   return <canvas ref={canvasRef} className={css.stageCanvas} aria-hidden="true" />
 }
 
+/** One compact slider inside the floating preview bar. */
+function PeekSlider(props: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  display: string
+  disabled: boolean
+  onChange: (value: number) => void
+}) {
+  return (
+    <label className={css.peekSlider}>
+      <span className={css.peekSliderLabel}>{props.label}</span>
+      <input
+        type="range"
+        min={props.min}
+        max={props.max}
+        step={props.step}
+        value={props.value}
+        disabled={props.disabled}
+        onChange={event => {
+          props.onChange(Number(event.currentTarget.value))
+        }}
+      />
+      <span className={css.peekValue}>{props.display}</span>
+    </label>
+  )
+}
+
+/**
+ * Floating controls shown after the settings dialog is temporarily hidden, so
+ * the background size and start offsets can be tuned against the real conversation.
+ * @param props.t - locale-bound translator.
+ * @param props.state - live whale settings.
+ * @param props.actions - write callbacks.
+ * @param props.onReturn - restore the settings dialog.
+ * @returns the floating bar.
+ */
+function PeekBar({ t, state, actions, onReturn }: {
+  t: Translate
+  state: Store<WhaleSettingsState>
+  actions: SettingsPageActions
+  onReturn: () => void
+}) {
+  const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
+  const disabled = !settings.writable
+  return (
+    <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')}>
+      <div className={css.peekHead}>
+        <span className={css.peekTitle}>{t('peekTitle')}</span>
+        <span className={css.peekHint}>{t('peekHint')}</span>
+        <button type="button" className={css.peekReplay} onClick={replayPeek}>
+          {t('replay')}
+        </button>
+        <button type="button" className={css.peekReturn} onClick={onReturn}>
+          {t('peekReturn')}
+        </button>
+      </div>
+      <div className={css.peekControls}>
+        <PeekSlider
+          label={t('size')}
+          value={settings.size}
+          min={SIZE_RANGE.min}
+          max={SIZE_RANGE.max}
+          step={SIZE_RANGE.step}
+          display={`${Math.round(settings.size * 100)}%`}
+          disabled={disabled}
+          onChange={actions.setSize}
+        />
+        <PeekSlider
+          label={t('bgOffsetX')}
+          value={settings.bgOffsetX}
+          min={BG_OFFSET_RANGE.min}
+          max={BG_OFFSET_RANGE.max}
+          step={BG_OFFSET_RANGE.step}
+          display={formatOffsetPx(settings.bgOffsetX)}
+          disabled={disabled}
+          onChange={actions.setBgOffsetX}
+        />
+        <PeekSlider
+          label={t('bgOffsetY')}
+          value={settings.bgOffsetY}
+          min={BG_OFFSET_RANGE.min}
+          max={BG_OFFSET_RANGE.max}
+          step={BG_OFFSET_RANGE.step}
+          display={formatOffsetPx(settings.bgOffsetY)}
+          disabled={disabled}
+          onChange={actions.setBgOffsetY}
+        />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Find the fixed overlay that hosts the settings dialog, so preview mode can
+ * hide it without hiding the conversation behind it.
+ * @param start - the plugin settings section.
+ * @returns the overlay element, or the dialog itself when no full-size overlay exists.
+ */
+function findSettingsOverlay(start: HTMLElement | null): HTMLElement | null {
+  if (start === null || typeof window === 'undefined') return null
+  let dialog: HTMLElement | null = null
+  let overlay: HTMLElement | null = null
+  let node: HTMLElement | null = start
+  while (node !== null && node !== document.body) {
+    if (node.getAttribute('role') === 'dialog') dialog = node
+    const style = getComputedStyle(node)
+    if (style.position === 'fixed') {
+      const box = node.getBoundingClientRect()
+      if (box.width >= window.innerWidth * 0.9 && box.height >= window.innerHeight * 0.5) overlay = node
+    }
+    node = node.parentElement
+  }
+  return overlay ?? dialog
+}
+
 /**
  * Plugin settings page.
  * @param props.t - locale-bound translator.
@@ -366,28 +490,53 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
   const [replayToken, setReplayToken] = useState(0)
   const rootRef = useRef<HTMLElement | null>(null)
-  const headerRef = useRef<HTMLElement | null>(null)
-  const tabsRef = useRef<HTMLDivElement | null>(null)
+  const [peeking, setPeeking] = useState(false)
+  const overlayRef = useRef<{ element: HTMLElement; display: string } | null>(null)
+  const live = useRef({ t, state, actions })
+  live.current = { t, state, actions }
   const disabled = !settings.writable
 
   useEffect(() => {
-    const root = rootRef.current
-    const header = headerRef.current
-    const tabs = tabsRef.current
-    if (root === null || header === null || tabs === null) return
-    const measure = (): void => {
-      root.style.setProperty('--wl-tabs-top', `${header.offsetHeight}px`)
-      root.style.setProperty('--wl-stage-top', `${header.offsetHeight + tabs.offsetHeight}px`)
+    if (!peeking) return
+    const overlay = findSettingsOverlay(rootRef.current)
+    if (overlay !== null) {
+      overlayRef.current = { element: overlay, display: overlay.style.display }
+      overlay.style.display = 'none'
     }
-    measure()
-    if (typeof ResizeObserver !== 'function') return
-    const observer = new ResizeObserver(measure)
-    observer.observe(header)
-    observer.observe(tabs)
+    const host = document.createElement('div')
+    document.body.append(host)
+    const root = createRoot(host)
+    root.render(
+      <PeekBar
+        t={live.current.t}
+        state={live.current.state}
+        actions={live.current.actions}
+        onReturn={() => {
+          setPeeking(false)
+        }}
+      />,
+    )
+    setPeekMode(true)
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setPeeking(false)
+    }
+    window.addEventListener('keydown', onKey)
+    const safety = window.setTimeout(() => {
+      setPeeking(false)
+    }, 120000)
     return () => {
-      observer.disconnect()
+      window.clearTimeout(safety)
+      window.removeEventListener('keydown', onKey)
+      setPeekMode(false)
+      root.unmount()
+      host.remove()
+      const hidden = overlayRef.current
+      if (hidden !== null) {
+        hidden.element.style.display = hidden.display
+        overlayRef.current = null
+      }
     }
-  }, [])
+  }, [peeking])
 
   const checkForUpdates = useCallback(async (): Promise<void> => {
     setUpdate({ status: 'checking' })
@@ -418,8 +567,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     update.status === 'timeout'
 
   return (
-    <section className={css.section} ref={rootRef}>
-      <header className={css.header} ref={headerRef}>
+    <section className={css.section} ref={rootRef} data-whale-leap-settings>
+      <div className={css.stickyTop}>
+        <header className={css.header}>
         <div className={css.headerTop}>
           <h2 className={css.title}>{t('nav')}</h2>
           <span className={css.version}>{t('version', { version: PLUGIN_VERSION })}</span>
@@ -461,7 +611,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
         )}
       </header>
 
-      <div className={css.tabs} role="tablist" aria-label={t('nav')} ref={tabsRef}>
+      <div className={css.tabs} role="tablist" aria-label={t('nav')}>
         {TABS.map(item => (
           <button
             key={item.value}
@@ -480,6 +630,66 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
         ))}
       </div>
 
+      {tab === 'background' ? (
+        <div className={css.stage}>
+          <PreviewWhale settings={settings} replayToken={replayToken} />
+          <div className={css.stageActions}>
+            <button
+              type="button"
+              className={css.stageReplay}
+              onClick={() => {
+                setReplayToken(token => token + 1)
+              }}
+            >
+              {t('replay')}
+            </button>
+            <button
+              type="button"
+              className={css.stagePeek}
+              onClick={() => {
+                setPeeking(true)
+              }}
+            >
+              {t('peek')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={css.markStage}>
+          {settings.replaceMark ? (
+            <div className={css.markSim}>
+              <span className={css.markSimDivider} aria-hidden="true" />
+              <span className={css.markSimContent}>
+                <span className={css.markIcon}>
+                  <WhaleMarkFish
+                    size={settings.markSize}
+                    motion={settings.markMotion}
+                    swing={settings.markSwing}
+                    offsetX={settings.markOffsetX}
+                    offsetY={settings.markOffsetY}
+                    color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
+                  />
+                </span>
+                <span
+                  className={css.markRunningLabel}
+                  style={{
+                    fontSize: `${settings.markLabelSize}px`,
+                    color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
+                  }}
+                  data-running-label
+                >
+                  {t('runningLabel')}
+                </span>
+              </span>
+            </div>
+          ) : (
+            <span className={css.markStageOff}>{t('markStageOff')}</span>
+          )}
+          {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
+        </div>
+      )}
+      </div>
+
       <div className={css.panel}>
         {tab === 'background' ? (
           <div
@@ -488,19 +698,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-background"
             className={css.tabPanel}
           >
-            <div className={css.stage}>
-              <PreviewWhale settings={settings} replayToken={replayToken} />
-              <button
-                type="button"
-                className={css.stageReplay}
-                onClick={() => {
-                  setReplayToken(token => token + 1)
-                }}
-              >
-                {t('replay')}
-              </button>
-            </div>
-
             <Group title={t('groupAppearance')}>
               <ColorPickerRow
                 id="whale-leap-custom-color"
@@ -527,6 +724,33 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 disabled={disabled}
                 onChange={actions.setSize}
               />
+
+              <SliderRow
+                id="whale-leap-bg-offset-x"
+                label={t('bgOffsetX')}
+                hint={t('bgOffsetXHint')}
+                value={settings.bgOffsetX}
+                min={BG_OFFSET_RANGE.min}
+                max={BG_OFFSET_RANGE.max}
+                step={BG_OFFSET_RANGE.step}
+                display={formatOffsetPx(settings.bgOffsetX)}
+                disabled={disabled}
+                onChange={actions.setBgOffsetX}
+              />
+
+              <SliderRow
+                id="whale-leap-bg-offset-y"
+                label={t('bgOffsetY')}
+                hint={t('bgOffsetYHint')}
+                value={settings.bgOffsetY}
+                min={BG_OFFSET_RANGE.min}
+                max={BG_OFFSET_RANGE.max}
+                step={BG_OFFSET_RANGE.step}
+                display={formatOffsetPx(settings.bgOffsetY)}
+                disabled={disabled}
+                onChange={actions.setBgOffsetY}
+              />
+
 
               <SliderRow
                 id="whale-leap-strength"
@@ -599,39 +823,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-mark"
             className={css.tabPanel}
           >
-            <div className={css.markStage}>
-              {settings.replaceMark ? (
-                <div className={css.markSim}>
-                  <span className={css.markSimDivider} aria-hidden="true" />
-                  <span className={css.markSimContent}>
-                    <span className={css.markIcon}>
-                      <WhaleMarkFish
-                        size={settings.markSize}
-                        motion={settings.markMotion}
-                        swing={settings.markSwing}
-                        offsetX={settings.markOffsetX}
-                        offsetY={settings.markOffsetY}
-                        color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
-                      />
-                    </span>
-                    <span
-                      className={css.markRunningLabel}
-                      style={{
-                        fontSize: `${settings.markLabelSize}px`,
-                        color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
-                      }}
-                      data-running-label
-                    >
-                      {t('runningLabel')}
-                    </span>
-                  </span>
-                </div>
-              ) : (
-                <span className={css.markStageOff}>{t('markStageOff')}</span>
-              )}
-              {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
-            </div>
-
             <Group title={t('groupIcon')}>
               <ToggleRow
                 label={t('replaceMark')}

@@ -7,6 +7,7 @@
  */
 import z from '@deepseek-ai/schemastery'
 import {
+  BG_OFFSET_RANGE,
   COLOR_MODES,
   CUSTOM_COLOR_PATTERN,
   DEFAULT_SETTINGS,
@@ -44,6 +45,10 @@ export const Config = z.object({
   intervalSeconds: z.number().step(INTERVAL_RANGE.step).min(INTERVAL_RANGE.min).max(INTERVAL_RANGE.max).default(DEFAULT_SETTINGS.intervalSeconds).volatile(),
   /** Whether the plugin's fish replaces the shipped running mark. */
   replaceMark: z.boolean().default(DEFAULT_SETTINGS.replaceMark).volatile(),
+  /** Background scene horizontal start offset in pixels. */
+  bgOffsetX: z.number().step(BG_OFFSET_RANGE.step).min(BG_OFFSET_RANGE.min).max(BG_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.bgOffsetX).volatile(),
+  /** Background scene vertical start offset in pixels. */
+  bgOffsetY: z.number().step(BG_OFFSET_RANGE.step).min(BG_OFFSET_RANGE.min).max(BG_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.bgOffsetY).volatile(),
   /** Running mark color source: theme tone or a custom pick. */
   markColorMode: z.union([...COLOR_MODES]).default(DEFAULT_SETTINGS.markColorMode).volatile(),
   /** Lowercase custom running mark color. */

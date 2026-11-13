@@ -67,6 +67,8 @@ const landmarks = {
   englishFrameMode: englishPage.includes('Frame mode') && englishPage.includes('Glyphs') && englishPage.includes('Lines'),
   autoToggle: (page.includes('autoHint') || page.includes('autoOffHint')) && page.includes('role="switch"'),
   replayButton: page.includes('stageReplay'),
+  peekButton: page.includes('stagePeek'),
+  bgOffsetSliders: page.includes('whale-leap-bg-offset-x') && page.includes('whale-leap-bg-offset-y'),
   englishAutoToggle: englishPage.includes('Show in conversations') && englishPage.includes('role="switch"'),
   markColorRows: markPage.includes('whale-leap-mark-color') && markPage.includes('whale-leap-label-color'),
   englishColors: englishMarkPage.includes('Icon color') && englishMarkPage.includes('Text color'),

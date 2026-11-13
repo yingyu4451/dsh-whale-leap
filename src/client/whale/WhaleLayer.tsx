@@ -6,10 +6,11 @@
  * in a started conversation it wraps the body in its own isolating layer so the
  * negative-z canvas stays behind the transcript.
  */
-import { useCallback, useEffect, useRef, useSyncExternalStore, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { WHALE_ARTWORK } from './artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from './renderer.js'
 import { ATLAS_URL } from '../atlas.js'
+import { PEEK_EVENT, PEEK_INTERVAL_MS, PEEK_PLAY_EVENT } from './peek.js'
 import type { Store } from '../store.js'
 import type { WhaleSettingsState } from '../settings.js'
 import css from './whale.module.css'
@@ -79,14 +80,40 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     handle.prefetch()
   }, [])
 
-  const { opacity, size, colorMode, customColor, frameMode } = settings
+  const { opacity, size, colorMode, customColor, frameMode, bgOffsetX, bgOffsetY } = settings
   useEffect(() => {
-    whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size })
-  }, [opacity, size, colorMode, customColor])
+    whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
+  }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
 
   useEffect(() => {
     whale.current?.setFrameMode(frameMode)
   }, [frameMode])
+
+  const [peek, setPeek] = useState(false)
+  useEffect(() => {
+    const onPeek = (event: Event): void => {
+      const detail = (event as CustomEvent<{ active?: boolean }>).detail
+      setPeek(detail?.active === true)
+    }
+    window.addEventListener(PEEK_EVENT, onPeek)
+    return () => {
+      window.removeEventListener(PEEK_EVENT, onPeek)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!peek) return
+    whale.current?.play()
+    const replay = (): void => {
+      whale.current?.play()
+    }
+    window.addEventListener(PEEK_PLAY_EVENT, replay)
+    const timer = setInterval(replay, PEEK_INTERVAL_MS)
+    return () => {
+      window.removeEventListener(PEEK_PLAY_EVENT, replay)
+      clearInterval(timer)
+    }
+  }, [peek])
 
   const { autoAppear, intervalSeconds, playOnSwitch } = settings
   useEffect(() => {
@@ -97,13 +124,14 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     if (isBlankClick(event)) whale.current?.play()
   }
 
+  const draws = hero || autoAppear || peek
   return (
     <div
-      className={hero || !autoAppear ? css.layer : css.autoLayer}
+      className={hero || (!autoAppear && !peek) ? css.layer : css.autoLayer}
       data-whale-layer={hero ? 'hero' : autoAppear ? 'auto' : 'plain'}
       onClick={onClick}
     >
-      {(hero || autoAppear) && (
+      {draws && (
         <canvas
           ref={canvasRef}
           className={css.canvas}

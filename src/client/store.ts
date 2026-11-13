@@ -5,7 +5,7 @@
  * observable store that both the settings page and the two artwork slots read.
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
-import { DEFAULT_SETTINGS, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
+import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
 import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFrameMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
@@ -193,6 +193,26 @@ export class WhaleSettingsRuntime {
   setReplaceMark(enabled: boolean): void {
     this.patch({ replaceMark: enabled })
     this.commit('replaceMark', enabled)
+  }
+
+  /**
+   * Move the background scene horizontally.
+   * @param px - requested offset in pixels.
+   */
+  setBgOffsetX(px: number): void {
+    const next = clamp(px, BG_OFFSET_RANGE)
+    this.patch({ bgOffsetX: next })
+    this.schedule('bgOffsetX', next)
+  }
+
+  /**
+   * Move the background scene vertically.
+   * @param px - requested offset in pixels.
+   */
+  setBgOffsetY(px: number): void {
+    const next = clamp(px, BG_OFFSET_RANGE)
+    this.patch({ bgOffsetY: next })
+    this.schedule('bgOffsetY', next)
   }
 
   /**

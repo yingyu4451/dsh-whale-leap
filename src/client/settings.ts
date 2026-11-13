@@ -36,6 +36,10 @@ export interface WhaleSettings {
   intervalSeconds: number
   /** Whether the plugin's fish replaces the shipped running mark. */
   replaceMark: boolean
+  /** Background scene horizontal start offset in pixels. */
+  bgOffsetX: number
+  /** Background scene vertical start offset in pixels. */
+  bgOffsetY: number
   /** Running mark color source. */
   markColorMode: WhaleColorMode
   /** Lowercase custom running mark color. */

@@ -52,7 +52,7 @@ expect(typeof host.apply === 'function', 'apply is exported')
 expect(host.Config !== undefined, 'Config is exported')
 
 const schema = JSON.stringify(host.Config.toJSON())
-for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'frameMode', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'markColorMode', 'markColor', 'labelColorMode', 'labelColor', 'markSize', 'markLabelSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
+for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'frameMode', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'bgOffsetX', 'bgOffsetY', 'markColorMode', 'markColor', 'labelColorMode', 'labelColor', 'markSize', 'markLabelSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
   expect(schema.includes(`"${field}"`), `schema contains ${field}`)
 }
 expect(schema.includes('"volatile":true'), 'schema marks fields volatile')
@@ -75,5 +75,5 @@ if (failures.length > 0) {
   console.error('Host check failed:', failures.join('; '))
   process.exitCode = 1
 } else {
-  console.log(JSON.stringify({ ok: true, fields: 19, frameModes: 6 }, null, 2))
+  console.log(JSON.stringify({ ok: true, fields: 21, frameModes: 6 }, null, 2))
 }

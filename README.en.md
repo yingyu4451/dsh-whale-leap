@@ -31,6 +31,8 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | --- | --- |
 | Color | Follow the theme's text tone, or pick a custom ink color. |
 | Background size | Scale of the painted scene (50 %–150 %). |
+| Horizontal position | Start X of the background whale, −200 to +200 px; negative moves left, positive right. |
+| Vertical position | Start Y of the background whale, −200 to +200 px; negative moves up, positive down. |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
 | Frame mode | Alternate dots + code (default), dots, code lettering, ASCII glyphs, binary tokens, or hatching. |
 
@@ -42,7 +44,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, appearance changes replay it automatically, and while you scroll, the header and tabs stay pinned while the preview keeps its full height below them, so neither the preview nor anything above it is hidden.
+A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. “Preview in conversation” hides the settings dialog and keeps the whale playing on a loop in the real conversation, while a small floating bar lets you adjust the background size and the horizontal/vertical start offsets; press Esc or Back to settings to return.
 
 ### Running icon tab
 
@@ -62,6 +64,7 @@ The motion cards each preview their own preset, and the selected card carries a 
 - Reduced motion: all playback and sway stop; the mark stays static.
 - Each appearance — on a conversation switch or on the interval — alternates between the dotted and code-lettered frames; a single playback never switches.
 - Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
+- The background start offsets can also be tuned in the live conversation: hide the settings, then drag the sliders in the floating bar.
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
 - **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, the DOM adapter mounts the mark and hides the shipped icon.

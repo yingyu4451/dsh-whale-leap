@@ -8,10 +8,18 @@
   color: var(--dsw-alias-label-primary);
 }
 
-.header {
+.stickyTop {
   position: sticky;
   top: 0;
   z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+.header {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -144,9 +152,6 @@
 }
 
 .tabs {
-  position: sticky;
-  top: var(--wl-tabs-top, 0px);
-  z-index: 3;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -234,11 +239,10 @@
   padding: 14px 18px;
 }
 
-/* Sticky below the pinned header and tabs so the live preview stays in view. */
+/* The header, tab bar, and live preview share one sticky block, so scrolling
+   content never slides between them. */
 .stage {
-  position: sticky;
-  top: var(--wl-stage-top, 100px);
-  z-index: 2;
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
@@ -258,10 +262,16 @@
   pointer-events: none;
 }
 
-.stageReplay {
+.stageActions {
   position: absolute;
   right: 10px;
   bottom: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.stageReplay,
+.stagePeek {
   height: 22px;
   padding: 0 8px;
   border: 0.5px solid var(--dsw-alias-border-l2);
@@ -274,7 +284,12 @@
   cursor: pointer;
 }
 
-.stageReplay:hover {
+.stagePeek {
+  color: var(--dsw-alias-state-business-primary);
+}
+
+.stageReplay:hover,
+.stagePeek:hover {
   color: var(--dsw-alias-label-primary);
 }
 
@@ -291,11 +306,9 @@
   pointer-events: none;
 }
 
-/* Sticky below the pinned header and tabs so the simulated row stays in view. */
+/* Part of the same sticky block as the header and tab bar. */
 .markStage {
-  position: sticky;
-  top: var(--wl-stage-top, 100px);
-  z-index: 2;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -665,5 +678,115 @@
   .rowStacked .choiceButton,
   .rowStacked .choiceSelected {
     flex: 1;
+  }
+}
+
+/* Floating controls shown after the settings dialog is hidden for a live preview. */
+.peekBar {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(720px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-xl);
+  background: var(--dsw-alias-bg-layer-2);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  color: var(--dsw-alias-label-primary);
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.peekHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.peekTitle {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.peekHint {
+  flex: 1;
+  min-width: 120px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.peekReplay,
+.peekReturn {
+  height: 26px;
+  padding: 0 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-sm);
+  font-size: 12px;
+  line-height: 18px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.peekReplay {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-secondary);
+}
+
+.peekReturn {
+  background: var(--dsw-alias-state-business-primary);
+  border-color: transparent;
+  color: var(--dsw-alias-label-on-color);
+}
+
+.peekControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.peekSlider {
+  display: flex;
+  flex: 1 1 200px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.peekSliderLabel {
+  flex: none;
+  min-width: 52px;
+}
+
+.peekSlider input {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--dsw-alias-state-business-primary);
+}
+
+.peekValue {
+  flex: none;
+  min-width: 42px;
+  font-size: 12px;
+  text-align: right;
+  color: var(--dsw-alias-label-primary);
+}
+
+@media (max-width: 520px) {
+  .peekBar {
+    bottom: 12px;
+    padding: 10px 12px;
+  }
+
+  .peekSlider {
+    flex-basis: 100%;
   }
 }

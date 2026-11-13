@@ -47,6 +47,12 @@ export const LABEL_COLOR_MODE_FIELD = 'labelColorMode'
 /** Field holding the lowercase custom running status label color. */
 export const LABEL_COLOR_FIELD = 'labelColor'
 
+/** Field holding the background scene's horizontal start offset in pixels. */
+export const BG_OFFSET_X_FIELD = 'bgOffsetX'
+
+/** Field holding the background scene's vertical start offset in pixels. */
+export const BG_OFFSET_Y_FIELD = 'bgOffsetY'
+
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
@@ -89,6 +95,9 @@ export const MARK_LABEL_SIZE_RANGE = { min: 11, max: 20, step: 1 }
 /** Running-mark horizontal swing bounds, as a multiplier of the preset amplitude. */
 export const MARK_SWING_RANGE = { min: 0.5, max: 2, step: 0.1 }
 
+/** Background start-offset bounds in pixels, horizontal and vertical; the scene is 1000 px wide at scale 1. */
+export const BG_OFFSET_RANGE = { min: -200, max: 200, step: 2 }
+
 /** Running-mark start-offset bounds in pixels, horizontal and vertical. */
 export const MARK_OFFSET_RANGE = { min: -12, max: 12, step: 0.5 }
 
@@ -109,6 +118,8 @@ export const DEFAULT_SETTINGS = {
   playOnSwitch: true,
   intervalSeconds: 30,
   replaceMark: true,
+  bgOffsetX: 0,
+  bgOffsetY: 0,
   markColorMode: 'theme',
   markColor: '#345ebe',
   labelColorMode: 'theme',
