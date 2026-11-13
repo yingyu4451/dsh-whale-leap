@@ -17,6 +17,7 @@ import {
   INTERVAL_RANGE,
   MARK_MOTIONS,
   MARK_SIZE_RANGE,
+  MARK_SWING_RANGE,
   OPACITY_RANGE,
   SIZE_RANGE,
 } from './shared/settings.js'
@@ -98,6 +99,8 @@ export const Config = z.object({
   replaceMark: z.boolean().default(DEFAULT_SETTINGS.replaceMark).volatile(),
   /** Running mark size in pixels. */
   markSize: z.number().step(MARK_SIZE_RANGE.step).min(MARK_SIZE_RANGE.min).max(MARK_SIZE_RANGE.max).default(DEFAULT_SETTINGS.markSize).volatile(),
+  /** Running mark swing amplitude multiplier. */
+  markSwing: z.number().step(MARK_SWING_RANGE.step).min(MARK_SWING_RANGE.min).max(MARK_SWING_RANGE.max).default(DEFAULT_SETTINGS.markSwing).volatile(),
   /** Running mark motion preset. */
   markMotion: z.union([...MARK_MOTIONS]).default(DEFAULT_SETTINGS.markMotion).volatile(),
 })

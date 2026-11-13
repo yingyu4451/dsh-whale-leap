@@ -17,6 +17,6 @@ export interface RunningMarkProps {
  */
 export function RunningMark({ state }: RunningMarkProps) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
-  return <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} />
+  return <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} swing={settings.markSwing} />
 }
 

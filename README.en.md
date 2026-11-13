@@ -5,7 +5,7 @@
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
 - **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
-- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px) has a live preview that also shows the status label.
+- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px) and swing amplitude (50 %–200 %) have a live preview that also shows the status label.
 - **Settings page** — everything above lives under Settings › Whale leap. The top tab bar switches between Background and Running icon; the interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
 ## Install
@@ -21,15 +21,22 @@ The settings header shows the running version and a **Check for updates** button
 
 ## Settings
 
-Tabs sit in a full-width bar above the panel; the selected tab is a filled segment.
+Tabs sit in a full-width bar above the panel; the selected tab is a filled segment. Each tab groups its controls by topic: a small group title sits above the card that holds the rows.
 
 ### Background tab
+
+**Appearance**
 
 | Control | Meaning |
 | --- | --- |
 | Color | Follow the theme's text tone, or pick a custom ink color. |
 | Background size | Scale of the painted scene (50 %–150 %). |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
+
+**Playback**
+
+| Control | Meaning |
+| --- | --- |
 | Show in conversations | Whether the whale reappears by itself in started conversations. |
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
@@ -38,13 +45,20 @@ A live preview canvas sits above the controls and replays with the current setti
 
 ### Running icon tab
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices shows the selected motion at the exact configured size beside the running-status label, so the preview matches the real row and the label follows the interface language. The motion cards each preview their own preset, and the selected card carries a text badge, not just a highlight. The size slider sets the mark's box, 8–28 px.
+**Running icon**
+
+**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices shows the selected motion at the exact configured size beside the running-status label, so the preview matches the real row and the label follows the interface language. The size slider sets the mark's box, 8–28 px.
+
+**Motion**
+
+The motion cards each preview their own preset, and the selected card carries a text badge, not just a highlight. The swing amplitude slider scales the horizontal travel of Swimming, Explore, and Gentle sway from 50 % to 200 %; Home swim keeps the exact home-page amplitude.
 
 ## Behavior and limits
 
 - Web client only. It registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`, so it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
 - Settings are workspace-scoped and stored in the section namespace `whale-leap`.
 - Reduced motion: all playback and sway stop; the mark stays static.
+- Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
 - **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. It does require a DSH build that declares `conversation.chat.running.mark` (current checkout).

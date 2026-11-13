@@ -32,18 +32,18 @@
 
 /* Side-to-side float (sway preset). Starting and ending at the same extreme
    keeps the loop seamless; easing only at the extremes means no stall at the
-   center. */
+   center. --wl-swing scales the horizontal travel from the settings page. */
 @keyframes whale-mark-sway {
   0% {
-    transform: translate3d(-0.6px, 0, 0) rotate(-1.15deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * -0.9px), 0, 0) rotate(-1.4deg);
   }
 
   50% {
-    transform: translate3d(0.6px, -0.25px, 0) rotate(1.15deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * 0.9px), -0.3px, 0) rotate(1.4deg);
   }
 
   100% {
-    transform: translate3d(-0.6px, 0, 0) rotate(-1.15deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * -0.9px), 0, 0) rotate(-1.4deg);
   }
 }
 
@@ -52,22 +52,22 @@
 @keyframes whale-mark-drift {
   0%,
   100% {
-    transform: translate3d(-1px, 0.15px, 0);
+    transform: translate3d(calc(var(--wl-swing, 1) * -1.2px), 0.18px, 0);
   }
 
   50% {
-    transform: translate3d(1px, -0.15px, 0);
+    transform: translate3d(calc(var(--wl-swing, 1) * 1.2px), -0.18px, 0);
   }
 }
 
 @keyframes whale-mark-yaw {
   0%,
   100% {
-    transform: rotate(-1.3deg);
+    transform: rotate(-1.8deg);
   }
 
   50% {
-    transform: rotate(1.3deg);
+    transform: rotate(1.8deg);
   }
 }
 
@@ -76,15 +76,15 @@
 @keyframes whale-mark-explore {
   0%,
   100% {
-    transform: translate3d(-0.7px, 0.35px, 0) rotate(-0.8deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * -1.2px), 0.4px, 0) rotate(-1.2deg);
   }
 
   32% {
-    transform: translate3d(1.1px, -1.1px, 0) rotate(-3deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * 1.8px), -1.2px, 0) rotate(-3.6deg);
   }
 
   64% {
-    transform: translate3d(1.4px, -0.2px, 0) rotate(2deg);
+    transform: translate3d(calc(var(--wl-swing, 1) * 2.2px), -0.2px, 0) rotate(2.6deg);
   }
 }
 

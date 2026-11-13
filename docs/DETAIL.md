@@ -5,8 +5,8 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 ## What it adds
 
 - A whale canvas behind the blank home. With **Show in conversations** enabled it also paints behind started conversations, replaying on a configurable interval. Clicking blank conversation space replays it once.
-- A swimming fish mark left of the running Turn label. A switch decides whether it replaces the shipped whale tail; the fish uses the same silhouette as the blank home, at a size of 8–28 px, with four motion presets and a live size preview.
-- A settings section, **Settings › Whale leap**, split into a Background tab and a Running icon tab.
+- A swimming fish mark left of the running Turn label. A switch decides whether it replaces the shipped whale tail; the fish uses the same silhouette as the blank home, at a size of 8–28 px with a swing amplitude of 50 %–200 %, four motion presets, and a live preview.
+- A settings section, **Settings › Whale leap**, split into a Background tab and a Running icon tab; each tab groups its controls under Appearance, Playback, Running icon, or Motion headings.
 - A version line and **Check for updates** in the settings header: it reads the latest GitHub release (falling back to tags), links the newer release, and reports plainly when nothing has been released.
 
 ## Use
@@ -20,7 +20,8 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 - Color: follow the theme text tone or pick a custom ink color.
 - Background size: 50 %–150 % of the authored scene. Ink strength: 10 %–100 %; the source atlas keeps dots faint, so 60 % preserves the authored look and 100 % saturates them into solid black.
 - Show in conversations: the whale appears on its own after a conversation starts. **Appear when switching conversations** decides whether entering a conversation plays immediately or waits for the next interval. The interval is 5–300 s.
-- Running icon: **Replace the running icon** toggles the fish against the shipped whale tail. Choose Swimming, Explore, Home swim, or Gentle sway; every card animates its own preset, the stage above shows the mark at the exact configured size beside the running-status label while you drag the slider, and the selected card shows a text badge as well as a highlight. The label follows the interface language.
+- Running icon: **Replace the running icon** toggles the fish against the shipped whale tail. Choose Swimming, Explore, Home swim, or Gentle sway; every card animates its own preset, the stage above shows the mark at the exact configured size beside the running-status label while you drag the slider, and the selected card shows a text badge as well as a highlight. The label follows the interface language. **Swing amplitude** (50 %–200 %) scales only Swimming, Explore, and Gentle sway; Home swim keeps the home page's own amplitude.
+- The settings page groups controls by topic: a small heading sits above the card that holds the rows.
 - The code-lettered fill scales its lettering with the background scene width, so previews and narrow panes keep the authored text proportion.
 - Reduced motion: playback and sway stop; the mark stays static.
 - The background canvas caps its backing store at five million pixels and reuses the buffer across layout passes.

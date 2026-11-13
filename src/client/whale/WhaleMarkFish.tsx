@@ -1,5 +1,5 @@
 /** Animated fish mark for the running status and the settings previews. */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import type { WhaleMarkMotion } from '../settings.js'
 import { FISH_LOGO_PATH, FISH_LOGO_VIEWBOX, FISH_SWIM_DOWN_PATH, FISH_SWIM_UP_PATH } from './fish-paths.js'
 import css from './running-mark.module.css'
@@ -10,6 +10,8 @@ export interface WhaleMarkFishProps {
   size: number
   /** Motion preset. */
   motion: WhaleMarkMotion
+  /** Horizontal swing amplitude multiplier; 1 keeps the authored amplitude. */
+  swing?: number
 }
 
 /**
@@ -24,9 +26,10 @@ function prefersReducedMotion(): boolean {
  * Fish silhouette that keeps swimming while rendered.
  * @param props.size - box size in pixels.
  * @param props.motion - motion preset.
+ * @param props.swing - horizontal swing amplitude multiplier.
  * @returns the animated mark.
  */
-export function WhaleMarkFish({ size, motion }: WhaleMarkFishProps) {
+export function WhaleMarkFish({ size, motion, swing = 1 }: WhaleMarkFishProps) {
   const [swimming, setSwimming] = useState(() => !prefersReducedMotion())
 
   useEffect(() => {
@@ -43,9 +46,14 @@ export function WhaleMarkFish({ size, motion }: WhaleMarkFishProps) {
   }, [])
 
   const values = `${FISH_LOGO_PATH};${FISH_SWIM_UP_PATH};${FISH_LOGO_PATH};${FISH_SWIM_DOWN_PATH};${FISH_LOGO_PATH}`
+  const style: CSSProperties & Record<string, string | number> = {
+    width: size,
+    height: size,
+    '--wl-swing': String(swing),
+  }
 
   return (
-    <span className={css.mark} data-motion={motion} style={{ width: size, height: size }}>
+    <span className={css.mark} data-motion={motion} style={style}>
       <svg
         className={css.svg}
         data-swimming={swimming ? '' : undefined}

@@ -69,6 +69,9 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setMarkSize: px => {
       runtime.setMarkSize(px)
     },
+    setMarkSwing: amplitude => {
+      runtime.setMarkSwing(amplitude)
+    },
     setMarkMotion: motion => {
       runtime.setMarkMotion(motion)
     },

@@ -7,7 +7,7 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, INTERVAL_RANGE, MARK_MOTIONS, MARK_SIZE_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import { COLOR_MODES, INTERVAL_RANGE, MARK_MOTIONS, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
 import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
@@ -45,6 +45,8 @@ export interface SettingsPageActions {
   setReplaceMark: (enabled: boolean) => void
   /** Set the running mark size. */
   setMarkSize: (px: number) => void
+  /** Scale the horizontal swing of the animated mark. */
+  setMarkSwing: (amplitude: number) => void
   /** Choose the running mark motion. */
   setMarkMotion: (motion: WhaleMarkMotion) => void
 }
@@ -96,6 +98,16 @@ function Row({ label, hint, control }: { label: string; hint?: string; control: 
       </div>
       <div className={css.control}>{control}</div>
     </div>
+  )
+}
+
+/** One titled group of related settings. */
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className={css.group} aria-label={title}>
+      <h3 className={css.groupTitle}>{title}</h3>
+      <div className={css.card}>{children}</div>
+    </section>
   )
 }
 
@@ -318,13 +330,19 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       </div>
 
       <div className={css.panel}>
-          {tab === 'background' ? (
-            <div id="whale-leap-panel-background" role="tabpanel" aria-labelledby="whale-leap-tab-background" className={css.card}>
-              <div className={css.stage}>
-                <PreviewWhale settings={settings} />
-                <span className={css.stageHint}>{t('stageHint')}</span>
-              </div>
+        {tab === 'background' ? (
+          <div
+            id="whale-leap-panel-background"
+            role="tabpanel"
+            aria-labelledby="whale-leap-tab-background"
+            className={css.tabPanel}
+          >
+            <div className={css.stage}>
+              <PreviewWhale settings={settings} />
+              <span className={css.stageHint}>{t('stageHint')}</span>
+            </div>
 
+            <Group title={t('groupAppearance')}>
               <Row
                 label={t('color')}
                 hint={t('colorHint')}
@@ -381,8 +399,16 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 disabled={disabled}
                 onChange={actions.setOpacity}
               />
+            </Group>
 
-              <ToggleRow label={t('auto')} hint={t('autoHint')} checked={settings.autoAppear} disabled={disabled} onChange={actions.setAutoAppear} />
+            <Group title={t('groupPlayback')}>
+              <ToggleRow
+                label={t('auto')}
+                hint={t('autoHint')}
+                checked={settings.autoAppear}
+                disabled={disabled}
+                onChange={actions.setAutoAppear}
+              />
 
               {settings.autoAppear && (
                 <>
@@ -407,26 +433,33 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                   />
                 </>
               )}
-            </div>
-          ) : (
-            <div id="whale-leap-panel-mark" role="tabpanel" aria-labelledby="whale-leap-tab-mark" className={css.card}>
-              <div className={css.markStage}>
-                {settings.replaceMark ? (
-                  <span className={css.markRunning}>
-                    <span className={css.markDivider} aria-hidden="true" />
-                    <span className={css.markIcon}>
-                      <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} />
-                    </span>
-                    <span className={css.markRunningLabel} data-running-label>
-                      {t('runningLabel')}
-                    </span>
+            </Group>
+          </div>
+        ) : (
+          <div
+            id="whale-leap-panel-mark"
+            role="tabpanel"
+            aria-labelledby="whale-leap-tab-mark"
+            className={css.tabPanel}
+          >
+            <div className={css.markStage}>
+              {settings.replaceMark ? (
+                <span className={css.markRunning}>
+                  <span className={css.markDivider} aria-hidden="true" />
+                  <span className={css.markIcon}>
+                    <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} swing={settings.markSwing} />
                   </span>
-                ) : (
-                  <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
-                )}
-                <span className={css.stageHint}>{t('markPreviewHint')}</span>
-              </div>
+                  <span className={css.markRunningLabel} data-running-label>
+                    {t('runningLabel')}
+                  </span>
+                </span>
+              ) : (
+                <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
+              )}
+              <span className={css.stageHint}>{t('markPreviewHint')}</span>
+            </div>
 
+            <Group title={t('groupIcon')}>
               <ToggleRow
                 label={t('replaceMark')}
                 hint={t('replaceMarkHint')}
@@ -435,6 +468,21 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 onChange={actions.setReplaceMark}
               />
 
+              <SliderRow
+                id="whale-leap-mark-size"
+                label={t('markSize')}
+                hint={t('markSizeHint')}
+                value={settings.markSize}
+                min={MARK_SIZE_RANGE.min}
+                max={MARK_SIZE_RANGE.max}
+                step={MARK_SIZE_RANGE.step}
+                display={`${settings.markSize}px`}
+                disabled={disabled || !settings.replaceMark}
+                onChange={actions.setMarkSize}
+              />
+            </Group>
+
+            <Group title={t('motion')}>
               <div className={css.motionGrid} role="group" aria-label={t('motion')}>
                 {MARK_MOTIONS.map(motion => {
                   const selected = settings.markMotion === motion
@@ -450,7 +498,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                       }}
                     >
                       <span className={css.motionFish}>
-                        <WhaleMarkFish size={OPTION_FISH_SIZE} motion={motion} />
+                        <WhaleMarkFish size={OPTION_FISH_SIZE} motion={motion} swing={settings.markSwing} />
                       </span>
                       <span className={css.motionFooter}>
                         <span className={css.motionLabel}>{t(MOTION_LABELS[motion])}</span>
@@ -463,20 +511,21 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
               <p className={css.note}>{t('motionHint')}</p>
 
               <SliderRow
-                id="whale-leap-mark-size"
-                label={t('markSize')}
-                hint={t('markSizeHint')}
-                value={settings.markSize}
-                min={MARK_SIZE_RANGE.min}
-                max={MARK_SIZE_RANGE.max}
-                step={MARK_SIZE_RANGE.step}
-                display={`${settings.markSize}px`}
+                id="whale-leap-mark-swing"
+                label={t('swing')}
+                hint={t('swingHint')}
+                value={settings.markSwing}
+                min={MARK_SWING_RANGE.min}
+                max={MARK_SWING_RANGE.max}
+                step={MARK_SWING_RANGE.step}
+                display={`${Math.round(settings.markSwing * 100)}%`}
                 disabled={disabled || !settings.replaceMark}
-                onChange={actions.setMarkSize}
+                onChange={actions.setMarkSwing}
               />
-            </div>
-          )}
-        </div>
+            </Group>
+          </div>
+        )}
+      </div>
     </section>
   )
 }
