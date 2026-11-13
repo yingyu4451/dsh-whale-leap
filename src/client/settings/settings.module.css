@@ -146,7 +146,7 @@
   padding: 3px;
   border: 0.5px solid var(--dsw-alias-settings-card-stroke);
   border-radius: var(--dsw-radius-lg);
-  background: var(--dsw-alias-settings-card-fill);
+  background: var(--dsw-alias-bg-module-platform);
 }
 
 .tab,
@@ -172,7 +172,9 @@
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
   font-weight: 500;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 8%),
+    inset 0 0 0 0.5px var(--dsw-alias-border-l2);
 }
 
 .tab:focus-visible,
