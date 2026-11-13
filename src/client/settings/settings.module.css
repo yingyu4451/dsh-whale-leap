@@ -94,66 +94,44 @@
   text-underline-offset: 2px;
 }
 
-.shell {
+.tabs {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.rail {
-  display: flex;
-  flex: none;
-  flex-direction: column;
+  align-items: center;
   gap: 2px;
-  width: 148px;
-  padding: 6px;
+  padding: 3px;
   border: 0.5px solid var(--dsw-alias-settings-card-stroke);
-  border-radius: var(--dsw-radius-xl);
+  border-radius: var(--dsw-radius-lg);
   background: var(--dsw-alias-settings-card-fill);
 }
 
-.railButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 10px;
+.tab,
+.tabSelected {
+  flex: 1;
+  height: 34px;
+  padding: 0 14px;
   border: 0;
   border-radius: var(--dsw-radius-md);
   background: transparent;
   color: var(--dsw-alias-label-secondary);
   font-size: 13px;
   line-height: 20px;
-  text-align: left;
   cursor: pointer;
 }
 
-.railButton:hover {
+.tab:hover {
   background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
 }
 
-.railButton[aria-selected='true'] {
-  background: var(--dsw-alias-bg-module-platform);
+.tabSelected {
+  background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
   font-weight: 500;
-  box-shadow: inset 2px 0 0 var(--dsw-alias-brand-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
 }
 
-.railGlyph {
-  flex: none;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  opacity: 0.85;
-}
-
-.railGlyph[data-tab='mark'] {
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-}
-
-.railButton:focus-visible,
+.tab:focus-visible,
+.tabSelected:focus-visible,
 .choiceButton:focus-visible,
 .choiceSelected:focus-visible,
 .motionOption:focus-visible,
@@ -165,7 +143,6 @@
 }
 
 .panel {
-  flex: 1;
   min-width: 0;
 }
 
@@ -233,6 +210,63 @@
   line-height: 18px;
   text-align: center;
   color: var(--dsw-alias-label-tertiary);
+}
+
+.markRunning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 32px);
+  color: var(--dsw-alias-label-primary);
+}
+
+.markDivider {
+  flex: none;
+  width: 1px;
+  height: 14px;
+  background: var(--dsw-alias-border-l2);
+}
+
+.markIcon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.markRunningLabel {
+  font-size: 13px;
+  line-height: 20px;
+  white-space: nowrap;
+  background: linear-gradient(
+    90deg,
+    var(--dsw-alias-label-tertiary) 20%,
+    var(--dsw-alias-label-primary) 50%,
+    var(--dsw-alias-label-tertiary) 80%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: markShimmer 2.4s linear infinite;
+}
+
+@keyframes markShimmer {
+  from {
+    background-position: 180% 0;
+  }
+
+  to {
+    background-position: -80% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .markRunningLabel {
+    animation: none;
+    background: none;
+    color: var(--dsw-alias-label-secondary);
+  }
 }
 
 .row {
@@ -469,20 +503,6 @@
 }
 
 @media (max-width: 767px) {
-  .shell {
-    flex-direction: column;
-  }
-
-  .rail {
-    flex-direction: row;
-    width: 100%;
-  }
-
-  .railButton {
-    flex: 1;
-    justify-content: center;
-  }
-
   .row {
     flex-wrap: wrap;
   }

@@ -15,7 +15,7 @@ import { WHALE_ARTWORK } from '../whale/artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { PLUGIN_VERSION } from '../version.js'
-import { PACKAGE_NAME, checkForUpdate, type UpdateResult } from '../update.js'
+import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
 import { ATLAS_URL } from '../atlas.js'
 import css from './settings.module.css'
 
@@ -259,8 +259,8 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     updateNotice = t('updateAvailable', { version: update.latest })
   } else if (update.status === 'failed') {
     updateNotice = t('updateFailed')
-  } else if (update.status === 'not-published') {
-    updateNotice = t('notPublished')
+  } else if (update.status === 'no-release') {
+    updateNotice = t('noRelease')
   }
 
   return (
@@ -288,7 +288,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           {update.status === 'available' && update.latest !== undefined && (
             <a
               className={css.updateLink}
-              href={`https://www.npmjs.com/package/${PACKAGE_NAME}/v/${update.latest}`}
+              href={update.url ?? RELEASES_URL}
               target="_blank"
               rel="noreferrer"
             >
@@ -298,28 +298,26 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
         </div>
       </header>
 
-      <div className={css.shell}>
-        <div className={css.rail} role="tablist" aria-label={t('nav')}>
-          {TABS.map(item => (
-            <button
-              key={item.value}
-              type="button"
-              role="tab"
-              id={`whale-leap-tab-${item.value}`}
-              aria-selected={tab === item.value}
-              aria-controls={`whale-leap-panel-${item.value}`}
-              className={css.railButton}
-              onClick={() => {
-                setTab(item.value)
-              }}
-            >
-              <span className={css.railGlyph} aria-hidden="true" data-tab={item.value} />
-              {t(item.label)}
-            </button>
-          ))}
-        </div>
+      <div className={css.tabs} role="tablist" aria-label={t('nav')}>
+        {TABS.map(item => (
+          <button
+            key={item.value}
+            type="button"
+            role="tab"
+            id={`whale-leap-tab-${item.value}`}
+            aria-selected={tab === item.value}
+            aria-controls={`whale-leap-panel-${item.value}`}
+            className={tab === item.value ? css.tabSelected : css.tab}
+            onClick={() => {
+              setTab(item.value)
+            }}
+          >
+            {t(item.label)}
+          </button>
+        ))}
+      </div>
 
-        <div className={css.panel}>
+      <div className={css.panel}>
           {tab === 'background' ? (
             <div id="whale-leap-panel-background" role="tabpanel" aria-labelledby="whale-leap-tab-background" className={css.card}>
               <div className={css.stage}>
@@ -414,7 +412,15 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             <div id="whale-leap-panel-mark" role="tabpanel" aria-labelledby="whale-leap-tab-mark" className={css.card}>
               <div className={css.markStage}>
                 {settings.replaceMark ? (
-                  <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} />
+                  <span className={css.markRunning}>
+                    <span className={css.markDivider} aria-hidden="true" />
+                    <span className={css.markIcon}>
+                      <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} />
+                    </span>
+                    <span className={css.markRunningLabel} data-running-label>
+                      {t('runningLabel')}
+                    </span>
+                  </span>
                 ) : (
                   <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
                 )}
@@ -471,7 +477,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             </div>
           )}
         </div>
-      </div>
     </section>
   )
 }

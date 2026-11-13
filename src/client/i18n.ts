@@ -38,6 +38,7 @@ const zh = {
   motionSway: '左右轻摆',
   motionHint: '游动像摆尾前进；探索会在未知中上浮再下潜；首页游动与空白首页 hover 一致；左右轻摆只是轻微漂移。',
   markPreviewHint: '任务进行时鱼形图标的动作。',
+  runningLabel: '深度求索中',
   preview: '预览',
   previewHint: '当前动画的实时效果。',
   selected: '已选',
@@ -47,7 +48,7 @@ const zh = {
   upToDate: '已是最新版本（{version}）',
   updateAvailable: '发现新版本 {version}',
   updateFailed: '检查更新失败，请稍后再试。',
-  notPublished: '尚未发布到 npm，暂时无法检查更新。',
+  noRelease: 'GitHub 上还没有发布版本，暂时无法检查更新。',
   viewVersion: '查看 {version}',
 }
 
@@ -87,6 +88,7 @@ const en: Record<LocaleKey, string> = {
   motionSway: 'Gentle sway',
   motionHint: 'Swimming drifts like a tail stroke; Explore rises then dives into the unknown; Home swim matches hovering the blank home; Gentle sway only floats side to side.',
   markPreviewHint: 'Motion of the fish mark while a task runs.',
+  runningLabel: 'Deep diving',
   preview: 'Preview',
   previewHint: 'Live preview of the selected motion.',
   selected: 'Selected',
@@ -96,7 +98,7 @@ const en: Record<LocaleKey, string> = {
   upToDate: 'Up to date ({version})',
   updateAvailable: 'Version {version} is available',
   updateFailed: 'Update check failed. Try again later.',
-  notPublished: 'Not published to npm yet, so updates cannot be checked.',
+  noRelease: 'No release on GitHub yet, so updates cannot be checked.',
   viewVersion: 'View {version}',
 }
 
@@ -133,6 +135,7 @@ const ja: Record<LocaleKey, string> = {
   motionSway: '左右に揺れる',
   motionHint: '泳ぐは尾びれで進むように動き、探索は未知へ浮かんでから潜り、ホームの動きは空白ホームのホバーと同じ、左右に揺れるはごく浅く漂います。',
   markPreviewHint: 'タスク実行中の魚アイコンの動きです。',
+  runningLabel: '深掘り中',
   preview: 'プレビュー',
   previewHint: '選択中のアニメーションのライブ表示です。',
   selected: '選択中',
@@ -142,7 +145,7 @@ const ja: Record<LocaleKey, string> = {
   upToDate: '最新です（{version}）',
   updateAvailable: '新しいバージョン {version} があります',
   updateFailed: '更新の確認に失敗しました。後でもう一度お試しください。',
-  notPublished: 'まだ npm に公開されていないため、更新を確認できません。',
+  noRelease: 'GitHub にまだリリースがないため、更新を確認できません。',
   viewVersion: '{version} を見る',
 }
 
@@ -179,6 +182,7 @@ const es: Record<LocaleKey, string> = {
   motionSway: 'Balanceo suave',
   motionHint: 'Nadar avanza como un golpe de cola; Explorar sube y luego se sumerge en lo desconocido; Como en el inicio coincide con pasar el cursor por el inicio vacío; Balanceo suave solo flota de lado a lado.',
   markPreviewHint: 'Movimiento del pez mientras una tarea está en curso.',
+  runningLabel: 'Razonamiento profundo',
   preview: 'Vista previa',
   previewHint: 'Vista previa en vivo del movimiento elegido.',
   selected: 'Elegido',
@@ -188,7 +192,7 @@ const es: Record<LocaleKey, string> = {
   upToDate: 'Ya está actualizado ({version})',
   updateAvailable: 'La versión {version} está disponible',
   updateFailed: 'No se pudo comprobar la actualización. Inténtalo más tarde.',
-  notPublished: 'Aún no está publicado en npm, así que no se pueden comprobar actualizaciones.',
+  noRelease: 'Aún no hay una versión publicada en GitHub, así que no se pueden comprobar actualizaciones.',
   viewVersion: 'Ver {version}',
 }
 
@@ -225,6 +229,7 @@ const fr: Record<LocaleKey, string> = {
   motionSway: 'Balancement doux',
   motionHint: "Nager avance comme un coup de queue ; Explorer monte puis plonge vers l'inconnu ; Comme à l'accueil reprend le survol de l'accueil vide ; Balancement doux flotte simplement de gauche à droite.",
   markPreviewHint: "Animation du poisson pendant l'exécution d'une tâche.",
+  runningLabel: 'Réflexion approfondie',
   preview: 'Aperçu',
   previewHint: "Aperçu en direct de l'animation choisie.",
   selected: 'Choisi',
@@ -234,7 +239,7 @@ const fr: Record<LocaleKey, string> = {
   upToDate: 'À jour ({version})',
   updateAvailable: 'La version {version} est disponible',
   updateFailed: 'Échec de la vérification. Réessayez plus tard.',
-  notPublished: 'Pas encore publié sur npm ; impossible de vérifier les mises à jour.',
+  noRelease: "Aucune version publiée sur GitHub pour l'instant ; impossible de vérifier les mises à jour.",
   viewVersion: 'Voir {version}',
 }
 
@@ -271,6 +276,7 @@ const de: Record<LocaleKey, string> = {
   motionSway: 'Sanftes Wiegen',
   motionHint: 'Schwimmen treibt wie ein Flossenschlag; Erkunden steigt auf und taucht ins Unbekannte; Wie im Leerstart entspricht dem Überfahren des leeren Starts; Sanftes Wiegen schwebt nur seitlich.',
   markPreviewHint: 'Bewegung des Fischsymbols während einer laufenden Aufgabe.',
+  runningLabel: 'Gründliches Nachdenken',
   preview: 'Vorschau',
   previewHint: 'Live-Vorschau der gewählten Animation.',
   selected: 'Gewählt',
@@ -280,7 +286,7 @@ const de: Record<LocaleKey, string> = {
   upToDate: 'Aktuell ({version})',
   updateAvailable: 'Version {version} ist verfügbar',
   updateFailed: 'Update-Prüfung fehlgeschlagen. Bitte später erneut versuchen.',
-  notPublished: 'Noch nicht auf npm veröffentlicht; Updates können nicht geprüft werden.',
+  noRelease: 'Noch keine Veröffentlichung auf GitHub, Updates können nicht geprüft werden.',
   viewVersion: '{version} ansehen',
 }
 
@@ -317,6 +323,7 @@ const ru: Record<LocaleKey, string> = {
   motionSway: 'Мягкое покачивание',
   motionHint: 'Плавание движется как удар хвоста; Исследование поднимается и ныряет в неизвестность; Как на стартовом экране повторяет наведение на пустой экран; Мягкое покачивание лишь плавно смещается в стороны.',
   markPreviewHint: 'Движение рыбки во время выполнения задачи.',
+  runningLabel: 'Глубокое размышление',
   preview: 'Просмотр',
   previewHint: 'Живой просмотр выбранной анимации.',
   selected: 'Выбрано',
@@ -326,7 +333,7 @@ const ru: Record<LocaleKey, string> = {
   upToDate: 'Актуальная версия ({version})',
   updateAvailable: 'Доступна версия {version}',
   updateFailed: 'Не удалось проверить обновления. Повторите позже.',
-  notPublished: 'Ещё не опубликовано в npm, поэтому проверка обновлений недоступна.',
+  noRelease: 'На GitHub ещё нет релиза, поэтому обновления проверить нельзя.',
   viewVersion: 'Открыть {version}',
 }
 
@@ -363,6 +370,7 @@ const pt: Record<LocaleKey, string> = {
   motionSway: 'Balanço suave',
   motionHint: 'Nadar avança como um golpe de cauda; Explorar sobe e mergulha no desconhecido; Como no início imita passar o cursor no início vazio; Balanço suave apenas flutua de um lado para o outro.',
   markPreviewHint: 'Movimento do peixe enquanto uma tarefa está em andamento.',
+  runningLabel: 'Raciocínio profundo',
   preview: 'Prévia',
   previewHint: 'Prévia ao vivo da animação escolhida.',
   selected: 'Selecionado',
@@ -372,7 +380,7 @@ const pt: Record<LocaleKey, string> = {
   upToDate: 'Já está atualizado ({version})',
   updateAvailable: 'A versão {version} está disponível',
   updateFailed: 'Falha ao verificar atualizações. Tente novamente mais tarde.',
-  notPublished: 'Ainda não publicado no npm, então não é possível verificar atualizações.',
+  noRelease: 'Ainda não há uma versão publicada no GitHub; não é possível verificar atualizações.',
   viewVersion: 'Ver {version}',
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-whale-leap",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "type": "module",
   "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
   "exports": {
@@ -21,7 +21,7 @@
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "LICENSE",
     "THIRD-PARTY-NOTICES.md"
   ],

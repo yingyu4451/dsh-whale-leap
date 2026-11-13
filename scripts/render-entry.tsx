@@ -38,6 +38,7 @@ export function check(): {
   page: string
   englishPage: string
   markPage: string
+  englishMarkPage: string
   mark: string
   layer: string
   initial: WhaleSettingsState
@@ -48,7 +49,10 @@ export function check(): {
     <SettingsPage t={translate(DICTIONARIES.en)} state={state} actions={actions} />,
   )
   const markPage = renderToStaticMarkup(
-    <SettingsPage t={identity} state={state} actions={actions} initialTab="mark" />,
+    <SettingsPage t={translate(DICTIONARIES.zh)} state={state} actions={actions} initialTab="mark" />,
+  )
+  const englishMarkPage = renderToStaticMarkup(
+    <SettingsPage t={translate(DICTIONARIES.en)} state={state} actions={actions} initialTab="mark" />,
   )
   const mark = renderToStaticMarkup(<RunningMark state={state} />)
   const layer = renderToStaticMarkup(
@@ -56,5 +60,5 @@ export function check(): {
       <p>body</p>
     </WhaleLayer>,
   )
-  return { page, englishPage, markPage, mark, layer, initial: INITIAL_SETTINGS }
+  return { page, englishPage, markPage, englishMarkPage, mark, layer, initial: INITIAL_SETTINGS }
 }

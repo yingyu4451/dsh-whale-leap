@@ -1,111 +1,95 @@
-# Whale leap
+# 鲸跃
 
-[English](README.md) · [中文](README.zh.md)
+[English](README.en.md) · [中文](README.md)
 
-Whale leap adds a swimming whale to the DeepSeek Harness web client:
+鲸跃给 DeepSeek Harness 网页端加一只游动的鲸鱼：
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
-- **Running-status mark** — the fish left of “深度求索中” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px) has a live preview.
-- **Settings page** — everything above lives under Settings › 鲸跃, in two tabs. The interface follows the DeepSeek Harness language; strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
+- **背景鲸鱼**：点阵（或代码文字）鲸鱼出现在空白首页；开启后也会出现在进行中的会话背景里。点击会话空白处可重播一次。帧图集在运行时从已安装的官方品牌包读取，本仓库不再分发任何素材。
+- **任务图标**：「深度求索中」左侧的小鱼可用开关决定是否替换默认图标，持续游动，提供四种动作预设；大小（8–28 px）调整时上方有实时预览，预览里同时显示状态文字。
+- **设置页**：以上内容都在「设置 › 鲸跃」里，顶部标签栏在「背景」和「任务图标」之间切换。界面跟随 DeepSeek Harness 的界面语言，内置中文、English、日本語、Español、Français、Deutsch、Русский、Português。
 
-## Install
+## 安装
 
-1. Open **Plugins** in the DeepSeek Harness web client.
-2. Choose **Add plugin** and enter this directory: `C:\Users\Y\Desktop\dsh project\whale-leap`.
-3. Restart `dsh web` once. The Host loads the package the first time it appears in the profile, so the new settings section does not exist until that restart. Refresh the page after it.
-4. Open **Settings › 鲸跃**.
+1. 打开 DeepSeek Harness 网页端的 **插件**。
+2. 选择 **添加插件**，填入本目录：`C:\Users\Y\Desktop\dsh project\whale-leap`。
+3. 重启一次 `dsh web`。Host 第一次看到该包时才会加载它，新的设置分区在那次重启后才存在；随后刷新页面。
+4. 打开 **设置 › 鲸跃**。
 
-**Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup. When the plugin was installed from a folder, the profile keeps a directory copy: copy the rebuilt package over `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap` (or remove and re-add it in Plugins) before restarting.
+**更新已安装的副本。** 拉取或修改本目录后运行 `pnpm run build`。Harness 会自动热替换已加载的客户端 bundle（网页端常驻 client HMR 链路），新的设置界面无需重启也无需手动刷新即可生效。只有 Host 半发生变化时才需要重启 `dsh web`——`index.js`、设置 schema、`cordis.patch.yml` 或 `locale/` 下的包元数据；Host 只在启动时读取这些内容。从本地目录安装时，profile 里保存的是一份目录副本：重启前先把重新构建的包复制到 `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap`（或在「插件」里移除后重新添加）。
 
-The plugin is the bundle `dsh-whale-leap`; the same package is prepared for npm and mirrored by npmmirror. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
+设置页头部会显示当前版本与「检查更新」按钮：检查以 GitHub 为准——先读仓库的 `releases/latest`，没有 Release 时退回标签列表——与已安装版本比较，有新版本时给出 Release 链接；尚无发布时会明确提示，而不是静默失败。
 
-The settings header shows the running version and a **Check for updates** button. The check reads the latest published version from `registry.npmjs.org` and falls back to `registry.npmmirror.com`; a newer release is linked for download, and an unpublished package reports that plainly.
+## 设置
 
-## Settings
+标签栏位于内容上方、占满整行，选中项为填充色块。
 
-### Background tab
+### 背景
 
-| Control | Meaning |
+| 选项 | 含义 |
 | --- | --- |
-| Color | Follow the theme's text tone, or pick a custom ink color. |
-| Background size | Scale of the painted scene (50 %–150 %). |
-| Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
-| Show in conversations | Whether the whale reappears by itself in started conversations. |
-| Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
-| Appearance interval | 5–300 s between automatic replays. |
+| 颜色 | 跟随主题的文字色调，或自定义墨色。 |
+| 背景大小 | 绘制场景的缩放（50%–150%）。 |
+| 墨色浓度 | 10%–100% 的响应曲线。图集本身偏淡：60% 保持原稿观感，100% 会把淡点压成纯黑。 |
+| 在会话中自动出现 | 开始对话后，鲸鱼是否按间隔自行出现。 |
+| 切换会话时立即出现 | 关闭后，进入会话不会立刻播放，而是等下一个间隔。 |
+| 出现间隔 | 自动重播的间隔，5–300 秒。 |
 
-A live preview canvas sits above the controls and replays with the current settings.
+控制项上方是一块实时预览画布，按当前设置循环播放。
 
-### Running icon tab
+### 任务图标
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices shows the selected motion at the exact configured size, so dragging the size slider previews the real mark while you adjust it. The motion cards below the switch each preview their own preset, and the selected card carries a text badge, not just a highlight. The size slider sets the mark's box, 8–28 px.
+**替换任务状态图标** 决定是否用小鱼替换 DSH 默认的鲸尾图标；关闭后恢复默认图标。上方预览区按当前设置的精确像素显示所选动作，并显示「深度求索中」状态文字——预览与真实会话中的那一行一致，文字跟随界面语言切换。下方的动作卡片各自播放自己的预设，选中项除高亮外还有文字徽标。大小滑块控制图标盒尺寸，8–28 px。
 
-## Behavior and limits
+## 行为与限制
 
-- Web client only. It registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`, so it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
-- Settings are workspace-scoped and stored in the section namespace `whale-leap`.
-- Reduced motion: all playback and sway stop; the mark stays static.
-- Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
-- The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
-- **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. It does require a DSH build that declares `conversation.chat.running.mark` (current checkout).
-- **The atlas is read at runtime, not shipped.** The Host half serves `@deepseek-ai/dsh-client-ui-brand-official`'s installed `lib/assets/breach-atlas-*.webp` on `/whale-leap/assets/atlas.webp`; standard Web and Desktop builds install that package. When it is missing, the background whale stays absent and the rest of the plugin keeps working.
-- The renderer, code fill, and running-mark motion are adapted from DeepSeek Harness source under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
+- 仅网页端。插件注册 `conversation.hero.frame`、`conversation.chat.running.mark` 和 `settings.section`，因此需要 `ui-conversation`、`ui-chat`、`ui-settings`。
+- 设置是工作区级的，保存在分区命名空间 `whale-leap`。
+- 减少动态效果：所有播放与摆动停止，图标保持静止。
+- 代码文字的字号随背景场景宽度等比缩放，因此设置页预览与真实会话背景中的文字比例一致，不再出现预览里文字过大的情况。
+- 画布后备缓冲区上限为 500 万像素并在布局之间复用，大尺寸高分屏不会一次分配几十兆内存。
+- **内置品牌包不再绘制鲸鱼。** 它只注册侧栏品牌图形，背景与任务图标插槽由本插件独占，不会出现重叠；需要包含 `conversation.chat.running.mark` 插槽的 DSH 构建（当前仓库版本）。
+- **图集在运行时读取，不随包分发。** Host 半把已安装的 `@deepseek-ai/dsh-client-ui-brand-official` 中的 `lib/assets/breach-atlas-*.webp` 发布在 `/whale-leap/assets/atlas.webp` 上；标准网页版与桌面版都会安装该品牌包。品牌包缺失时背景鲸鱼不显示，其余功能照常工作。
+- 渲染器、代码填充与任务图标动画改编自 DeepSeek Harness 源码，遵循其 MIT 许可；见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。再分发时必须保留该声明。
 
-## Credits
+## 致谢与许可
 
-The renderer, code fill, fish paths, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). The whale frame atlas is not redistributed: the plugin reads it from the installed official brand package at runtime. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
+鲸鱼渲染器、代码填充、鱼形路径与任务图标动画改编自 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（MIT License，Copyright (c) 2026 DeepSeek）。鲸鱼帧图集不再随本包分发，而是运行时从已安装的官方品牌包读取。完整许可文本与改编文件清单见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。本插件为非官方项目，与 DeepSeek 无隶属关系，也未获其背书。MIT 许可只授予著作权相关权限，不授予 DeepSeek 名称、标识或素材上的商标权。
 
-## Build
+## 构建
 
 ```powershell
-pnpm install        # esbuild, react, and the Host's schemastery dev copy
-pnpm run build      # writes lib/client.js as a ModuleLoader artifact
-node scripts/host-check.mjs   # asserts the atlas route and schema
+pnpm install        # 安装 esbuild、react 与 Host 侧 schemastery 开发副本
+pnpm run build      # 生成 ModuleLoader 产物 lib/client.js
+pnpm run check      # 构建 + smoke + 渲染 + Host 路由检查
 ```
 
-`lib/client.js` contains no bitmap. The Host half (`index.js`) imports `@deepseek-ai/schemastery` from the running profile and serves the official atlas bytes on `/whale-leap/assets/atlas.webp`. The browser bundle embeds `package.json`'s version for the update check.
+`lib/client.js` 不再内嵌任何位图；Host 半部分（`index.js`）从运行中的 profile 引入 `@deepseek-ai/schemastery`，并在 `/whale-leap/assets/atlas.webp` 上提供官方图集字节。浏览器产物还会内嵌 `package.json` 的版本号，供检查更新使用。
 
-## Publishing
+## 发布
 
-Publishing runs in GitHub Actions through npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC). After the one-time setup there is no token, no `npm login`, and no 2FA prompt. The workflow lives in [`.github/workflows/publish.yml`](.github/workflows/publish.yml) and publishes only to npmjs; npmmirror mirrors it automatically.
+GitHub 是发布的唯一来源：设置页比较的是本仓库最新的 Release（没有 Release 时退回标签）。
 
-One-time setup on npmjs.com — package **Settings → Trusted publishing → Add trusted publisher → GitHub Actions**:
+1. 提升版本：运行 `pnpm run release:patch`（或 `release:minor` / `release:major`）。它会更新 `package.json`、提交并创建 `vX.Y.Z` 标签。
+2. 推送提交与标签：`git push --follow-tags`。
+3. 为该标签创建 GitHub Release：`gh release create vX.Y.Z --title "vX.Y.Z" --notes "…"`。检查更新读的就是这个 Release，创建后已安装副本才会看到新版本。
 
-| Field | Value |
-| --- | --- |
-| Organization or user | `yingyu4451` |
-| Repository | `dsh-whale-leap` |
-| Workflow filename | `publish.yml` |
-| Environment name | leave empty |
-| Allowed actions | enable **npm publish** |
+npm 保持可选且手动：工作流 [`.github/workflows/publish.yml`](.github/workflows/publish.yml) 只支持 `workflow_dispatch`，且需要先在 npm 配好可信发布者才可发布。
 
-Then release from the repository:
-
-```powershell
-pnpm run release:patch     # bumps package.json, commits, creates the vX.Y.Z tag
-git push --follow-tags     # triggers the publish workflow
-```
-
-The workflow runs `pnpm run check`, verifies that the tag matches `package.json`, and publishes. To publish the current `package.json` version without a tag, run **Actions → Publish → Run workflow** manually.
-
-`prepublishOnly` rebuilds before packing, and `publishConfig` pins the registry to `registry.npmjs.org`.
-
-## Layout
+## 目录
 
 ```text
-index.js                     Host half: Config schema, settings.configure, atlas route
-shared/settings.js           Field names, bounds, defaults shared by both halves
-src/client/index.tsx         Client entry: three slot registrations
-src/client/atlas.ts          Document-relative URL of the Host atlas route
-src/client/store.ts          Settings runtime (mirror + debounced writes)
-src/client/i18n.ts           Eight locale dictionaries for the settings page
-src/client/settings/         Settings page and its module CSS
-src/client/whale/            Whale canvas, renderer, code fill, fish mark, paths
-locale/*.json                Plugin Manager title/description/detail metadata
-docs/DETAIL.md               Plugin detail page document
+index.js                     Host：Config schema、settings.configure 与图集路由
+shared/settings.js           两半共享的字段名、范围与默认值
+src/client/index.tsx         客户端入口：注册三个插槽
+src/client/atlas.ts          Host 图集路由的文档相对 URL
+src/client/store.ts          设置运行时（镜像 + 防抖写入）
+src/client/i18n.ts           设置页的 8 种语言词典
+src/client/settings/         设置页与模块 CSS
+src/client/whale/            鲸鱼画布、渲染器、代码填充、鱼形图标与路径
+src/client/update.ts         GitHub Release 检查
+locale/*.json                插件管理器标题/描述/详情元数据
+docs/DETAIL.md               插件详情页文档
 ```
-
-
 
 ---
 

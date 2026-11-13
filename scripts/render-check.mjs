@@ -33,18 +33,21 @@ globalThis.document = {
 }
 
 const { check } = await import(pathToFileURL(outfile).href)
-const { page, englishPage, markPage, mark, layer } = check()
+const { page, englishPage, markPage, englishMarkPage, mark, layer } = check()
 
 const landmarks = {
   tabs: ['whale-leap-tab-background', 'whale-leap-tab-mark'].every(token => page.includes(token)),
   previewStage: page.includes('stageCanvas'),
   updateCheck: page.includes('checkUpdate'),
   updateNotice: page.includes('updateNotice'),
+  runningRow: markPage.includes('data-running-label'),
+  runningLabel: markPage.includes('深度求索中'),
+  englishRunningLabel: englishMarkPage.includes('Deep diving'),
   englishNav: englishPage.includes('Whale leap'),
   englishInk: englishPage.includes('Ink strength'),
   englishMarkTab: englishPage.includes('Running icon'),
   motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
-  replaceSwitch: markPage.includes('aria-label="replaceMark"'),
+  replaceSwitch: markPage.includes('role="switch"'),
   markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
   markSizeSlider: markPage.includes('whale-leap-mark-size'),
   markFish: mark.includes('data-motion="swim"'),
