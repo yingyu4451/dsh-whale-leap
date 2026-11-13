@@ -220,8 +220,9 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   height: 128px;
+  padding: 0 16px;
   border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
@@ -234,6 +235,7 @@
 }
 
 .markStageOff {
+  width: 100%;
   padding: 0 24px;
   font-size: 12px;
   line-height: 18px;
@@ -241,19 +243,31 @@
   color: var(--dsw-alias-label-secondary);
 }
 
-.markRunning {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: calc(100% - 32px);
-  color: var(--dsw-alias-label-primary);
+/* Mirrors the conversation status row: a 0.5px hairline sits 8px above a
+   28px-high content row, so text-size changes can be judged against the real
+   row height and divider position instead of a floating label. */
+.markSim {
+  position: relative;
+  width: 100%;
+  padding-top: 12px;
 }
 
-.markDivider {
-  flex: none;
-  width: 1px;
-  height: 14px;
-  background: var(--dsw-alias-border-l2);
+.markSimDivider {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 0.5px;
+  background: color-mix(in srgb, var(--dsw-alias-border-l1) 75%, var(--dsw-alias-border-l2));
+}
+
+.markSimContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  max-width: 100%;
+  color: var(--dsw-alias-label-primary);
 }
 
 .markIcon {
@@ -265,37 +279,9 @@
 
 .markRunningLabel {
   font-size: 13px;
-  line-height: 20px;
+  line-height: 22px;
   white-space: nowrap;
-  background: linear-gradient(
-    90deg,
-    var(--dsw-alias-label-tertiary) 20%,
-    var(--dsw-alias-label-primary) 50%,
-    var(--dsw-alias-label-tertiary) 80%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  animation: markShimmer 2.4s linear infinite;
-}
-
-@keyframes markShimmer {
-  from {
-    background-position: 180% 0;
-  }
-
-  to {
-    background-position: -80% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .markRunningLabel {
-    animation: none;
-    background: none;
-    color: var(--dsw-alias-label-secondary);
-  }
+  color: var(--dsw-alias-label-deep-diving);
 }
 
 .row {

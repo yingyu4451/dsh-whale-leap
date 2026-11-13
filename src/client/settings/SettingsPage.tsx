@@ -470,25 +470,27 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           >
             <div className={css.markStage}>
               {settings.replaceMark ? (
-                <span className={css.markRunning}>
-                  <span className={css.markDivider} aria-hidden="true" />
-                  <span className={css.markIcon}>
-                    <WhaleMarkFish
-                      size={settings.markSize}
-                      motion={settings.markMotion}
-                      swing={settings.markSwing}
-                      offsetX={settings.markOffsetX}
-                      offsetY={settings.markOffsetY}
-                    />
+                <div className={css.markSim}>
+                  <span className={css.markSimDivider} aria-hidden="true" />
+                  <span className={css.markSimContent}>
+                    <span className={css.markIcon}>
+                      <WhaleMarkFish
+                        size={settings.markSize}
+                        motion={settings.markMotion}
+                        swing={settings.markSwing}
+                        offsetX={settings.markOffsetX}
+                        offsetY={settings.markOffsetY}
+                      />
+                    </span>
+                    <span
+                      className={css.markRunningLabel}
+                      style={{ fontSize: `${settings.markLabelSize}px` }}
+                      data-running-label
+                    >
+                      {t('runningLabel')}
+                    </span>
                   </span>
-                  <span
-                    className={css.markRunningLabel}
-                    style={{ fontSize: `${settings.markLabelSize}px` }}
-                    data-running-label
-                  >
-                    {t('runningLabel')}
-                  </span>
-                </span>
+                </div>
               ) : (
                 <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
               )}

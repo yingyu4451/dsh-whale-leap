@@ -51,6 +51,7 @@ const landmarks = {
   motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
   replaceSwitch: markPage.includes('role="switch"'),
   markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
+  markStageDivider: markPage.includes('markSimDivider'),
   markSizeSlider: markPage.includes('whale-leap-mark-size'),
   markLabelSizeSlider: markPage.includes('whale-leap-mark-label-size'),
   markSwingSlider: markPage.includes('whale-leap-mark-swing'),
