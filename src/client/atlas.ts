@@ -1,9 +1,10 @@
 /**
- * Browser reference to the frame atlas published by the plugin's Host half.
+ * Inlined whale frame atlas.
  *
- * App-owned routes are document-relative (the same convention the client
- * module registry uses for `plugins/…` references), so this resolves under any
- * shell document mount. The Host route reads the installed official brand
- * package artwork; the plugin tarball carries no copy.
+ * The webp is bundled by esbuild as a data URL, so the decoration works without
+ * a Host route, offline, and on packaged builds whose official brand package
+ * lives inside an asar archive that plain file reads cannot reach.
  */
-export const ATLAS_URL = 'whale-leap/assets/atlas.webp'
+import atlasUrl from '../../assets/breach-atlas.webp'
+
+export const ATLAS_URL = atlasUrl

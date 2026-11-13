@@ -23,6 +23,7 @@ await build({
   jsx: 'automatic',
   external: ['react', 'react-dom', 'react-dom/server', 'react/jsx-runtime'],
   plugins: [cssModules()],
+  loader: { '.webp': 'dataurl' },
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(manifest.version) },
   logLevel: 'silent',
 })
@@ -62,8 +63,8 @@ const landmarks = {
   iconGroup: markPage.includes('任务图标'),
   motionGroup: markPage.includes('motionGrid'),
   englishSwing: englishMarkPage.includes('Swing amplitude'),
-  frameModeChoices: ['frameAlternate', 'frameDots', 'frameCode'].every(token => page.includes(token)),
-  englishFrameMode: englishPage.includes('Frame mode') && englishPage.includes('Alternate') && englishPage.includes('Dots'),
+  frameModeChoices: ['frameAlternate', 'frameDots', 'frameCode', 'frameGlyphs', 'frameBinary', 'frameLines'].every(token => page.includes(token)),
+  englishFrameMode: englishPage.includes('Frame mode') && englishPage.includes('Glyphs') && englishPage.includes('Lines'),
   autoToggle: (page.includes('autoHint') || page.includes('autoOffHint')) && page.includes('role="switch"'),
   replayButton: page.includes('stageReplay'),
   englishAutoToggle: englishPage.includes('Show in conversations') && englishPage.includes('role="switch"'),

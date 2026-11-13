@@ -11,7 +11,7 @@ import { DEFAULT_SETTINGS } from '../../shared/settings.js'
 export type WhaleColorMode = 'theme' | 'custom'
 
 /** Painting the whale shows: alternating frames, dots, or code lettering. */
-export type WhaleFrameMode = 'alternate' | 'pixels' | 'code'
+export type WhaleFrameMode = 'alternate' | 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
 
 /** Running-mark motion presets. */
 export type WhaleMarkMotion = 'swim' | 'explore' | 'hero' | 'sway'

@@ -18,7 +18,7 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 ## Behavior
 
 - Color: follow the theme text tone or pick a custom ink color.
-- Background size: 50 %–150 % of the authored scene. Ink strength: 10 %–100 %; the source atlas keeps dots faint, so 60 % preserves the authored look and 100 % saturates them into solid black. Frame mode picks dots, code lettering, or alternates between both (the default).
+- Background size: 50 %–150 % of the authored scene. Ink strength: 10 %–100 %; the source atlas keeps dots faint, so 60 % preserves the authored look and 100 % saturates them into solid black. Frame mode picks alternating dots + code (the default), dots, code lettering, ASCII glyphs, binary tokens, or diagonal hatching.
 - Show in conversations: the whale appears on its own after a conversation starts. **Appear when switching conversations** decides whether entering a conversation plays immediately or waits for the next interval. The interval is 5–300 s.
 - Running icon: **Replace the running icon** toggles the fish against the shipped whale tail. Choose Swimming, Explore, Home swim, or Gentle sway; every card animates its own preset, the stage above mirrors the real conversation status row (hairline divider above a 28 px row, blue-tinted label), keeps its full height while pinned below the header and tabs, and shows the mark at the exact configured size while you drag the sliders; the selected card shows a text badge as well as a highlight. The label follows the interface language. **Icon color** and **Text color** each follow the theme or use a custom picker; a custom text color also re-mixes the shimmer highlight so the moving sweep follows it. **Text size** (11–20 px) changes the running-status label only, keeping the row's height and padding fixed. **Swing amplitude** (50 %–200 %) scales only Swimming, Explore, and Gentle sway; Home swim keeps the home page's own amplitude. **Horizontal position** and **Vertical position** shift the mark's start point independently by −12 to +12 px each.
 - The settings page groups controls by topic: a small heading sits above the card that holds the rows.
@@ -32,7 +32,7 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 - Web client only; it needs the `ui-conversation`, `ui-chat`, and `ui-settings` client packages.
 - Settings are workspace-scoped and stored in the settings namespace `whale-leap`.
 - The built-in brand package no longer paints any whale; it only supplies sidebar artwork, so this plugin does not overlap with it. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, a DOM adapter mounts the same mark and hides the shipped icon.
-- The frame atlas is read at runtime from the installed `@deepseek-ai/dsh-client-ui-brand-official` package (`/whale-leap/assets/atlas.webp`); this plugin ships no artwork and the background stays absent if that package is missing.
+- The frame atlas (`assets/breach-atlas.webp`) is redistributed under the MIT License and embedded as a data URL in `lib/client.js`; the background whale therefore needs no Host route, works offline, and also works on packaged Desktop builds whose brand package sits inside an asar archive.
 - The settings page follows the DeepSeek Harness interface language (Chinese, English, Japanese, Spanish, French, German, Russian, Portuguese).
 
 ## Build
@@ -42,4 +42,4 @@ pnpm install
 pnpm run build
 ```
 
-This writes `lib/client.js`, a ModuleLoader artifact with no bundled bitmap. The Host half (`index.js`) imports `@deepseek-ai/schemastery` from the running profile and serves the installed official atlas bytes on `/whale-leap/assets/atlas.webp`.
+This writes `lib/client.js`, a ModuleLoader artifact that embeds the frame atlas as a webp data URL. The Host half (`index.js`) only imports `@deepseek-ai/schemastery` from the running profile and registers the settings page.

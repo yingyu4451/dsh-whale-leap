@@ -68,8 +68,8 @@ export const MARK_MOTION_FIELD = 'markMotion'
 /** Ink source choices. */
 export const COLOR_MODES = ['theme', 'custom']
 
-/** Frame choices, in display order: alternate, dots, code. */
-export const FRAME_MODES = ['alternate', 'pixels', 'code']
+/** Frame choices, in display order: alternate, dots, code, glyphs, binary, hatching. */
+export const FRAME_MODES = ['alternate', 'pixels', 'code', 'glyphs', 'binary', 'lines']
 
 /** Background size multiplier bounds. */
 export const SIZE_RANGE = { min: 0.5, max: 1.5, step: 0.05 }

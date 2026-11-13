@@ -4,7 +4,7 @@
 
 鲸跃给 DeepSeek Harness 网页端加一只游动的鲸鱼：
 
-- **背景鲸鱼**：点阵（或代码文字）鲸鱼出现在空白首页；可设为仅在切换会话时出现、仅按间隔出现、两者都出现或完全关闭。每次出现会在点阵与代码文字两种画面之间交替。点击会话空白处可重播一次。帧图集在运行时从已安装的官方品牌包读取，本仓库不再分发任何素材。
+- **背景鲸鱼**：点阵（或代码文字）鲸鱼出现在空白首页；可设为仅在切换会话时出现、仅按间隔出现、两者都出现或完全关闭。每次出现会在点阵与代码文字两种画面之间交替。点击会话空白处可重播一次。帧图集内置于插件包，离线可用。
 - **任务图标**：「深度求索中」左侧的小鱼可用开关决定是否替换默认图标，持续游动，提供四种动作预设；图标颜色与状态文字颜色都可跟随主题或自定义，大小（8–28 px）、文字字号（11–20 px）、摆动幅度（50%–200%）与水平/垂直起始位置调整时，上方按真实会话状态行模拟的预览（分隔线 + 28 px 行高）会实时变化，预览里同时显示状态文字。
 - **设置页**：以上内容都在「设置 › 鲸跃」里，顶部标签栏在「背景」和「任务图标」之间切换。界面跟随 DeepSeek Harness 的界面语言，内置中文、English、日本語、Español、Français、Deutsch、Русский、Português。
 
@@ -32,7 +32,7 @@
 | 颜色 | 跟随主题的文字色调，或自定义墨色。 |
 | 背景大小 | 绘制场景的缩放（50%–150%）。 |
 | 墨色浓度 | 10%–100% 的响应曲线。图集本身偏淡：60% 保持原稿观感，100% 会把淡点压成纯黑。 |
-| 出现画面 | 圆点、代码文字，或两者交替出现（默认交替）。 |
+| 出现画面 | 交替（圆点+代码，默认）、圆点、代码文字、字符画、二进制、线条。 |
 
 **播放**
 
@@ -65,12 +65,12 @@
 - 代码文字的字号随背景场景宽度等比缩放，因此设置页预览与真实会话背景中的文字比例一致，不再出现预览里文字过大的情况。
 - 画布后备缓冲区上限为 500 万像素并在布局之间复用，大尺寸高分屏不会一次分配几十兆内存。
 - **内置品牌包不再绘制鲸鱼。** 它只注册侧栏品牌图形，背景与任务图标插槽由本插件独占，不会出现重叠；声明了 `conversation.chat.running.mark` 的构建通过插槽替换，未声明的官方构建由 DOM 适配器挂载并隐藏原图标。
-- **图集在运行时读取，不随包分发。** Host 半把已安装的 `@deepseek-ai/dsh-client-ui-brand-official` 中的 `lib/assets/breach-atlas-*.webp` 发布在 `/whale-leap/assets/atlas.webp` 上；标准网页版与桌面版都会安装该品牌包。品牌包缺失时背景鲸鱼不显示，其余功能照常工作。
+- **图集随包内置。** `assets/breach-atlas.webp` 以 MIT 许可随插件分发，构建时内嵌为 data URL；因此离线、以及桌面版（官方品牌包在 asar 内、普通文件读取不可达）都能绘制背景鲸鱼，不再依赖品牌包是否可读。
 - 渲染器、代码填充与任务图标动画改编自 DeepSeek Harness 源码，遵循其 MIT 许可；见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。再分发时必须保留该声明。
 
 ## 致谢与许可
 
-鲸鱼渲染器、代码填充、鱼形路径与任务图标动画改编自 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（MIT License，Copyright (c) 2026 DeepSeek）。鲸鱼帧图集不再随本包分发，而是运行时从已安装的官方品牌包读取。完整许可文本与改编文件清单见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。本插件为非官方项目，与 DeepSeek 无隶属关系，也未获其背书。MIT 许可只授予著作权相关权限，不授予 DeepSeek 名称、标识或素材上的商标权。
+鲸鱼渲染器、代码填充、鱼形路径与任务图标动画改编自 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（MIT License，Copyright (c) 2026 DeepSeek）。鲸鱼帧图集来自同一仓库，并在 MIT 许可下随本包分发。完整许可文本与改编文件清单见 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)。本插件为非官方项目，与 DeepSeek 无隶属关系，也未获其背书。MIT 许可只授予著作权相关权限，不授予 DeepSeek 名称、标识或素材上的商标权。
 
 ## 构建
 
@@ -80,7 +80,7 @@ pnpm run build      # 生成 ModuleLoader 产物 lib/client.js
 pnpm run check      # 构建 + smoke + 渲染 + Host 路由检查
 ```
 
-`lib/client.js` 不再内嵌任何位图；Host 半部分（`index.js`）从运行中的 profile 引入 `@deepseek-ai/schemastery`，并在 `/whale-leap/assets/atlas.webp` 上提供官方图集字节。浏览器产物还会内嵌 `package.json` 的版本号，供检查更新使用。
+`lib/client.js` 内嵌帧图（webp → data URL，约 252 KB base64）；Host 半部分（`index.js`）只从运行中的 profile 引入 `@deepseek-ai/schemastery` 并注册设置页。浏览器产物还会内嵌 `package.json` 的版本号，供检查更新使用。
 
 ## 发布
 
@@ -98,7 +98,7 @@ npm 保持可选且手动：工作流 [`.github/workflows/publish.yml`](.github/
 index.js                     Host：Config schema、settings.configure 与图集路由
 shared/settings.js           两半共享的字段名、范围与默认值
 src/client/index.tsx         客户端入口：注册三个插槽
-src/client/atlas.ts          Host 图集路由的文档相对 URL
+src/client/atlas.ts          内置帧图的 data URL
 src/client/store.ts          设置运行时（镜像 + 防抖写入）
 src/client/i18n.ts           设置页的 8 种语言词典
 src/client/settings/         设置页与模块 CSS

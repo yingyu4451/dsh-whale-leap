@@ -1,6 +1,6 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
 import type { WhaleArtwork } from './artwork.ts'
-import { createCodeFill } from './code-fill.ts'
+import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
 
 // Geometry of assets/breach-atlas.webp: 137 frames at 192 × 108 cells, in twelve columns.
 const ATLAS = { width: 192, height: 108, columns: 12, frames: 137 } as const
@@ -24,7 +24,7 @@ let nextFill: 'pixels' | 'code' = 'pixels'
 export type WhaleFillPhase = 'shared' | 'local'
 
 /** Which painting the whale should show: alternate frames, dots, or code lettering. */
-export type WhaleFrameMode = 'alternate' | 'pixels' | 'code'
+export type WhaleFrameMode = 'alternate' | 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
 
 /**
  * Backing-store budget. Large / high-DPI windows would otherwise allocate and
@@ -102,10 +102,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let sceneWidth = 0
   let left = 0
   let top = 0
-  let fill: 'pixels' | 'code' = 'code'
+  let fill: WhaleFrameMode = 'code'
   let localFill: 'pixels' | 'code' = 'pixels'
   let frameMode: WhaleFrameMode = 'alternate'
   let code: ReturnType<typeof createCodeFill> | undefined
+  let codeMode: WhaleTextureMode | undefined
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
 
@@ -144,7 +145,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     const stride = ATLAS.width * ATLAS.columns
     const cell = sceneWidth / ATLAS.width
     const fade = Math.min(1, progress * 15, (1 - progress) * 10)
-    if (fill === 'code' && code !== undefined) {
+    if (fill !== 'pixels' && code !== undefined) {
       // The code fill boosts its own coverage and mask, so the strength maps
       // linearly here; the dotted fill squares it to keep the same response.
       code.paint(ctx, pixels, index, left, top, sceneWidth, artwork.activeOpacity * fade)
@@ -227,6 +228,24 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     })
   }
 
+  function ensureTexture(mode: WhaleFrameMode): boolean {
+    if (mode === 'pixels') return true
+    const textureMode = mode as WhaleTextureMode
+    if (code !== undefined && codeMode === textureMode) return true
+    if (code !== undefined) {
+      code.dispose()
+      code = undefined
+    }
+    code = createCodeFill(artwork, ATLAS, textureMode)
+    codeMode = textureMode
+    if (code === undefined) {
+      fail(new Error('Home whale texture Canvas context is unavailable'))
+      return false
+    }
+    if (sceneWidth > 0) code.resize(canvas, sceneWidth)
+    return true
+  }
+
   function begin(): void {
     if (!moving() || !drawable()) return
     const playing = frameMode === 'alternate' ? (phase === 'local' ? localFill : nextFill) : frameMode
@@ -234,11 +253,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       if (phase === 'local') localFill = playing === 'pixels' ? 'code' : 'pixels'
       else nextFill = playing === 'pixels' ? 'code' : 'pixels'
     }
-    if (playing === 'code') {
-      code ??= createCodeFill(artwork, ATLAS)
-      if (code === undefined) { fail(new Error('Home whale code Canvas context is unavailable')); return }
-      code.resize(canvas, sceneWidth)
-    }
+    if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
     started = performance.now()
@@ -299,7 +314,14 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   }
 
   function setFrameMode(mode: WhaleFrameMode): void {
+    if (frameMode === mode) return
     frameMode = mode
+    // A forced texture only takes effect on the next playback; end the current
+    // one so a settings change swaps the painting immediately.
+    if (started !== undefined) {
+      started = undefined
+      clear()
+    }
   }
 
   function setAutoPlay(intervalMs: number | undefined, playNow = true): void {

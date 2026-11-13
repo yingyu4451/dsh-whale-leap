@@ -4,7 +4,7 @@
 
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate between the dotted and code-lettered frames. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
+- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate between the dotted and code-lettered frames. Clicking blank conversation space replays it. The frame atlas ships inside the plugin bundle and works offline.
 - **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its icon color and status-label color can follow the theme or be picked. Its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets have a live preview that mirrors the real status row (hairline divider, 28 px row) and shows the status label.
 - **Settings page** — everything above lives under Settings › Whale leap. The top tab bar switches between Background and Running icon; the interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
@@ -32,7 +32,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Color | Follow the theme's text tone, or pick a custom ink color. |
 | Background size | Scale of the painted scene (50 %–150 %). |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
-| Frame mode | Dots, code lettering, or alternate between both (the default). |
+| Frame mode | Alternate dots + code (default), dots, code lettering, ASCII glyphs, binary tokens, or hatching. |
 
 **Playback**
 
@@ -65,12 +65,12 @@ The motion cards each preview their own preset, and the selected card carries a 
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
 - **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, the DOM adapter mounts the mark and hides the shipped icon.
-- **The atlas is read at runtime, not shipped.** The Host half serves `@deepseek-ai/dsh-client-ui-brand-official`'s installed `lib/assets/breach-atlas-*.webp` on `/whale-leap/assets/atlas.webp`; standard Web and Desktop builds install that package. When it is missing, the background whale stays absent and the rest of the plugin keeps working.
+- **The atlas ships with the plugin.** `assets/breach-atlas.webp` is redistributed under the MIT License and embedded as a data URL at build time, so the background whale renders offline and on packaged Desktop builds whose official brand package lives inside an asar archive that plain file reads cannot reach.
 - The renderer, code fill, and running-mark motion are adapted from DeepSeek Harness source under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
 
 ## Credits
 
-The renderer, code fill, fish paths, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). The whale frame atlas is not redistributed: the plugin reads it from the installed official brand package at runtime. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
+The renderer, code fill, fish paths, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). The whale frame atlas comes from the same repository and is redistributed under the MIT License. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
 
 ## Build
 
@@ -80,7 +80,7 @@ pnpm run build      # writes lib/client.js as a ModuleLoader artifact
 pnpm run check      # build + smoke + render + Host route checks
 ```
 
-`lib/client.js` contains no bitmap. The Host half (`index.js`) imports `@deepseek-ai/schemastery` from the running profile and serves the official atlas bytes on `/whale-leap/assets/atlas.webp`. The browser bundle embeds `package.json`'s version for the update check.
+`lib/client.js` embeds the frame atlas as a webp data URL (about 252 KB of base64). The Host half (`index.js`) only imports `@deepseek-ai/schemastery` from the running profile and registers the settings page. The browser bundle embeds `package.json`'s version for the update check.
 
 ## Releases
 
@@ -95,10 +95,10 @@ npm remains optional and manual: the workflow in [`.github/workflows/publish.yml
 ## Layout
 
 ```text
-index.js                     Host half: Config schema, settings.configure, atlas route
+index.js                     Host half: Config schema and settings.configure
 shared/settings.js           Field names, bounds, defaults shared by both halves
 src/client/index.tsx         Client entry: three slot registrations
-src/client/atlas.ts          Document-relative URL of the Host atlas route
+src/client/atlas.ts          Data URL of the bundled frame atlas
 src/client/store.ts          Settings runtime (mirror + debounced writes)
 src/client/i18n.ts           Eight locale dictionaries for the settings page
 src/client/settings/         Settings page and its module CSS

@@ -100,6 +100,9 @@ const FRAME_LABELS: Record<WhaleFrameMode, LocaleKey> = {
   alternate: 'frameAlternate',
   pixels: 'frameDots',
   code: 'frameCode',
+  glyphs: 'frameGlyphs',
+  binary: 'frameBinary',
+  lines: 'frameLines',
 }
 
 /** Replay cadence of the background preview stage. */

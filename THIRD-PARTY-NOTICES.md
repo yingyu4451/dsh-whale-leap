@@ -44,15 +44,16 @@ Derived or adapted files:
   `packages/client/ui-primitives/src/FishLogo.tsx` and
   `packages/client/ui-settings-general` / `ui-conversation` behaviour.
 
-## Runtime artwork reference
+- `assets/breach-atlas.webp`: the 137-frame whale frame atlas from
+  `packages/client/ui-brand-official/lib/assets/breach-atlas-*.webp`,
+  redistributed unchanged under the MIT License above.
 
-This package does **not** bundle or redistribute the whale frame atlas.
-`index.js` reads `breach-atlas-*.webp` from the already-installed official
-`@deepseek-ai/dsh-client-ui-brand-official` package and serves those bytes on
-`/whale-leap/assets/atlas.webp` for the browser half. Installing and using this
-plugin therefore relies on that separate package and its own license, and this
-repository ships no copy of the artwork. When the brand package is absent, the
-background whale is simply unavailable.
+## Bundled artwork
+
+`assets/breach-atlas.webp` (189 KB) ships with this package and is embedded
+into `lib/client.js` as a webp data URL at build time, so the background whale
+works offline and on packaged Desktop builds whose official brand package sits
+inside an asar archive that plain file reads cannot reach.
 
 ## Trademarks
 

@@ -1,67 +1,46 @@
 /**
  * Host smoke check: imports the Host half with a fake Cordis context and
- * asserts the settings schema and the official-atlas route.
+ * asserts the settings schema plus the one-time settings-page registration.
  *
- * The route resolves the atlas through the client-module registry, so the
- * check installs a tiny fixture package that mimics the official brand
- * package's `lib/client.js` + `lib/assets/breach-atlas-<rev>.webp` layout.
+ * The browser bundle now carries the frame atlas as a data URL, so the Host
+ * half owns no web route and must work with a context that only exposes
+ * `settings`.
  */
-import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const root = process.cwd()
-const fixture = path.join(root, '.tmp', 'brand-package')
-const revision = '0123456789ab'
-const atlasBytes = Buffer.from(`RIFF${String(24).padStart(4, '0')}WEBPVP8 fixture-whale-atlas`, 'utf8')
-
-await rm(fixture, { recursive: true, force: true })
-await mkdir(path.join(fixture, 'lib', 'assets'), { recursive: true })
-await writeFile(path.join(fixture, 'lib', 'client.js'), '')
-await writeFile(path.join(fixture, 'lib', 'assets', `breach-atlas-${revision}.webp`), atlasBytes)
-
 const host = await import(pathToFileURL(path.join(root, 'index.js')).href)
 
 /**
- * Build one fake plugin context.
- * @param clientPath - result of `clientModules.clientPath`, or undefined.
- * @returns the context plus captured route registrations and cleanups.
+ * Build one fake plugin context exposing only the settings service.
+ * @returns the captured configure calls and effect cleanups.
  */
-function bench(clientPath) {
-  const routes = []
-  const cleanups = []
+function bench() {
   const configured = []
+  const cleanups = []
   const child = {
-    effect(setup) {
-      const cleanup = setup()
-      if (typeof cleanup === 'function') cleanups.push(cleanup)
-      return cleanup
-    },
     settings: {
       configure(presentation, fiber) {
         configured.push({ presentation, fiber })
       },
     },
-    webServer: {
-      register(route) {
-        routes.push(route)
-        return () => {}
-      },
-    },
-    clientModules: {
-      clientPath() {
-        return clientPath
-      },
+    effect(setup) {
+      const cleanup = setup()
+      if (typeof cleanup === 'function') cleanups.push(cleanup)
+      return cleanup
     },
   }
+  const injections = []
   const ctx = {
     fiber: 'fake-fiber',
     inject(names, callback) {
+      injections.push(names)
       callback(child)
     },
   }
   host.apply(ctx, {})
-  return { routes, cleanups, configured }
+  return { configured, cleanups, injections }
 }
 
 const failures = []
@@ -70,43 +49,25 @@ const expect = (condition, message) => {
 }
 
 expect(typeof host.apply === 'function', 'apply is exported')
-const schema = JSON.stringify(host.Config.toJSON())
 expect(host.Config !== undefined, 'Config is exported')
+
+const schema = JSON.stringify(host.Config.toJSON())
 for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'frameMode', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'markColorMode', 'markColor', 'labelColorMode', 'labelColor', 'markSize', 'markLabelSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
   expect(schema.includes(`"${field}"`), `schema contains ${field}`)
 }
 expect(schema.includes('"volatile":true'), 'schema marks fields volatile')
-
-const positive = bench(path.join(fixture, 'lib', 'client.js'))
-expect(positive.configured.length === 1, 'settings page configured once')
-expect(positive.routes.length === 1, 'atlas route registered once')
-const route = positive.routes[0]
-expect(route?.kind === 'exact', 'atlas route is exact')
-expect(route?.path === host.ATLAS_ROUTE, 'atlas route uses the published path')
-expect(typeof route?.resource === 'function', 'atlas route exposes a resource')
-
-if (route !== undefined) {
-  const get = await route.resource(new Request(`http://127.0.0.1:3080${route.path}`, { method: 'GET' }))
-  const body = Buffer.from(await get.arrayBuffer())
-  expect(get.status === 200, 'GET returns 200')
-  expect(get.headers.get('content-type') === 'image/webp', 'GET serves webp')
-  expect(body.equals(atlasBytes), 'GET returns the installed atlas bytes')
-
-  const head = await route.resource(new Request(`http://127.0.0.1:3080${route.path}`, { method: 'HEAD' }))
-  expect(head.status === 200, 'HEAD returns 200')
-  expect(head.headers.get('content-type') === 'image/webp', 'HEAD serves webp headers')
-  expect((await head.arrayBuffer()).byteLength === 0, 'HEAD carries no body')
+for (const mode of ['alternate', 'pixels', 'code', 'glyphs', 'binary', 'lines']) {
+  expect(schema.includes(`"${mode}"`), `frame mode includes ${mode}`)
 }
 
-const missing = bench(undefined)
-expect(missing.routes.length === 1, 'route still registers without the brand package')
-const missingResponse = await missing.routes[0].resource(new Request('http://127.0.0.1:3080/whale-leap/assets/atlas.webp'))
-expect(
-  missingResponse.status === 404,
-  `missing brand artwork returns 404 (got ${missingResponse.status}: ${await missingResponse.text()})`,
-)
+const benchResult = bench()
+expect(benchResult.injections.length === 1, 'apply injects the settings service once')
+expect(JSON.stringify(benchResult.injections[0]) === JSON.stringify(['settings']), 'apply injects only settings')
+expect(benchResult.configured.length === 1, 'settings page configured once')
+expect(benchResult.configured[0].presentation.auto === false, 'settings page registers automatically')
+expect(benchResult.configured[0].fiber === 'fake-fiber', 'settings page binds the plugin fiber')
 
-for (const cleanup of [...positive.cleanups, ...missing.cleanups]) {
+for (const cleanup of benchResult.cleanups) {
   if (typeof cleanup === 'function') cleanup()
 }
 
@@ -114,5 +75,5 @@ if (failures.length > 0) {
   console.error('Host check failed:', failures.join('; '))
   process.exitCode = 1
 } else {
-  console.log(JSON.stringify({ ok: true, routePath: host.ATLAS_ROUTE, bytes: atlasBytes.byteLength }, null, 2))
+  console.log(JSON.stringify({ ok: true, fields: 19, frameModes: 6 }, null, 2))
 }
