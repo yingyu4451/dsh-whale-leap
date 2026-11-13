@@ -16,7 +16,7 @@ import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { PACKAGE_NAME, checkForUpdate, type UpdateResult } from '../update.js'
-import atlasUrl from '../../../assets/breach-atlas.webp'
+import { ATLAS_URL } from '../atlas.js'
 import css from './settings.module.css'
 
 /** Translation function handed in by the slot locale binding. */
@@ -209,7 +209,7 @@ function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
       whale.current = undefined
       return
     }
-    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, atlasUrl)
+    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL)
     whale.current = handle
     handle.prefetch()
     const current = latest.current

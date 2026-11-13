@@ -2,10 +2,11 @@
  * Build the browser half of whale-leap into a ModuleLoader artifact.
  *
  * The monorepo preset depends on the checkout's tsc pipeline and module table,
- * so this standalone plugin uses esbuild with three small shims: CSS Modules are
- * scoped and injected as one style tag, the atlas is embedded as a data URL, and
- * the output is wrapped in the `window.__ModuleLoader__.load` factory the client
- * runtime expects. Only React stays external.
+ * so this standalone plugin uses esbuild with two small shims: CSS Modules are
+ * scoped and injected as one style tag, and the output is wrapped in the
+ * `window.__ModuleLoader__.load` factory the client runtime expects. Only React
+ * stays external. The frame atlas is served at runtime by the Host half, so no
+ * bitmap is bundled or published.
  */
 import { build } from 'esbuild'
 import { mkdir, readFile, rm } from 'node:fs/promises'
@@ -29,7 +30,6 @@ await build({
   platform: 'browser',
   target: ['es2022'],
   jsx: 'automatic',
-  loader: { '.webp': 'dataurl' },
   external: ['react', 'react/jsx-runtime'],
   plugins: [cssModules()],
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(version) },

@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { WHALE_ARTWORK } from './artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from './renderer.js'
-import atlasUrl from '../../../assets/breach-atlas.webp'
+import { ATLAS_URL } from '../atlas.js'
 import type { Store } from '../store.js'
 import type { WhaleSettingsState } from '../settings.js'
 import css from './whale.module.css'
@@ -74,7 +74,7 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
       whale.current = undefined
       return
     }
-    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, atlasUrl)
+    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL)
     whale.current = handle
     handle.prefetch()
   }, [])

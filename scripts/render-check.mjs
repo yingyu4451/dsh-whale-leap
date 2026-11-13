@@ -21,7 +21,6 @@ await build({
   format: 'esm',
   platform: 'node',
   jsx: 'automatic',
-  loader: { '.webp': 'dataurl' },
   external: ['react', 'react-dom', 'react-dom/server', 'react/jsx-runtime'],
   plugins: [cssModules()],
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(manifest.version) },
@@ -34,13 +33,16 @@ globalThis.document = {
 }
 
 const { check } = await import(pathToFileURL(outfile).href)
-const { page, markPage, mark, layer } = check()
+const { page, englishPage, markPage, mark, layer } = check()
 
 const landmarks = {
   tabs: ['whale-leap-tab-background', 'whale-leap-tab-mark'].every(token => page.includes(token)),
   previewStage: page.includes('stageCanvas'),
   updateCheck: page.includes('checkUpdate'),
   updateNotice: page.includes('updateNotice'),
+  englishNav: englishPage.includes('Whale leap'),
+  englishInk: englishPage.includes('Ink strength'),
+  englishMarkTab: englishPage.includes('Running icon'),
   motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
   replaceSwitch: markPage.includes('aria-label="replaceMark"'),
   markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
@@ -54,9 +56,16 @@ const landmarks = {
 const failed = Object.entries(landmarks).filter(([, ok]) => !ok)
 if (failed.length > 0) {
   console.error('Render check failed:', failed.map(([name]) => name).join(', '))
-  console.error({ page: page.slice(0, 400), mark, layer })
+  console.error({ page: page.slice(0, 400), englishPage: englishPage.slice(0, 400), mark, layer })
   process.exitCode = 1
 } else {
-  console.log(JSON.stringify({ ok: true, landmarks, pageBytes: page.length, markBytes: mark.length, layerBytes: layer.length }, null, 2))
+  console.log(JSON.stringify({
+    ok: true,
+    landmarks,
+    pageBytes: page.length,
+    englishBytes: englishPage.length,
+    markBytes: mark.length,
+    layerBytes: layer.length,
+  }, null, 2))
 }
 

@@ -1,10 +1,12 @@
 # Whale leap
 
+[English](README.md) · [中文](README.zh.md)
+
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it.
+- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
 - **Running-status mark** — the fish left of “深度求索中” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px) has a live preview.
-- **Settings page** — everything above lives under Settings › 鲸跃, in two tabs.
+- **Settings page** — everything above lives under Settings › 鲸跃, in two tabs. The interface follows the DeepSeek Harness language; strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
 ## Install
 
@@ -13,7 +15,7 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 3. Restart `dsh web` once. The Host loads the package the first time it appears in the profile, so the new settings section does not exist until that restart. Refresh the page after it.
 4. Open **Settings › 鲸跃**.
 
-**Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup.
+**Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup. When the plugin was installed from a folder, the profile keeps a directory copy: copy the rebuilt package over `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap` (or remove and re-add it in Plugins) before restarting.
 
 The plugin is the bundle `dsh-whale-leap`; the same package is prepared for npm and mirrored by npmmirror. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
 
@@ -46,20 +48,22 @@ A live preview canvas sits above the controls and replays with the current setti
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
 - **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. It does require a DSH build that declares `conversation.chat.running.mark` (current checkout).
-- The whale artwork is adapted from DeepSeek Harness brand assets under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
+- **The atlas is read at runtime, not shipped.** The Host half serves `@deepseek-ai/dsh-client-ui-brand-official`'s installed `lib/assets/breach-atlas-*.webp` on `/whale-leap/assets/atlas.webp`; standard Web and Desktop builds install that package. When it is missing, the background whale stays absent and the rest of the plugin keeps working.
+- The renderer, code fill, and running-mark motion are adapted from DeepSeek Harness source under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
 
 ## Credits
 
-The whale atlas, renderer, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
+The renderer, code fill, fish paths, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). The whale frame atlas is not redistributed: the plugin reads it from the installed official brand package at runtime. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
 
 ## Build
 
 ```powershell
-pnpm install        # pulls esbuild only
+pnpm install        # esbuild, react, and the Host's schemastery dev copy
 pnpm run build      # writes lib/client.js as a ModuleLoader artifact
+node scripts/host-check.mjs   # asserts the atlas route and schema
 ```
 
-`lib/client.js` embeds the atlas as a data URL. The Host half is plain ESM (`index.js`) importing `@deepseek-ai/schemastery` from the running profile. The browser bundle also embeds `package.json`'s version for the update check.
+`lib/client.js` contains no bitmap. The Host half (`index.js`) imports `@deepseek-ai/schemastery` from the running profile and serves the official atlas bytes on `/whale-leap/assets/atlas.webp`. The browser bundle embeds `package.json`'s version for the update check.
 
 ## Publishing
 
@@ -75,13 +79,14 @@ npm publish --access public
 ## Layout
 
 ```text
-index.js                     Host half: Config schema + settings.configure
+index.js                     Host half: Config schema, settings.configure, atlas route
 shared/settings.js           Field names, bounds, defaults shared by both halves
 src/client/index.tsx         Client entry: three slot registrations
+src/client/atlas.ts          Document-relative URL of the Host atlas route
 src/client/store.ts          Settings runtime (mirror + debounced writes)
+src/client/i18n.ts           Eight locale dictionaries for the settings page
 src/client/settings/         Settings page and its module CSS
 src/client/whale/            Whale canvas, renderer, code fill, fish mark, paths
-assets/breach-atlas.webp     Frame atlas (137 frames, 12 columns)
 locale/*.json                Plugin Manager title/description/detail metadata
 docs/DETAIL.md               Plugin detail page document
 ```

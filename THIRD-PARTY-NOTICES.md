@@ -33,9 +33,6 @@ the MIT License:
 
 Derived or adapted files:
 
-- `assets/breach-atlas.webp`: the whale frame atlas from
-  `packages/client/ui-brand-official/src/client/assets/breach-atlas.webp`,
-  redistributed unchanged.
 - `src/client/whale/renderer.ts`, `src/client/whale/code-fill.ts`,
   `src/client/whale/artwork.ts`: the whale canvas renderer and code-lettering
   fill, adapted from `packages/client/ui-brand-official/src/client/home-whale/`
@@ -46,6 +43,16 @@ Derived or adapted files:
   mark animation, derived from the fish paths and motion in
   `packages/client/ui-primitives/src/FishLogo.tsx` and
   `packages/client/ui-settings-general` / `ui-conversation` behaviour.
+
+## Runtime artwork reference
+
+This package does **not** bundle or redistribute the whale frame atlas.
+`index.js` reads `breach-atlas-*.webp` from the already-installed official
+`@deepseek-ai/dsh-client-ui-brand-official` package and serves those bytes on
+`/whale-leap/assets/atlas.webp` for the browser half. Installing and using this
+plugin therefore relies on that separate package and its own license, and this
+repository ships no copy of the artwork. When the brand package is absent, the
+background whale is simply unavailable.
 
 ## Trademarks
 

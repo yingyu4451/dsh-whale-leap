@@ -30,7 +30,8 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 - Web client only; it needs the `ui-conversation`, `ui-chat`, and `ui-settings` client packages.
 - Settings are workspace-scoped and stored in the settings namespace `whale-leap`.
 - The built-in brand package no longer paints any whale; it only supplies sidebar artwork, so this plugin does not overlap with it. Requires a DSH build declaring `conversation.chat.running.mark`.
-- Whale artwork is derived from DeepSeek Harness brand assets and is intended for this local plugin.
+- The frame atlas is read at runtime from the installed `@deepseek-ai/dsh-client-ui-brand-official` package (`/whale-leap/assets/atlas.webp`); this plugin ships no artwork and the background stays absent if that package is missing.
+- The settings page follows the DeepSeek Harness interface language (Chinese, English, Japanese, Spanish, French, German, Russian, Portuguese).
 
 ## Build
 
@@ -39,4 +40,4 @@ pnpm install
 pnpm run build
 ```
 
-This writes `lib/client.js`, a ModuleLoader artifact with the atlas embedded as a data URL. The Host half is plain ESM (`index.js`) and imports `@deepseek-ai/schemastery` from the running profile.
+This writes `lib/client.js`, a ModuleLoader artifact with no bundled bitmap. The Host half (`index.js`) imports `@deepseek-ai/schemastery` from the running profile and serves the installed official atlas bytes on `/whale-leap/assets/atlas.webp`.

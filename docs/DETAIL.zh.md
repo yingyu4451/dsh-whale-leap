@@ -29,7 +29,8 @@
 - 仅网页端，需要 `ui-conversation`、`ui-chat`、`ui-settings` 客户端包。
 - 设置是工作区级的，命名空间为 `whale-leap`。
 - 内置品牌包不再绘制任何鲸鱼，只提供侧栏品牌图形，因此不会与本插件重叠；需要声明 `conversation.chat.running.mark` 的 DSH 构建。
-- 鲸鱼素材来自 DeepSeek Harness 品牌资源，仅供本地插件使用。
+- 鲸鱼帧图集在运行时从已安装的 `@deepseek-ai/dsh-client-ui-brand-official` 包读取（`/whale-leap/assets/atlas.webp`）；本插件不分发素材，品牌包缺失时背景鲸鱼不显示。
+- 设置页跟随 DeepSeek Harness 的界面语言（中文、English、日本語、Español、Français、Deutsch、Русский、Português）。
 
 ## 构建
 
@@ -38,4 +39,4 @@ pnpm install
 pnpm run build
 ```
 
-生成 `lib/client.js`（ModuleLoader 产物，图集内嵌为 data URL）。Host 半部分是普通 ESM（`index.js`），从运行中的 profile 引入 `@deepseek-ai/schemastery`。
+生成 `lib/client.js`（ModuleLoader 产物，不含内嵌位图）。Host 半部分（`index.js`）从运行中的 profile 引入 `@deepseek-ai/schemastery`，并在 `/whale-leap/assets/atlas.webp` 上提供已安装的官方图集字节。
