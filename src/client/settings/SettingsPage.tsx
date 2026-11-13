@@ -7,7 +7,7 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, INTERVAL_RANGE, MARK_MOTIONS, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import { COLOR_MODES, INTERVAL_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
 import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
@@ -47,6 +47,10 @@ export interface SettingsPageActions {
   setMarkSize: (px: number) => void
   /** Scale the horizontal swing of the animated mark. */
   setMarkSwing: (amplitude: number) => void
+  /** Set the animated mark's horizontal start offset. */
+  setMarkOffsetX: (px: number) => void
+  /** Set the animated mark's vertical start offset. */
+  setMarkOffsetY: (px: number) => void
   /** Choose the running mark motion. */
   setMarkMotion: (motion: WhaleMarkMotion) => void
 }
@@ -87,6 +91,16 @@ const PREVIEW_SCALE = 0.5
 
 /** Mark size rendered inside each motion card. */
 const OPTION_FISH_SIZE = 34
+
+/**
+ * Format a start offset for the slider value label.
+ * @param px - offset in pixels.
+ * @returns the signed pixel value, e.g. `+2.5px`, `0px`, `-1px`.
+ */
+function formatOffsetPx(px: number): string {
+  const rounded = Number.isInteger(px) ? String(px) : px.toFixed(1)
+  return `${px > 0 ? '+' : ''}${rounded}px`
+}
 
 /** One labelled settings row. */
 function Row({ label, hint, control, stack = false }: {
@@ -457,7 +471,13 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 <span className={css.markRunning}>
                   <span className={css.markDivider} aria-hidden="true" />
                   <span className={css.markIcon}>
-                    <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} swing={settings.markSwing} />
+                    <WhaleMarkFish
+                      size={settings.markSize}
+                      motion={settings.markMotion}
+                      swing={settings.markSwing}
+                      offsetX={settings.markOffsetX}
+                      offsetY={settings.markOffsetY}
+                    />
                   </span>
                   <span className={css.markRunningLabel} data-running-label>
                     {t('runningLabel')}
@@ -489,6 +509,32 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={`${settings.markSize}px`}
                 disabled={disabled || !settings.replaceMark}
                 onChange={actions.setMarkSize}
+              />
+
+              <SliderRow
+                id="whale-leap-mark-offset-x"
+                label={t('offsetX')}
+                hint={t('offsetXHint')}
+                value={settings.markOffsetX}
+                min={MARK_OFFSET_RANGE.min}
+                max={MARK_OFFSET_RANGE.max}
+                step={MARK_OFFSET_RANGE.step}
+                display={formatOffsetPx(settings.markOffsetX)}
+                disabled={disabled || !settings.replaceMark}
+                onChange={actions.setMarkOffsetX}
+              />
+
+              <SliderRow
+                id="whale-leap-mark-offset-y"
+                label={t('offsetY')}
+                hint={t('offsetYHint')}
+                value={settings.markOffsetY}
+                min={MARK_OFFSET_RANGE.min}
+                max={MARK_OFFSET_RANGE.max}
+                step={MARK_OFFSET_RANGE.step}
+                display={formatOffsetPx(settings.markOffsetY)}
+                disabled={disabled || !settings.replaceMark}
+                onChange={actions.setMarkOffsetY}
               />
             </Group>
 

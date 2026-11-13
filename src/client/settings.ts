@@ -35,6 +35,10 @@ export interface WhaleSettings {
   markSize: number
   /** Running mark horizontal swing amplitude multiplier. */
   markSwing: number
+  /** Running mark horizontal start offset in pixels. */
+  markOffsetX: number
+  /** Running mark vertical start offset in pixels. */
+  markOffsetY: number
   /** Running mark motion preset. */
   markMotion: WhaleMarkMotion
 }

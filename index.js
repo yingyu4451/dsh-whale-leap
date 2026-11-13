@@ -16,6 +16,7 @@ import {
   DEFAULT_SETTINGS,
   INTERVAL_RANGE,
   MARK_MOTIONS,
+  MARK_OFFSET_RANGE,
   MARK_SIZE_RANGE,
   MARK_SWING_RANGE,
   OPACITY_RANGE,
@@ -101,6 +102,10 @@ export const Config = z.object({
   markSize: z.number().step(MARK_SIZE_RANGE.step).min(MARK_SIZE_RANGE.min).max(MARK_SIZE_RANGE.max).default(DEFAULT_SETTINGS.markSize).volatile(),
   /** Running mark swing amplitude multiplier. */
   markSwing: z.number().step(MARK_SWING_RANGE.step).min(MARK_SWING_RANGE.min).max(MARK_SWING_RANGE.max).default(DEFAULT_SETTINGS.markSwing).volatile(),
+  /** Running mark horizontal start offset in pixels. */
+  markOffsetX: z.number().step(MARK_OFFSET_RANGE.step).min(MARK_OFFSET_RANGE.min).max(MARK_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.markOffsetX).volatile(),
+  /** Running mark vertical start offset in pixels. */
+  markOffsetY: z.number().step(MARK_OFFSET_RANGE.step).min(MARK_OFFSET_RANGE.min).max(MARK_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.markOffsetY).volatile(),
   /** Running mark motion preset. */
   markMotion: z.union([...MARK_MOTIONS]).default(DEFAULT_SETTINGS.markMotion).volatile(),
 })

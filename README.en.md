@@ -5,7 +5,7 @@
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
 - **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home and, when enabled, behind started conversations. Clicking blank conversation space replays it. The frame atlas is read at runtime from the installed official brand package; this repository redistributes no artwork.
-- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px) and swing amplitude (50 %–200 %) have a live preview that also shows the status label.
+- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its size (8–28 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets have a live preview that also shows the status label.
 - **Settings page** — everything above lives under Settings › Whale leap. The top tab bar switches between Background and Running icon; the interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
 ## Install
@@ -47,7 +47,7 @@ A live preview canvas sits above the controls and replays with the current setti
 
 **Running icon**
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices shows the selected motion at the exact configured size beside the running-status label, so the preview matches the real row and the label follows the interface language. The size slider sets the mark's box, 8–28 px.
+**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices shows the selected motion at the exact configured size beside the running-status label, so the preview matches the real row and the label follows the interface language. The size slider sets the mark's box, 8–28 px; horizontal and vertical position shift its start point by −12 to +12 px each.
 
 **Motion**
 

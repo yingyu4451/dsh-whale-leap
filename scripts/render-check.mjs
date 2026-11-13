@@ -53,6 +53,8 @@ const landmarks = {
   markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
   markSizeSlider: markPage.includes('whale-leap-mark-size'),
   markSwingSlider: markPage.includes('whale-leap-mark-swing'),
+  markOffsetSliders: markPage.includes('whale-leap-mark-offset-x') && markPage.includes('whale-leap-mark-offset-y'),
+  englishOffset: englishMarkPage.includes('Horizontal position') && englishMarkPage.includes('Vertical position'),
   appearanceGroup: page.includes('groupAppearance') && page.includes('groupPlayback'),
   iconGroup: markPage.includes('任务图标'),
   motionGroup: markPage.includes('motionGrid'),

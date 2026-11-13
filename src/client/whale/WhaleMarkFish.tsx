@@ -12,6 +12,10 @@ export interface WhaleMarkFishProps {
   motion: WhaleMarkMotion
   /** Horizontal swing amplitude multiplier; 1 keeps the authored amplitude. */
   swing?: number
+  /** Horizontal start offset in pixels; negative moves left. */
+  offsetX?: number
+  /** Vertical start offset in pixels; negative moves up. */
+  offsetY?: number
 }
 
 /**
@@ -27,9 +31,11 @@ function prefersReducedMotion(): boolean {
  * @param props.size - box size in pixels.
  * @param props.motion - motion preset.
  * @param props.swing - horizontal swing amplitude multiplier.
+ * @param props.offsetX - horizontal start offset in pixels.
+ * @param props.offsetY - vertical start offset in pixels.
  * @returns the animated mark.
  */
-export function WhaleMarkFish({ size, motion, swing = 1 }: WhaleMarkFishProps) {
+export function WhaleMarkFish({ size, motion, swing = 1, offsetX = 0, offsetY = 0 }: WhaleMarkFishProps) {
   const [swimming, setSwimming] = useState(() => !prefersReducedMotion())
 
   useEffect(() => {
@@ -51,30 +57,36 @@ export function WhaleMarkFish({ size, motion, swing = 1 }: WhaleMarkFishProps) {
     height: size,
     '--wl-swing': String(swing),
   }
+  const offsetStyle: CSSProperties & Record<string, string> = {
+    '--wl-offset-x': `${offsetX}px`,
+    '--wl-offset-y': `${offsetY}px`,
+  }
 
   return (
-    <span className={css.mark} data-motion={motion} style={style}>
-      <svg
-        className={css.svg}
-        data-swimming={swimming ? '' : undefined}
-        viewBox={`0 0 ${FISH_LOGO_VIEWBOX.width} ${FISH_LOGO_VIEWBOX.height}`}
-        fill="none"
-        aria-hidden="true"
-      >
-        <path d={FISH_LOGO_PATH} fill="currentColor">
-          {swimming && (
-            <animate
-              attributeName="d"
-              values={values}
-              keyTimes="0;0.35;0.55;0.75;1"
-              calcMode="spline"
-              keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
-              dur="1.6s"
-              repeatCount="indefinite"
-            />
-          )}
-        </path>
-      </svg>
+    <span className={css.offset} style={offsetStyle}>
+      <span className={css.mark} data-motion={motion} style={style}>
+        <svg
+          className={css.svg}
+          data-swimming={swimming ? '' : undefined}
+          viewBox={`0 0 ${FISH_LOGO_VIEWBOX.width} ${FISH_LOGO_VIEWBOX.height}`}
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d={FISH_LOGO_PATH} fill="currentColor">
+            {swimming && (
+              <animate
+                attributeName="d"
+                values={values}
+                keyTimes="0;0.35;0.55;0.75;1"
+                calcMode="spline"
+                keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"
+                dur="1.6s"
+                repeatCount="indefinite"
+              />
+            )}
+          </path>
+        </svg>
+      </span>
     </span>
   )
 }

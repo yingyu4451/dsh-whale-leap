@@ -38,6 +38,12 @@ export const MARK_SIZE_FIELD = 'markSize'
 /** Field holding the running mark's swing amplitude multiplier. */
 export const MARK_SWING_FIELD = 'markSwing'
 
+/** Field holding the running mark's horizontal start offset in pixels. */
+export const MARK_OFFSET_X_FIELD = 'markOffsetX'
+
+/** Field holding the running mark's vertical start offset in pixels. */
+export const MARK_OFFSET_Y_FIELD = 'markOffsetY'
+
 /** Field holding the running mark motion preset. */
 export const MARK_MOTION_FIELD = 'markMotion'
 
@@ -59,6 +65,9 @@ export const MARK_SIZE_RANGE = { min: 8, max: 28, step: 1 }
 /** Running-mark horizontal swing bounds, as a multiplier of the preset amplitude. */
 export const MARK_SWING_RANGE = { min: 0.5, max: 2, step: 0.1 }
 
+/** Running-mark start-offset bounds in pixels, horizontal and vertical. */
+export const MARK_OFFSET_RANGE = { min: -12, max: 12, step: 0.5 }
+
 /** Accepted running-mark motion presets, in display order. */
 export const MARK_MOTIONS = ['swim', 'explore', 'hero', 'sway']
 
@@ -77,5 +86,7 @@ export const DEFAULT_SETTINGS = {
   replaceMark: true,
   markSize: 14,
   markSwing: 1,
+  markOffsetX: 0,
+  markOffsetY: 0,
   markMotion: 'swim',
 }

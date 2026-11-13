@@ -72,7 +72,7 @@ const expect = (condition, message) => {
 expect(typeof host.apply === 'function', 'apply is exported')
 const schema = JSON.stringify(host.Config.toJSON())
 expect(host.Config !== undefined, 'Config is exported')
-for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'markSize', 'markSwing', 'markMotion']) {
+for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'markSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
   expect(schema.includes(`"${field}"`), `schema contains ${field}`)
 }
 expect(schema.includes('"volatile":true'), 'schema marks fields volatile')

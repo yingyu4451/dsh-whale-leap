@@ -1,3 +1,11 @@
+/* Start-position offset: shifts the whole mark without touching its internal
+   animation, so users can align the fish with the running label. Inline custom
+   properties carry the two offsets; sway stays on the inner element. */
+.offset {
+  display: inline-flex;
+  transform: translate(var(--wl-offset-x, 0px), var(--wl-offset-y, 0px));
+}
+
 /* The fish box sizes to the configured icon; the fish keeps its own viewBox ratio
    inside it and inherits the status color. The padding is the room the motion
    needs inside the clipped icon frame: without it the fish would drift past the
