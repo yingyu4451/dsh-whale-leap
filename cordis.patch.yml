@@ -1,3 +1,4 @@
 - insert:
     - id: whale-leap
-      name: '@local/whale-leap'
+      name: 'dsh-whale-leap'
+

@@ -13,7 +13,7 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 3. Restart `dsh web` once. The Host loads the package the first time it appears in the profile, so the new settings section does not exist until that restart. Refresh the page after it.
 4. Open **Settings › 鲸跃**.
 
-The plugin is a local, private bundle (`@local/whale-leap`); nothing is published.
+The plugin is a local, private bundle (`dsh-whale-leap`); nothing is published to a registry. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
 
 ## Settings
 
@@ -65,3 +65,5 @@ assets/breach-atlas.webp     Frame atlas (137 frames, 12 columns)
 locale/*.json                Plugin Manager title/description/detail metadata
 docs/DETAIL.md               Plugin detail page document
 ```
+
+

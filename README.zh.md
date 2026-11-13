@@ -13,7 +13,7 @@
 3. 重启一次 `dsh web`。Host 第一次看到该包时才会加载它，新的设置分区在那次重启后才存在；随后刷新页面。
 4. 打开 **设置 › 鲸跃**。
 
-这是一个本地私有 bundle（`@local/whale-leap`），不会发布到任何源。
+这是一个本地私有 bundle（`dsh-whale-leap`），不会发布到任何源。仓库：[yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap)。
 
 ## 设置
 
@@ -65,3 +65,5 @@ assets/breach-atlas.webp     帧图集（137 帧，12 列）
 locale/*.json                插件管理器标题/描述/详情元数据
 docs/DETAIL.md               插件详情页文档
 ```
+
+

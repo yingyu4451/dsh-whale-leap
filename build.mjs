@@ -14,7 +14,7 @@ import { cssModules } from './scripts/css-modules.mjs'
 
 const root = process.cwd()
 const outdir = path.join(root, 'lib')
-const packageName = '@local/whale-leap'
+const packageName = 'dsh-whale-leap'
 
 await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })
@@ -38,3 +38,4 @@ await build({
   },
   logLevel: 'info',
 })
+
