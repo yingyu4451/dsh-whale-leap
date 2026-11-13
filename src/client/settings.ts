@@ -33,6 +33,8 @@ export interface WhaleSettings {
   replaceMark: boolean
   /** Running mark size in pixels. */
   markSize: number
+  /** Running status label size in pixels. */
+  markLabelSize: number
   /** Running mark horizontal swing amplitude multiplier. */
   markSwing: number
   /** Running mark horizontal start offset in pixels. */

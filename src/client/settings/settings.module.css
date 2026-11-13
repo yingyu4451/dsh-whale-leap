@@ -189,8 +189,10 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
+  box-sizing: border-box;
 }.stageCanvas {
   position: absolute;
   inset: 0;
@@ -220,8 +222,10 @@
   align-items: center;
   justify-content: center;
   height: 128px;
+  border: 1px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
+  box-sizing: border-box;
   color: var(--dsw-alias-label-primary);
 }
 

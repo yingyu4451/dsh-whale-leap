@@ -15,6 +15,7 @@ import {
   CUSTOM_COLOR_PATTERN,
   DEFAULT_SETTINGS,
   INTERVAL_RANGE,
+  MARK_LABEL_SIZE_RANGE,
   MARK_MOTIONS,
   MARK_OFFSET_RANGE,
   MARK_SIZE_RANGE,
@@ -100,6 +101,8 @@ export const Config = z.object({
   replaceMark: z.boolean().default(DEFAULT_SETTINGS.replaceMark).volatile(),
   /** Running mark size in pixels. */
   markSize: z.number().step(MARK_SIZE_RANGE.step).min(MARK_SIZE_RANGE.min).max(MARK_SIZE_RANGE.max).default(DEFAULT_SETTINGS.markSize).volatile(),
+  /** Running status label size in pixels. */
+  markLabelSize: z.number().step(MARK_LABEL_SIZE_RANGE.step).min(MARK_LABEL_SIZE_RANGE.min).max(MARK_LABEL_SIZE_RANGE.max).default(DEFAULT_SETTINGS.markLabelSize).volatile(),
   /** Running mark swing amplitude multiplier. */
   markSwing: z.number().step(MARK_SWING_RANGE.step).min(MARK_SWING_RANGE.min).max(MARK_SWING_RANGE.max).default(DEFAULT_SETTINGS.markSwing).volatile(),
   /** Running mark horizontal start offset in pixels. */

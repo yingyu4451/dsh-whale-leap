@@ -9,6 +9,7 @@
 import { DICTIONARIES } from './i18n.js'
 import { SettingsPage, type SettingsPageActions } from './settings/SettingsPage.js'
 import { RunningMark } from './whale/RunningMark.js'
+import { applyRunningLabelSize } from './whale/running-label.js'
 import { WhaleLayer } from './whale/WhaleLayer.js'
 import { WhaleSettingsRuntime, type RuntimeContextLike, type SettingsFormLike } from './store.js'
 import { SETTINGS_NAMESPACE } from '../../shared/settings.js'
@@ -69,6 +70,9 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setMarkSize: px => {
       runtime.setMarkSize(px)
     },
+    setMarkLabelSize: px => {
+      runtime.setMarkLabelSize(px)
+    },
     setMarkSwing: amplitude => {
       runtime.setMarkSwing(amplitude)
     },
@@ -122,6 +126,21 @@ export function apply(ctx: ClientContext): void {
       releaseMark = undefined
     }
   }, 'whale-leap: running mark registration')
+
+  // The label beside the mark belongs to the running status, not to the slot,
+  // so it is styled through one scoped rule that follows the same switch.
+  ctx.effect(() => {
+    const syncLabel = (): void => {
+      const snapshot = runtime.store.getSnapshot()
+      applyRunningLabelSize(snapshot.replaceMark ? snapshot.markLabelSize : undefined)
+    }
+    const stopWatching = runtime.store.subscribe(syncLabel)
+    syncLabel()
+    return () => {
+      stopWatching()
+      applyRunningLabelSize(undefined)
+    }
+  }, 'whale-leap: running label size')
 
   ctx.slots.inject('settings.section', () =>
     ctx.slots.register(

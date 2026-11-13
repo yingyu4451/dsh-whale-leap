@@ -35,6 +35,9 @@ export const REPLACE_MARK_FIELD = 'replaceMark'
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
+/** Field holding the running status label size in pixels. */
+export const MARK_LABEL_SIZE_FIELD = 'markLabelSize'
+
 /** Field holding the running mark's swing amplitude multiplier. */
 export const MARK_SWING_FIELD = 'markSwing'
 
@@ -62,6 +65,9 @@ export const INTERVAL_RANGE = { min: 5, max: 300, step: 5 }
 /** Running mark size bounds in pixels. */
 export const MARK_SIZE_RANGE = { min: 8, max: 28, step: 1 }
 
+/** Running status label bounds in pixels; the row keeps its fixed line height. */
+export const MARK_LABEL_SIZE_RANGE = { min: 11, max: 20, step: 1 }
+
 /** Running-mark horizontal swing bounds, as a multiplier of the preset amplitude. */
 export const MARK_SWING_RANGE = { min: 0.5, max: 2, step: 0.1 }
 
@@ -85,6 +91,7 @@ export const DEFAULT_SETTINGS = {
   intervalSeconds: 30,
   replaceMark: true,
   markSize: 14,
+  markLabelSize: 12,
   markSwing: 1,
   markOffsetX: 0,
   markOffsetY: 0,

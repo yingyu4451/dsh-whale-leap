@@ -1,6 +1,6 @@
 {
   "name": "dsh-whale-leap",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "type": "module",
   "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
   "exports": {

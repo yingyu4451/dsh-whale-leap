@@ -7,7 +7,7 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, INTERVAL_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import { COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
 import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
@@ -45,6 +45,8 @@ export interface SettingsPageActions {
   setReplaceMark: (enabled: boolean) => void
   /** Set the running mark size. */
   setMarkSize: (px: number) => void
+  /** Set the running status label size. */
+  setMarkLabelSize: (px: number) => void
   /** Scale the horizontal swing of the animated mark. */
   setMarkSwing: (amplitude: number) => void
   /** Set the animated mark's horizontal start offset. */
@@ -479,7 +481,11 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                       offsetY={settings.markOffsetY}
                     />
                   </span>
-                  <span className={css.markRunningLabel} data-running-label>
+                  <span
+                    className={css.markRunningLabel}
+                    style={{ fontSize: `${settings.markLabelSize}px` }}
+                    data-running-label
+                  >
                     {t('runningLabel')}
                   </span>
                 </span>
@@ -509,6 +515,19 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={`${settings.markSize}px`}
                 disabled={disabled || !settings.replaceMark}
                 onChange={actions.setMarkSize}
+              />
+
+              <SliderRow
+                id="whale-leap-mark-label-size"
+                label={t('labelSize')}
+                hint={t('labelSizeHint')}
+                value={settings.markLabelSize}
+                min={MARK_LABEL_SIZE_RANGE.min}
+                max={MARK_LABEL_SIZE_RANGE.max}
+                step={MARK_LABEL_SIZE_RANGE.step}
+                display={`${settings.markLabelSize}px`}
+                disabled={disabled || !settings.replaceMark}
+                onChange={actions.setMarkLabelSize}
               />
 
               <SliderRow
