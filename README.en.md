@@ -17,7 +17,7 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
 **Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup. When the plugin was installed from a folder, the profile keeps a directory copy: copy the rebuilt package over `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap` (or remove and re-add it in Plugins) before restarting.
 
-The settings header shows the running version and a **Check for updates** button. The check reads the latest release from GitHub — the repository's `releases/latest` endpoint, then its tags when no release exists yet — compares it with the installed build, links the release page when a newer version exists, and reports plainly when nothing has been released.
+The settings header shows the running version and a **Check for updates** button. The check reads the latest release from GitHub — the repository's `releases/latest` endpoint, then its tags when no release exists yet — compares it with the installed build, links the release page when a newer version exists, and reports plainly when nothing has been released or the probe fails, including the reason (GitHub rate limit, network, or timeout) plus a link to the releases page.
 
 ## Settings
 
@@ -42,7 +42,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, appearance changes replay it automatically, and while you scroll the page it shrinks into a slim pinned strip instead of covering the controls you are editing.
+A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, appearance changes replay it automatically, and while you scroll, the header and tabs stay pinned while the preview keeps its full height below them, so neither the preview nor anything above it is hidden.
 
 ### Running icon tab
 

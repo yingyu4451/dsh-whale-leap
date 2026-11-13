@@ -14,7 +14,16 @@ export const REPOSITORY = 'yingyu4451/dsh-whale-leap'
 export const RELEASES_URL = `https://github.com/${REPOSITORY}/releases`
 
 /** Outcome of an update probe. */
-export type UpdateStatus = 'idle' | 'checking' | 'latest' | 'available' | 'no-release' | 'failed'
+export type UpdateStatus =
+  | 'idle'
+  | 'checking'
+  | 'latest'
+  | 'available'
+  | 'no-release'
+  | 'failed'
+  | 'rate-limited'
+  | 'network'
+  | 'timeout'
 
 /** Result of an update probe. */
 export interface UpdateResult {
@@ -63,15 +72,19 @@ interface Probe {
   body?: unknown
   /** The requested resource does not exist (an empty repository). */
   missing?: boolean
+  /** Short diagnostic kept out of the UI copy. */
   error?: string
+  /** Failure category used to explain the result to the user. */
+  kind?: 'rate-limited' | 'network' | 'timeout' | 'http'
 }
 
 /**
- * Read one GitHub API document.
+ * Read one GitHub API document, retrying once on a transient transport failure.
  * @param url - endpoint returning JSON.
+ * @param attempt - retry counter for transient failures.
  * @returns the parsed body, a missing marker, or a short error.
  */
-async function probe(url: string): Promise<Probe> {
+async function probe(url: string, attempt = 0): Promise<Probe> {
   const controller = new AbortController()
   const timer = setTimeout(() => {
     controller.abort()
@@ -82,10 +95,19 @@ async function probe(url: string): Promise<Probe> {
       headers: { accept: 'application/vnd.github+json' },
     })
     if (response.status === 404) return { missing: true }
-    if (!response.ok) return { error: `HTTP ${response.status}` }
+    if (response.status === 403 || response.status === 429) {
+      return { error: `HTTP ${response.status}`, kind: 'rate-limited' }
+    }
+    if (!response.ok) return { error: `HTTP ${response.status}`, kind: 'http' }
     return { body: await response.json() }
   } catch (error) {
-    return { error: error instanceof Error ? error.message : String(error) }
+    const timedOut = error instanceof Error && error.name === 'AbortError'
+    const kind = timedOut ? 'timeout' : 'network'
+    if (attempt === 0) {
+      await new Promise(resolve => setTimeout(resolve, 600))
+      return probe(url, attempt + 1)
+    }
+    return { error: error instanceof Error ? error.message : String(error), kind }
   } finally {
     clearTimeout(timer)
   }
@@ -105,25 +127,31 @@ function tagVersion(tag: string): string | undefined {
  * Read the newest release, falling back to the newest version tag.
  * @returns version and release URL, a missing marker, or a short error.
  */
-async function latestRelease(): Promise<{ version?: string; url?: string; missing?: boolean; error?: string }> {
+async function latestRelease(): Promise<{
+  version?: string
+  url?: string
+  missing?: boolean
+  error?: string
+  kind?: 'rate-limited' | 'network' | 'timeout' | 'http'
+}> {
   const release = await probe(`${API}/releases/latest`)
   if (release.missing !== true && release.error === undefined) {
     const body = release.body
     const tag = typeof body === 'object' && body !== null ? (body as { tag_name?: unknown; html_url?: unknown }) : undefined
     const version = typeof tag?.tag_name === 'string' ? tagVersion(tag.tag_name) : undefined
-    if (version === undefined) return { error: 'Invalid release document' }
+    if (version === undefined) return { error: 'Invalid release document', kind: 'http' }
     return {
       version,
       url: typeof tag.html_url === 'string' ? tag.html_url : RELEASES_URL,
     }
   }
-  if (release.error !== undefined) return { error: release.error }
+  if (release.error !== undefined) return { error: release.error, kind: release.kind }
 
   // No release yet: tags still identify a published build.
   const tags = await probe(`${API}/tags?per_page=30`)
   if (tags.missing === true) return { missing: true }
-  if (tags.error !== undefined) return { error: tags.error }
-  if (!Array.isArray(tags.body)) return { error: 'Invalid tag document' }
+  if (tags.error !== undefined) return { error: tags.error, kind: tags.kind }
+  if (!Array.isArray(tags.body)) return { error: 'Invalid tag document', kind: 'http' }
   let best: string | undefined
   for (const entry of tags.body) {
     const name = typeof entry === 'object' && entry !== null ? (entry as { name?: unknown }).name : undefined
@@ -142,7 +170,12 @@ async function latestRelease(): Promise<{ version?: string; url?: string; missin
 export async function checkForUpdate(currentVersion: string = PLUGIN_VERSION): Promise<UpdateResult> {
   const result = await latestRelease()
   if (result.missing === true) return { status: 'no-release' }
-  if (result.version === undefined) return { status: 'failed', error: result.error ?? 'Unknown release error' }
+  if (result.version === undefined) {
+    const status = result.kind === 'rate-limited' || result.kind === 'network' || result.kind === 'timeout'
+      ? result.kind
+      : 'failed'
+    return { status, error: result.error ?? 'Unknown release error' }
+  }
   return compareVersions(result.version, currentVersion) > 0
     ? { status: 'available', latest: result.version, url: result.url }
     : { status: 'latest', latest: result.version, url: result.url }

@@ -9,9 +9,13 @@
 }
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background: var(--dsw-alias-bg-layer-2);
 }
 
 .title {
@@ -63,10 +67,10 @@
   min-width: 104px;
   height: 28px;
   padding: 0 12px;
-  border: 0.5px solid var(--dsw-alias-border-l2);
+  border: 0.5px solid transparent;
   border-radius: var(--dsw-radius-sm);
-  background: var(--dsw-alias-bg-module-platform);
-  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-label-on-color);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -75,7 +79,7 @@
 }
 
 .updateButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--dsw-alias-bg-module-platform) 88%, var(--dsw-alias-label-primary) 12%);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
 }
 
 .updateSpinner {
@@ -140,6 +144,9 @@
 }
 
 .tabs {
+  position: sticky;
+  top: var(--wl-tabs-top, 0px);
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -227,10 +234,10 @@
   padding: 14px 18px;
 }
 
-/* Sticky so the live preview stays in view while the settings list scrolls. */
+/* Sticky below the pinned header and tabs so the live preview stays in view. */
 .stage {
   position: sticky;
-  top: 0;
+  top: var(--wl-stage-top, 100px);
   z-index: 2;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -239,27 +246,6 @@
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
   box-sizing: border-box;
-  transition: height 140ms ease;
-}
-
-.stage[data-pinned='true'] {
-  aspect-ratio: auto;
-  height: 64px;
-}
-
-.stage[data-pinned='true'] .stageCanvas {
-  top: 0;
-  right: auto;
-  bottom: auto;
-  left: 50%;
-  width: 114px;
-  height: 64px;
-  transform: translateX(-50%);
-}
-
-.stage[data-pinned='true'] .stageReplay,
-.stage[data-pinned='true'] .stageHint {
-  display: none;
 }
 
 .stageCanvas {
@@ -305,10 +291,10 @@
   pointer-events: none;
 }
 
-/* Sticky so the simulated status row stays in view while scrolling. */
+/* Sticky below the pinned header and tabs so the simulated row stays in view. */
 .markStage {
   position: sticky;
-  top: 0;
+  top: var(--wl-stage-top, 100px);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -320,15 +306,6 @@
   background: var(--dsw-alias-bg-module-platform);
   box-sizing: border-box;
   color: var(--dsw-alias-label-primary);
-  transition: height 140ms ease;
-}
-
-.markStage[data-pinned='true'] {
-  height: 64px;
-}
-
-.markStage[data-pinned='true'] .stageHint {
-  display: none;
 }
 
 .markStage .stageHint {

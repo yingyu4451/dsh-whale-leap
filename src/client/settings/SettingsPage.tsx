@@ -361,29 +361,28 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const [tab, setTab] = useState<Tab>(initialTab)
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
-  const [pinned, setPinned] = useState(false)
   const [replayToken, setReplayToken] = useState(0)
   const rootRef = useRef<HTMLElement | null>(null)
+  const headerRef = useRef<HTMLElement | null>(null)
+  const tabsRef = useRef<HTMLDivElement | null>(null)
   const disabled = !settings.writable
 
   useEffect(() => {
     const root = rootRef.current
-    if (root === null) return
-    let scroll: HTMLElement | null = root.parentElement
-    while (scroll !== null) {
-      const overflowY = getComputedStyle(scroll).overflowY
-      if (overflowY === 'auto' || overflowY === 'scroll') break
-      scroll = scroll.parentElement
+    const header = headerRef.current
+    const tabs = tabsRef.current
+    if (root === null || header === null || tabs === null) return
+    const measure = (): void => {
+      root.style.setProperty('--wl-tabs-top', `${header.offsetHeight}px`)
+      root.style.setProperty('--wl-stage-top', `${header.offsetHeight + tabs.offsetHeight}px`)
     }
-    if (scroll === null) return
-    const target = scroll
-    const onScroll = (): void => {
-      setPinned(target.scrollTop > 24)
-    }
-    onScroll()
-    target.addEventListener('scroll', onScroll, { passive: true })
+    measure()
+    if (typeof ResizeObserver !== 'function') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(header)
+    observer.observe(tabs)
     return () => {
-      target.removeEventListener('scroll', onScroll)
+      observer.disconnect()
     }
   }, [])
 
@@ -399,13 +398,25 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     updateNotice = t('updateAvailable', { version: update.latest })
   } else if (update.status === 'failed') {
     updateNotice = t('updateFailed')
+  } else if (update.status === 'rate-limited') {
+    updateNotice = t('updateRateLimited')
+  } else if (update.status === 'network') {
+    updateNotice = t('updateNetwork')
+  } else if (update.status === 'timeout') {
+    updateNotice = t('updateTimeout')
   } else if (update.status === 'no-release') {
     updateNotice = t('noRelease')
   }
+  const canOpenReleases =
+    update.status === 'available' ||
+    update.status === 'failed' ||
+    update.status === 'rate-limited' ||
+    update.status === 'network' ||
+    update.status === 'timeout'
 
   return (
     <section className={css.section} ref={rootRef}>
-      <header className={css.header}>
+      <header className={css.header} ref={headerRef}>
         <div className={css.headerTop}>
           <h2 className={css.title}>{t('nav')}</h2>
           <span className={css.version}>{t('version', { version: PLUGIN_VERSION })}</span>
@@ -428,12 +439,12 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           </button>
         </div>
         <p className={css.intro}>{t('intro')}</p>
-        {(updateNotice !== '' || update.status === 'available') && (
+        {(updateNotice !== '' || canOpenReleases) && (
           <div className={css.updateRow}>
             <span className={css.updateNotice} role="status" data-status={update.status}>
               {updateNotice}
             </span>
-            {update.status === 'available' && update.latest !== undefined && (
+            {canOpenReleases && (
               <a
                 className={css.updateLink}
                 href={update.url ?? RELEASES_URL}
@@ -447,7 +458,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
         )}
       </header>
 
-      <div className={css.tabs} role="tablist" aria-label={t('nav')}>
+      <div className={css.tabs} role="tablist" aria-label={t('nav')} ref={tabsRef}>
         {TABS.map(item => (
           <button
             key={item.value}
@@ -474,7 +485,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-background"
             className={css.tabPanel}
           >
-            <div className={css.stage} data-pinned={pinned ? 'true' : undefined}>
+            <div className={css.stage}>
               <PreviewWhale settings={settings} replayToken={replayToken} />
               <button
                 type="button"
@@ -585,7 +596,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-mark"
             className={css.tabPanel}
           >
-            <div className={css.markStage} data-pinned={pinned ? 'true' : undefined}>
+            <div className={css.markStage}>
               {settings.replaceMark ? (
                 <div className={css.markSim}>
                   <span className={css.markSimDivider} aria-hidden="true" />

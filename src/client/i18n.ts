@@ -71,6 +71,9 @@ const zh = {
   upToDate: '已是最新版本（{version}）',
   updateAvailable: '发现新版本 {version}',
   updateFailed: '检查更新失败，请稍后再试。',
+  updateRateLimited: 'GitHub 接口请求已限流，请稍后再试。',
+  updateNetwork: '无法连接 GitHub，请检查网络或代理后重试。',
+  updateTimeout: '连接 GitHub 超时，请检查网络或代理后重试。',
   noRelease: 'GitHub 上还没有发布版本，暂时无法检查更新。',
   viewVersion: "查看发布页",
 }
@@ -144,6 +147,9 @@ const en: Record<LocaleKey, string> = {
   upToDate: 'Up to date ({version})',
   updateAvailable: 'Version {version} is available',
   updateFailed: 'Update check failed. Try again later.',
+  updateRateLimited: 'GitHub rate limit reached. Try again in a little while.',
+  updateNetwork: 'Cannot reach GitHub. Check your network or proxy and try again.',
+  updateTimeout: 'GitHub did not respond in time. Check your network or proxy and try again.',
   noRelease: 'No release on GitHub yet, so updates cannot be checked.',
   viewVersion: "View release",
 }
@@ -214,6 +220,9 @@ const ja: Record<LocaleKey, string> = {
   upToDate: '最新です（{version}）',
   updateAvailable: '新しいバージョン {version} があります',
   updateFailed: '更新の確認に失敗しました。後でもう一度お試しください。',
+  updateRateLimited: 'GitHub のレート制限に達しました。しばらくしてから再試行してください。',
+  updateNetwork: 'GitHub に接続できません。ネットワークまたはプロキシを確認して再試行してください。',
+  updateTimeout: 'GitHub への接続がタイムアウトしました。ネットワークまたはプロキシを確認して再試行してください。',
   noRelease: 'GitHub にまだリリースがないため、更新を確認できません。',
   viewVersion: "リリースを見る",
 }
@@ -284,6 +293,9 @@ const es: Record<LocaleKey, string> = {
   upToDate: 'Ya está actualizado ({version})',
   updateAvailable: 'La versión {version} está disponible',
   updateFailed: 'No se pudo comprobar la actualización. Inténtalo más tarde.',
+  updateRateLimited: 'Se alcanzó el límite de solicitudes de GitHub. Vuelve a intentarlo más tarde.',
+  updateNetwork: 'No se puede conectar con GitHub. Revisa la red o el proxy e inténtalo de nuevo.',
+  updateTimeout: 'GitHub no respondió a tiempo. Revisa la red o el proxy e inténtalo de nuevo.',
   noRelease: 'Aún no hay una versión publicada en GitHub, así que no se pueden comprobar actualizaciones.',
   viewVersion: "Ver la versión",
 }
@@ -354,6 +366,9 @@ const fr: Record<LocaleKey, string> = {
   upToDate: 'À jour ({version})',
   updateAvailable: 'La version {version} est disponible',
   updateFailed: 'Échec de la vérification. Réessayez plus tard.',
+  updateRateLimited: "Limite de requêtes GitHub atteinte. Réessayez dans un moment.",
+  updateNetwork: "Impossible de joindre GitHub. Vérifiez le réseau ou le proxy puis réessayez.",
+  updateTimeout: "GitHub n'a pas répondu à temps. Vérifiez le réseau ou le proxy puis réessayez.",
   noRelease: "Aucune version publiée sur GitHub pour l'instant ; impossible de vérifier les mises à jour.",
   viewVersion: "Voir la version",
 }
@@ -424,6 +439,9 @@ const de: Record<LocaleKey, string> = {
   upToDate: 'Aktuell ({version})',
   updateAvailable: 'Version {version} ist verfügbar',
   updateFailed: 'Update-Prüfung fehlgeschlagen. Bitte später erneut versuchen.',
+  updateRateLimited: 'GitHub-Ratenlimit erreicht. Bitte später erneut versuchen.',
+  updateNetwork: 'GitHub ist nicht erreichbar. Prüfe Netzwerk oder Proxy und versuche es erneut.',
+  updateTimeout: 'GitHub hat nicht rechtzeitig geantwortet. Prüfe Netzwerk oder Proxy und versuche es erneut.',
   noRelease: 'Noch keine Veröffentlichung auf GitHub, Updates können nicht geprüft werden.',
   viewVersion: "Version ansehen",
 }
@@ -494,6 +512,9 @@ const ru: Record<LocaleKey, string> = {
   upToDate: 'Актуальная версия ({version})',
   updateAvailable: 'Доступна версия {version}',
   updateFailed: 'Не удалось проверить обновления. Повторите позже.',
+  updateRateLimited: 'Достигнут лимит запросов GitHub. Повторите позже.',
+  updateNetwork: 'Не удалось подключиться к GitHub. Проверьте сеть или прокси и повторите.',
+  updateTimeout: 'GitHub не ответил вовремя. Проверьте сеть или прокси и повторите.',
   noRelease: 'На GitHub ещё нет релиза, поэтому обновления проверить нельзя.',
   viewVersion: "Открыть релиз",
 }
@@ -564,6 +585,9 @@ const pt: Record<LocaleKey, string> = {
   upToDate: 'Já está atualizado ({version})',
   updateAvailable: 'A versão {version} está disponível',
   updateFailed: 'Falha ao verificar atualizações. Tente novamente mais tarde.',
+  updateRateLimited: 'Limite de solicitações do GitHub atingido. Tente novamente mais tarde.',
+  updateNetwork: 'Não foi possível conectar ao GitHub. Verifique a rede ou o proxy e tente novamente.',
+  updateTimeout: 'O GitHub não respondeu a tempo. Verifique a rede ou o proxy e tente novamente.',
   noRelease: 'Ainda não há uma versão publicada no GitHub; não é possível verificar atualizações.',
   viewVersion: "Ver a versão",
 }
