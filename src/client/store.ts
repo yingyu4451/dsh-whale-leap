@@ -6,7 +6,7 @@
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
 import { DEFAULT_SETTINGS, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
-import { INITIAL_SETTINGS, type WhaleAppearMode, type WhaleColorMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
+import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
 export const WRITE_DELAY_MS = 150
@@ -150,12 +150,21 @@ export class WhaleSettingsRuntime {
   }
 
   /**
-   * Choose which appearance triggers replay the whale.
-   * @param mode - accepted appearance mode.
+   * Enable or disable automatic replays in a started conversation.
+   * @param enabled - whether the whale reappears on its own.
    */
-  setAppearMode(mode: WhaleAppearMode): void {
-    this.patch({ appearMode: mode })
-    this.commit('appearMode', mode)
+  setAutoAppear(enabled: boolean): void {
+    this.patch({ autoAppear: enabled })
+    this.commit('autoAppear', enabled)
+  }
+
+  /**
+   * Enable or disable replaying as soon as a conversation is entered.
+   * @param enabled - whether entering a conversation plays at once.
+   */
+  setPlayOnSwitch(enabled: boolean): void {
+    this.patch({ playOnSwitch: enabled })
+    this.commit('playOnSwitch', enabled)
   }
 
   /**

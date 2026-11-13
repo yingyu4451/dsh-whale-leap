@@ -37,8 +37,9 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 
 | Control | Meaning |
 | --- | --- |
-| Appearance mode | Both (play on a conversation switch and repeat on the interval), Switch only, Interval only, or Off. |
-| Appearance interval | 5–300 s between automatic replays; shown for Both and Interval only. |
+| Show in conversations | Whether the whale reappears by itself in started conversations. |
+| Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
+| Appearance interval | 5–300 s between automatic replays. |
 
 A live preview canvas sits above the controls and replays with the current settings; it stays pinned to the top while you scroll the rest of the page.
 

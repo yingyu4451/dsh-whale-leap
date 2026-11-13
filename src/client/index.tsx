@@ -56,8 +56,11 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setOpacity: opacity => {
       runtime.setOpacity(opacity)
     },
-    setAppearMode: mode => {
-      runtime.setAppearMode(mode)
+    setAutoAppear: enabled => {
+      runtime.setAutoAppear(enabled)
+    },
+    setPlayOnSwitch: enabled => {
+      runtime.setPlayOnSwitch(enabled)
     },
     setInterval: seconds => {
       runtime.setInterval(seconds)

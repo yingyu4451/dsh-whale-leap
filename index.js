@@ -11,7 +11,6 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import z from '@deepseek-ai/schemastery'
 import {
-  APPEAR_MODES,
   COLOR_MODES,
   CUSTOM_COLOR_PATTERN,
   DEFAULT_SETTINGS,
@@ -92,8 +91,10 @@ export const Config = z.object({
   size: z.number().step(SIZE_RANGE.step).min(SIZE_RANGE.min).max(SIZE_RANGE.max).default(DEFAULT_SETTINGS.size).volatile(),
   /** Ink strength response; the renderer squares it against a design gain. */
   opacity: z.number().step(OPACITY_RANGE.step).min(OPACITY_RANGE.min).max(OPACITY_RANGE.max).default(DEFAULT_SETTINGS.opacity).volatile(),
-  /** Which appearance triggers replay the whale, or whether it is off. */
-  appearMode: z.union([...APPEAR_MODES]).default(DEFAULT_SETTINGS.appearMode).volatile(),
+  /** Whether the whale reappears on its own in a started conversation. */
+  autoAppear: z.boolean().default(DEFAULT_SETTINGS.autoAppear).volatile(),
+  /** Whether entering a conversation replays the whale at once. */
+  playOnSwitch: z.boolean().default(DEFAULT_SETTINGS.playOnSwitch).volatile(),
   /** Seconds between automatic replays. */
   intervalSeconds: z.number().step(INTERVAL_RANGE.step).min(INTERVAL_RANGE.min).max(INTERVAL_RANGE.max).default(DEFAULT_SETTINGS.intervalSeconds).volatile(),
   /** Whether the plugin's fish replaces the shipped running mark. */

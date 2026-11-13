@@ -7,8 +7,8 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { APPEAR_MODES, COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
-import type { WhaleAppearMode, WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
+import { COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
@@ -35,8 +35,10 @@ export interface SettingsPageActions {
   setSize: (size: number) => void
   /** Change the ink strength response. */
   setOpacity: (opacity: number) => void
-  /** Choose which appearance triggers replay the whale. */
-  setAppearMode: (mode: WhaleAppearMode) => void
+  /** Enable automatic replays in a started conversation. */
+  setAutoAppear: (enabled: boolean) => void
+  /** Replay at once when a conversation is entered. */
+  setPlayOnSwitch: (enabled: boolean) => void
   /** Set the replay interval. */
   setInterval: (seconds: number) => void
   /** Replace the shipped running icon with the fish mark. */
@@ -89,19 +91,6 @@ const MOTION_LABELS: Record<WhaleMarkMotion, LocaleKey> = {
   explore: 'motionExplore',
   hero: 'motionHero',
   sway: 'motionSway',
-}
-
-/** Labels for the appearance triggers. */
-const APPEAR_LABELS: Record<WhaleAppearMode, LocaleKey> = {
-  all: 'appearAll',
-  switch: 'appearSwitch',
-  timed: 'appearTimed',
-  off: 'appearOff',
-}
-
-/** Whether an appearance mode also replays on the auto interval. */
-function isTimed(mode: WhaleAppearMode): boolean {
-  return mode === 'all' || mode === 'timed'
 }
 
 /** Replay cadence of the background preview stage. */
@@ -476,34 +465,37 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             </Group>
 
             <Group title={t('groupPlayback')}>
-              <Row
-                stack
-                label={t('appearMode')}
-                hint={t('appearModeHint')}
-                control={
-                  <ChoiceRow
-                    label={t('appearMode')}
-                    value={settings.appearMode}
-                    disabled={disabled}
-                    options={APPEAR_MODES.map(mode => ({ value: mode, label: t(APPEAR_LABELS[mode]) }))}
-                    onChange={actions.setAppearMode}
-                  />
-                }
+              <ToggleRow
+                label={t('auto')}
+                hint={t('autoHint')}
+                checked={settings.autoAppear}
+                disabled={disabled}
+                onChange={actions.setAutoAppear}
               />
 
-              {isTimed(settings.appearMode) && (
-                <SliderRow
-                  id="whale-leap-interval"
-                  label={t('interval')}
-                  hint={t('intervalHint')}
-                  value={settings.intervalSeconds}
-                  min={INTERVAL_RANGE.min}
-                  max={INTERVAL_RANGE.max}
-                  step={INTERVAL_RANGE.step}
-                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                  disabled={disabled}
-                  onChange={actions.setInterval}
-                />
+              {settings.autoAppear && (
+                <>
+                  <ToggleRow
+                    label={t('playOnSwitch')}
+                    hint={t('playOnSwitchHint')}
+                    checked={settings.playOnSwitch}
+                    disabled={disabled}
+                    onChange={actions.setPlayOnSwitch}
+                  />
+
+                  <SliderRow
+                    id="whale-leap-interval"
+                    label={t('interval')}
+                    hint={t('intervalHint')}
+                    value={settings.intervalSeconds}
+                    min={INTERVAL_RANGE.min}
+                    max={INTERVAL_RANGE.max}
+                    step={INTERVAL_RANGE.step}
+                    display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                    disabled={disabled}
+                    onChange={actions.setInterval}
+                  />
+                </>
               )}
             </Group>
           </div>

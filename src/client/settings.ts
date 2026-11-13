@@ -10,9 +10,6 @@ import { DEFAULT_SETTINGS } from '../../shared/settings.js'
 /** Ink source: the theme's text tone, or a user-picked color. */
 export type WhaleColorMode = 'theme' | 'custom'
 
-/** Which appearance triggers replay the whale, or whether it is off. */
-export type WhaleAppearMode = 'all' | 'switch' | 'timed' | 'off'
-
 /** Running-mark motion presets. */
 export type WhaleMarkMotion = 'swim' | 'explore' | 'hero' | 'sway'
 
@@ -26,8 +23,10 @@ export interface WhaleSettings {
   size: number
   /** Ink strength response; the renderer squares it against a design gain. */
   opacity: number
-  /** Which appearance triggers replay the whale, or whether it is off. */
-  appearMode: WhaleAppearMode
+  /** Whether the whale reappears on its own in a started conversation. */
+  autoAppear: boolean
+  /** Whether entering a conversation replays the whale at once. */
+  playOnSwitch: boolean
   /** Seconds between automatic replays. */
   intervalSeconds: number
   /** Whether the plugin's fish replaces the shipped running mark. */
