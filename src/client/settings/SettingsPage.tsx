@@ -106,7 +106,7 @@ const FRAME_LABELS: Record<WhaleFrameMode, LocaleKey> = {
 const PREVIEW_INTERVAL_MS = 4200
 
 /** The preview stage draws a smaller scene than the real conversation background. */
-const PREVIEW_SCALE = 0.5
+const PREVIEW_SCALE = 0.8
 
 /** Mark size rendered inside each motion card. */
 const OPTION_FISH_SIZE = 34
@@ -297,7 +297,7 @@ function ToggleRow(props: { label: string; hint: string; checked: boolean; disab
  * @param props.settings - live settings.
  * @returns the preview canvas.
  */
-function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
+function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState; replayToken: number }) {
   const whale = useRef<PixelWhaleHandle | undefined>(undefined)
   const node = useRef<HTMLCanvasElement | null>(null)
   const latest = useRef(settings)
@@ -321,12 +321,23 @@ function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
 
   const { opacity, size, colorMode, customColor, frameMode } = settings
   useEffect(() => {
-    whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE })
+    const handle = whale.current
+    if (handle === undefined) return
+    handle.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE })
+    handle.play()
   }, [opacity, size, colorMode, customColor])
 
   useEffect(() => {
-    whale.current?.setFrameMode(frameMode)
+    const handle = whale.current
+    if (handle === undefined) return
+    handle.setFrameMode(frameMode)
+    handle.play()
   }, [frameMode])
+
+  useEffect(() => {
+    if (replayToken === 0) return
+    whale.current?.play()
+  }, [replayToken])
 
   useEffect(() => {
     const canvas = node.current
@@ -350,7 +361,31 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const [tab, setTab] = useState<Tab>(initialTab)
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
+  const [pinned, setPinned] = useState(false)
+  const [replayToken, setReplayToken] = useState(0)
+  const rootRef = useRef<HTMLElement | null>(null)
   const disabled = !settings.writable
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (root === null) return
+    let scroll: HTMLElement | null = root.parentElement
+    while (scroll !== null) {
+      const overflowY = getComputedStyle(scroll).overflowY
+      if (overflowY === 'auto' || overflowY === 'scroll') break
+      scroll = scroll.parentElement
+    }
+    if (scroll === null) return
+    const target = scroll
+    const onScroll = (): void => {
+      setPinned(target.scrollTop > 24)
+    }
+    onScroll()
+    target.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      target.removeEventListener('scroll', onScroll)
+    }
+  }, [])
 
   const checkForUpdates = useCallback(async (): Promise<void> => {
     setUpdate({ status: 'checking' })
@@ -369,7 +404,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   }
 
   return (
-    <section className={css.section}>
+    <section className={css.section} ref={rootRef}>
       <header className={css.header}>
         <div className={css.headerTop}>
           <h2 className={css.title}>{t('nav')}</h2>
@@ -382,7 +417,14 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
               void checkForUpdates()
             }}
           >
-            {update.status === 'checking' ? t('checking') : t('checkUpdate')}
+            {update.status === 'checking' ? (
+              <>
+                <span className={css.updateSpinner} aria-hidden="true" />
+                {t('checking')}
+              </>
+            ) : (
+              t('checkUpdate')
+            )}
           </button>
         </div>
         <p className={css.intro}>{t('intro')}</p>
@@ -398,7 +440,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 target="_blank"
                 rel="noreferrer"
               >
-                {t('viewVersion', { version: update.latest })}
+                {t('viewVersion')}
               </a>
             )}
           </div>
@@ -432,9 +474,17 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-background"
             className={css.tabPanel}
           >
-            <div className={css.stage}>
-              <PreviewWhale settings={settings} />
-              <span className={css.stageHint}>{t('stageHint')}</span>
+            <div className={css.stage} data-pinned={pinned ? 'true' : undefined}>
+              <PreviewWhale settings={settings} replayToken={replayToken} />
+              <button
+                type="button"
+                className={css.stageReplay}
+                onClick={() => {
+                  setReplayToken(token => token + 1)
+                }}
+              >
+                {t('replay')}
+              </button>
             </div>
 
             <Group title={t('groupAppearance')}>
@@ -496,7 +546,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             <Group title={t('groupPlayback')}>
               <ToggleRow
                 label={t('auto')}
-                hint={t('autoHint')}
+                hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
                 checked={settings.autoAppear}
                 disabled={disabled}
                 onChange={actions.setAutoAppear}
@@ -535,7 +585,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             aria-labelledby="whale-leap-tab-mark"
             className={css.tabPanel}
           >
-            <div className={css.markStage}>
+            <div className={css.markStage} data-pinned={pinned ? 'true' : undefined}>
               {settings.replaceMark ? (
                 <div className={css.markSim}>
                   <span className={css.markSimDivider} aria-hidden="true" />
@@ -563,7 +613,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                   </span>
                 </div>
               ) : (
-                <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
+                <span className={css.markStageOff}>{t('markStageOff')}</span>
               )}
               {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
             </div>
@@ -693,7 +743,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 max={MARK_SWING_RANGE.max}
                 step={MARK_SWING_RANGE.step}
                 display={`${Math.round(settings.markSwing * 100)}%`}
-                disabled={disabled || !settings.replaceMark}
+                disabled={disabled || !settings.replaceMark || settings.markMotion === 'hero'}
                 onChange={actions.setMarkSwing}
               />
             </Group>

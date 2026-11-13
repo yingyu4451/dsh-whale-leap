@@ -15,6 +15,7 @@ const zh = {
   groupPlayback: '播放',
   groupIcon: '显示',
   stageHint: '实时预览',
+  replay: "重播",
   color: '颜色',
   colorTheme: '跟随主题',
   colorCustom: '自定义',
@@ -32,6 +33,7 @@ const zh = {
   intervalHint: '自动出现的间隔时间。',
   auto: '在会话中自动出现',
   autoHint: '开始对话后，鲸鱼会按间隔自行出现。',
+  autoOffHint: "自动出现已关闭，对话里不会出现鲸鱼。",
   playOnSwitch: '切换会话时立即出现',
   playOnSwitchHint: '关闭后进入会话不会立刻播放，等下一个间隔再出现。',
   markColor: '图标颜色',
@@ -49,6 +51,7 @@ const zh = {
   offsetYHint: '负数上移，正数下移。',
   replaceMark: '替换任务状态图标',
   replaceMarkHint: '关闭后「深度求索」左侧恢复 DSH 默认的鲸尾图标。',
+  markStageOff: "任务图标替换已关闭",
   motion: '动画',
   motionSwim: '游动',
   motionExplore: '探索',
@@ -69,7 +72,7 @@ const zh = {
   updateAvailable: '发现新版本 {version}',
   updateFailed: '检查更新失败，请稍后再试。',
   noRelease: 'GitHub 上还没有发布版本，暂时无法检查更新。',
-  viewVersion: '查看 {version}',
+  viewVersion: "查看发布页",
 }
 
 /** Keys shared by every dictionary. */
@@ -85,6 +88,7 @@ const en: Record<LocaleKey, string> = {
   groupPlayback: 'Playback',
   groupIcon: 'Display',
   stageHint: 'Live preview',
+  replay: "Replay",
   color: 'Color',
   colorTheme: 'Follow theme',
   colorCustom: 'Custom',
@@ -102,6 +106,7 @@ const en: Record<LocaleKey, string> = {
   intervalHint: 'How often the whale reappears on its own.',
   auto: 'Show in conversations',
   autoHint: 'After a conversation starts, the whale appears on its own at the interval below.',
+  autoOffHint: "Automatic appearance is off, so conversations will not show the whale.",
   playOnSwitch: 'Appear when switching conversations',
   playOnSwitchHint: 'When off, entering a conversation waits for the next interval instead of playing at once.',
   markColor: 'Icon color',
@@ -119,6 +124,7 @@ const en: Record<LocaleKey, string> = {
   offsetYHint: 'Negative moves up, positive moves down.',
   replaceMark: 'Replace the running icon',
   replaceMarkHint: 'When off, the shipped whale tail returns beside the running status.',
+  markStageOff: "Running mark replacement is off",
   motion: 'Motion',
   motionSwim: 'Swimming',
   motionExplore: 'Explore',
@@ -139,7 +145,7 @@ const en: Record<LocaleKey, string> = {
   updateAvailable: 'Version {version} is available',
   updateFailed: 'Update check failed. Try again later.',
   noRelease: 'No release on GitHub yet, so updates cannot be checked.',
-  viewVersion: 'View {version}',
+  viewVersion: "View release",
 }
 
 /** Japanese dictionary. */
@@ -152,6 +158,7 @@ const ja: Record<LocaleKey, string> = {
   groupPlayback: '再生',
   groupIcon: '表示',
   stageHint: 'ライブプレビュー',
+  replay: "再生",
   color: '色',
   colorTheme: 'テーマに合わせる',
   colorCustom: 'カスタム',
@@ -169,6 +176,7 @@ const ja: Record<LocaleKey, string> = {
   intervalHint: '自動で再表示する間隔です。',
   auto: '会話中に自動表示',
   autoHint: '会話を始めると、下の間隔でクジラが自動的に現れます。',
+  autoOffHint: "自動表示はオフです。会話にクジラは表示されません。",
   playOnSwitch: '会話の切り替え時に表示',
   playOnSwitchHint: 'オフにすると、会話に入った直後には再生せず、次の間隔まで待ちます。',
   markColor: 'アイコンの色',
@@ -186,6 +194,7 @@ const ja: Record<LocaleKey, string> = {
   offsetYHint: '負の値で上、正の値で下へ移動します。',
   replaceMark: '実行アイコンを置き換える',
   replaceMarkHint: 'オフにすると「深度求索」の左は標準のクジラの尾アイコンに戻ります。',
+  markStageOff: "実行中マークの置換はオフです",
   motion: 'アニメーション',
   motionSwim: '泳ぐ',
   motionExplore: '探索',
@@ -206,7 +215,7 @@ const ja: Record<LocaleKey, string> = {
   updateAvailable: '新しいバージョン {version} があります',
   updateFailed: '更新の確認に失敗しました。後でもう一度お試しください。',
   noRelease: 'GitHub にまだリリースがないため、更新を確認できません。',
-  viewVersion: '{version} を見る',
+  viewVersion: "リリースを見る",
 }
 
 /** Spanish dictionary. */
@@ -219,6 +228,7 @@ const es: Record<LocaleKey, string> = {
   groupPlayback: 'Reproducción',
   groupIcon: 'Visualización',
   stageHint: 'Vista previa en vivo',
+  replay: "Repetir",
   color: 'Color',
   colorTheme: 'Seguir el tema',
   colorCustom: 'Personalizado',
@@ -236,6 +246,7 @@ const es: Record<LocaleKey, string> = {
   intervalHint: 'Cada cuánto reaparece sola la ballena.',
   auto: 'Aparecer en conversaciones',
   autoHint: 'Tras iniciar una conversación, la ballena aparece sola con el intervalo de abajo.',
+  autoOffHint: "La aparición automática está desactivada; las conversaciones no mostrarán la ballena.",
   playOnSwitch: 'Aparecer al cambiar de conversación',
   playOnSwitchHint: 'Si se desactiva, entrar en una conversación espera al siguiente intervalo en vez de reproducirse al momento.',
   markColor: 'Color del icono',
@@ -253,6 +264,7 @@ const es: Record<LocaleKey, string> = {
   offsetYHint: 'Los valores negativos mueven hacia arriba y los positivos hacia abajo.',
   replaceMark: 'Sustituir el icono de ejecución',
   replaceMarkHint: 'Al desactivarlo, la cola de ballena original vuelve junto al estado de ejecución.',
+  markStageOff: "La sustitución del icono está desactivada",
   motion: 'Movimiento',
   motionSwim: 'Nadar',
   motionExplore: 'Explorar',
@@ -273,7 +285,7 @@ const es: Record<LocaleKey, string> = {
   updateAvailable: 'La versión {version} está disponible',
   updateFailed: 'No se pudo comprobar la actualización. Inténtalo más tarde.',
   noRelease: 'Aún no hay una versión publicada en GitHub, así que no se pueden comprobar actualizaciones.',
-  viewVersion: 'Ver {version}',
+  viewVersion: "Ver la versión",
 }
 
 /** French dictionary. */
@@ -286,6 +298,7 @@ const fr: Record<LocaleKey, string> = {
   groupPlayback: 'Lecture',
   groupIcon: 'Affichage',
   stageHint: 'Aperçu en direct',
+  replay: "Rejouer",
   color: 'Couleur',
   colorTheme: 'Suivre le thème',
   colorCustom: 'Personnalisée',
@@ -303,6 +316,7 @@ const fr: Record<LocaleKey, string> = {
   intervalHint: 'Fréquence de réapparition automatique.',
   auto: 'Apparaître dans les conversations',
   autoHint: "Après le début d'une conversation, la baleine apparaît seule selon l'intervalle ci-dessous.",
+  autoOffHint: "L'apparition automatique est désactivée ; les conversations n'afficheront pas la baleine.",
   playOnSwitch: 'Apparaître en changeant de conversation',
   playOnSwitchHint: "Désactivé, entrer dans une conversation attend le prochain intervalle au lieu de jouer immédiatement.",
   markColor: "Couleur de l'icône",
@@ -320,6 +334,7 @@ const fr: Record<LocaleKey, string> = {
   offsetYHint: 'Les valeurs négatives déplacent vers le haut, les positives vers le bas.',
   replaceMark: "Remplacer l'icône d'exécution",
   replaceMarkHint: "Désactivé, la queue de baleine d'origine revient à côté de l'état d'exécution.",
+  markStageOff: "Le remplacement de l'icône est désactivé",
   motion: 'Animation',
   motionSwim: 'Nager',
   motionExplore: 'Explorer',
@@ -340,7 +355,7 @@ const fr: Record<LocaleKey, string> = {
   updateAvailable: 'La version {version} est disponible',
   updateFailed: 'Échec de la vérification. Réessayez plus tard.',
   noRelease: "Aucune version publiée sur GitHub pour l'instant ; impossible de vérifier les mises à jour.",
-  viewVersion: 'Voir {version}',
+  viewVersion: "Voir la version",
 }
 
 /** German dictionary. */
@@ -353,6 +368,7 @@ const de: Record<LocaleKey, string> = {
   groupPlayback: 'Wiedergabe',
   groupIcon: 'Anzeige',
   stageHint: 'Live-Vorschau',
+  replay: "Erneut abspielen",
   color: 'Farbe',
   colorTheme: 'Thema folgen',
   colorCustom: 'Eigene',
@@ -370,6 +386,7 @@ const de: Record<LocaleKey, string> = {
   intervalHint: 'Wie oft der Wal von selbst wiederkehrt.',
   auto: 'In Unterhaltungen erscheinen',
   autoHint: 'Nach dem Start einer Unterhaltung erscheint der Wal selbstständig im untenstehenden Abstand.',
+  autoOffHint: "Automatisches Erscheinen ist aus; in Unterhaltungen wird der Wal nicht angezeigt.",
   playOnSwitch: 'Beim Wechsel der Unterhaltung erscheinen',
   playOnSwitchHint: 'Aus: Beim Öffnen einer Unterhaltung wird erst nach dem nächsten Abstand abgespielt.',
   markColor: 'Symbolfarbe',
@@ -387,6 +404,7 @@ const de: Record<LocaleKey, string> = {
   offsetYHint: 'Negative Werte verschieben nach oben, positive nach unten.',
   replaceMark: 'Lauf-Symbol ersetzen',
   replaceMarkHint: 'Aus: Neben dem Ausführungsstatus erscheint wieder der ursprüngliche Wal-Schwanz.',
+  markStageOff: "Ersetzung des Laufzeitsymbols ist aus",
   motion: 'Animation',
   motionSwim: 'Schwimmen',
   motionExplore: 'Erkunden',
@@ -407,7 +425,7 @@ const de: Record<LocaleKey, string> = {
   updateAvailable: 'Version {version} ist verfügbar',
   updateFailed: 'Update-Prüfung fehlgeschlagen. Bitte später erneut versuchen.',
   noRelease: 'Noch keine Veröffentlichung auf GitHub, Updates können nicht geprüft werden.',
-  viewVersion: '{version} ansehen',
+  viewVersion: "Version ansehen",
 }
 
 /** Russian dictionary. */
@@ -420,6 +438,7 @@ const ru: Record<LocaleKey, string> = {
   groupPlayback: 'Воспроизведение',
   groupIcon: 'Отображение',
   stageHint: 'Живой просмотр',
+  replay: "Повторить",
   color: 'Цвет',
   colorTheme: 'Как в теме',
   colorCustom: 'Свой',
@@ -437,6 +456,7 @@ const ru: Record<LocaleKey, string> = {
   intervalHint: 'Как часто кит возвращается сам.',
   auto: 'Появляться в диалогах',
   autoHint: 'После начала диалога кит появляется сам с интервалом ниже.',
+  autoOffHint: "Автопоявление выключено: в разговорах кит не отображается.",
   playOnSwitch: 'Появляться при смене диалога',
   playOnSwitchHint: 'Если выключено, при входе в диалог воспроизведение ждёт следующего интервала.',
   markColor: 'Цвет иконки',
@@ -454,6 +474,7 @@ const ru: Record<LocaleKey, string> = {
   offsetYHint: 'Отрицательные значения сдвигают вверх, положительные — вниз.',
   replaceMark: 'Заменять значок выполнения',
   replaceMarkHint: 'Если выключено, рядом со статусом выполнения снова показывается исходный хвост кита.',
+  markStageOff: "Замена значка отключена",
   motion: 'Анимация',
   motionSwim: 'Плавание',
   motionExplore: 'Исследование',
@@ -474,7 +495,7 @@ const ru: Record<LocaleKey, string> = {
   updateAvailable: 'Доступна версия {version}',
   updateFailed: 'Не удалось проверить обновления. Повторите позже.',
   noRelease: 'На GitHub ещё нет релиза, поэтому обновления проверить нельзя.',
-  viewVersion: 'Открыть {version}',
+  viewVersion: "Открыть релиз",
 }
 
 /** Portuguese dictionary. */
@@ -487,6 +508,7 @@ const pt: Record<LocaleKey, string> = {
   groupPlayback: 'Reprodução',
   groupIcon: 'Exibição',
   stageHint: 'Prévia ao vivo',
+  replay: "Reproduzir",
   color: 'Cor',
   colorTheme: 'Seguir o tema',
   colorCustom: 'Personalizada',
@@ -504,6 +526,7 @@ const pt: Record<LocaleKey, string> = {
   intervalHint: 'Com que frequência a baleia reaparece sozinha.',
   auto: 'Aparecer nas conversas',
   autoHint: 'Depois que uma conversa começa, a baleia aparece sozinha no intervalo abaixo.',
+  autoOffHint: "A aparição automática está desativada; as conversas não exibirão a baleia.",
   playOnSwitch: 'Aparecer ao trocar de conversa',
   playOnSwitchHint: 'Desativado, entrar numa conversa espera o próximo intervalo em vez de tocar na hora.',
   markColor: 'Cor do ícone',
@@ -521,6 +544,7 @@ const pt: Record<LocaleKey, string> = {
   offsetYHint: 'Valores negativos movem para cima; positivos, para baixo.',
   replaceMark: 'Substituir o ícone de execução',
   replaceMarkHint: 'Desativado, a cauda de baleia original volta ao lado do status de execução.',
+  markStageOff: "A substituição do ícone está desativada",
   motion: 'Animação',
   motionSwim: 'Nadar',
   motionExplore: 'Explorar',
@@ -541,7 +565,7 @@ const pt: Record<LocaleKey, string> = {
   updateAvailable: 'A versão {version} está disponível',
   updateFailed: 'Falha ao verificar atualizações. Tente novamente mais tarde.',
   noRelease: 'Ainda não há uma versão publicada no GitHub; não é possível verificar atualizações.',
-  viewVersion: 'Ver {version}',
+  viewVersion: "Ver a versão",
 }
 
 /** All dictionaries registered with the client locale service. */

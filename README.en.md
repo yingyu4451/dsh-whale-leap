@@ -42,7 +42,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; it stays pinned to the top while you scroll the rest of the page.
+A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, appearance changes replay it automatically, and while you scroll the page it shrinks into a slim pinned strip instead of covering the controls you are editing.
 
 ### Running icon tab
 
