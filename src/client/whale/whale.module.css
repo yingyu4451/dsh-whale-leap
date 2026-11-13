@@ -1,0 +1,33 @@
+/* The whale is painted at negative z-index, so its frame must either be the hero
+   stacking context or a dedicated isolating wrapper that keeps the layer above
+   the conversation background. */
+.layer {
+  display: contents;
+}
+
+.autoLayer {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.canvas {
+  --home-whale-code-ink: var(--dsw-alias-label-primary);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  color: var(--dsw-alias-label-secondary);
+  filter: grayscale(1);
+  font-family: var(--ds-font-family-code);
+}
+
+.canvas[data-whale-ink='custom'] {
+  filter: none;
+}

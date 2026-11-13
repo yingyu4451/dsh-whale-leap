@@ -1,0 +1,50 @@
+{
+  "name": "@local/whale-leap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "shared",
+    "lib",
+    "locale",
+    "docs",
+    "assets",
+    "build.mjs",
+    "src",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md",
+    "README.zh.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-chat",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
+}

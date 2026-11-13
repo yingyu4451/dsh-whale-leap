@@ -1,0 +1,127 @@
+/* The fish box sizes to the configured icon; the fish keeps its own viewBox ratio
+   inside it and inherits the status color. The padding is the room the motion
+   needs inside the clipped icon frame: without it the fish would drift past the
+   frame and its leading edge would be cut off. */
+.mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Inline width/height are the drawn size; the transparent padding enlarges
+     only the animation room, not the fish. */
+  box-sizing: content-box;
+  padding: 2px;
+  color: inherit;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* The swim morph's curves poke slightly past the viewBox edges, so the hero
+     does not clip it either. */
+  overflow: visible;
+  transform-origin: 50% 60%;
+}
+
+/* The four motion presets. All of them keep the SMIL body morph; each preset
+   only changes how the fish travels:
+   - swim    drifts forward and back while the nose yaws, so it reads as swimming;
+   - explore searches ahead: rises toward the next idea, noses down, then levels;
+   - hero    replays the blank home's hover swim keys, 1.6 s ease-in-out;
+   - sway    floats gently side to side, dipping slightly at the center. */
+
+/* Side-to-side float (sway preset). Starting and ending at the same extreme
+   keeps the loop seamless; easing only at the extremes means no stall at the
+   center. */
+@keyframes whale-mark-sway {
+  0% {
+    transform: translate3d(-0.6px, 0, 0) rotate(-1.15deg);
+  }
+
+  50% {
+    transform: translate3d(0.6px, -0.25px, 0) rotate(1.15deg);
+  }
+
+  100% {
+    transform: translate3d(-0.6px, 0, 0) rotate(-1.15deg);
+  }
+}
+
+/* Swimming drift (swim preset): a slow body travel with the nose yawing at a
+   different period, so the combined path never repeats as a flat side swing. */
+@keyframes whale-mark-drift {
+  0%,
+  100% {
+    transform: translate3d(-1px, 0.15px, 0);
+  }
+
+  50% {
+    transform: translate3d(1px, -0.15px, 0);
+  }
+}
+
+@keyframes whale-mark-yaw {
+  0%,
+  100% {
+    transform: rotate(-1.3deg);
+  }
+
+  50% {
+    transform: rotate(1.3deg);
+  }
+}
+
+/* Explore (explore preset): the fish noses up toward the unknown, dips while
+   searching, then glides level again before the loop restarts. */
+@keyframes whale-mark-explore {
+  0%,
+  100% {
+    transform: translate3d(-0.7px, 0.35px, 0) rotate(-0.8deg);
+  }
+
+  32% {
+    transform: translate3d(1.1px, -1.1px, 0) rotate(-3deg);
+  }
+
+  64% {
+    transform: translate3d(1.4px, -0.2px, 0) rotate(2deg);
+  }
+}
+
+/* Home-hero swim (hero preset): the exact keys the blank home plays on hover. */
+@keyframes whale-mark-hero {
+  0%,
+  100% {
+    transform: none;
+  }
+
+  35% {
+    transform: rotate(-4deg) translate(-0.4px, -0.9px);
+  }
+
+  70% {
+    transform: rotate(1.6deg) translate(0.3px, 0.2px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mark[data-motion='swim'] {
+    animation: whale-mark-drift 3.2s ease-in-out infinite;
+  }
+
+  .mark[data-motion='swim'] .svg[data-swimming] {
+    animation: whale-mark-yaw 1.6s ease-in-out infinite;
+  }
+
+  .mark[data-motion='explore'] .svg[data-swimming] {
+    animation: whale-mark-explore 4.2s ease-in-out infinite;
+  }
+
+  .mark[data-motion='hero'] .svg[data-swimming] {
+    animation: whale-mark-hero 1.6s ease-in-out infinite;
+  }
+
+  .mark[data-motion='sway'] .svg[data-swimming] {
+    animation: whale-mark-sway 2.6s ease-in-out infinite;
+  }
+}
