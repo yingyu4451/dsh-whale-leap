@@ -79,10 +79,14 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     handle.prefetch()
   }, [])
 
-  const { opacity, size, colorMode, customColor } = settings
+  const { opacity, size, colorMode, customColor, frameMode } = settings
   useEffect(() => {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size })
   }, [opacity, size, colorMode, customColor])
+
+  useEffect(() => {
+    whale.current?.setFrameMode(frameMode)
+  }, [frameMode])
 
   const { autoAppear, intervalSeconds, playOnSwitch } = settings
   useEffect(() => {

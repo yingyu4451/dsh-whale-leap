@@ -14,6 +14,7 @@ import {
   COLOR_MODES,
   CUSTOM_COLOR_PATTERN,
   DEFAULT_SETTINGS,
+  FRAME_MODES,
   INTERVAL_RANGE,
   MARK_LABEL_SIZE_RANGE,
   MARK_MOTIONS,
@@ -91,6 +92,8 @@ export const Config = z.object({
   size: z.number().step(SIZE_RANGE.step).min(SIZE_RANGE.min).max(SIZE_RANGE.max).default(DEFAULT_SETTINGS.size).volatile(),
   /** Ink strength response; the renderer squares it against a design gain. */
   opacity: z.number().step(OPACITY_RANGE.step).min(OPACITY_RANGE.min).max(OPACITY_RANGE.max).default(DEFAULT_SETTINGS.opacity).volatile(),
+  /** Which painting the whale shows: alternating frames, dots, or code lettering. */
+  frameMode: z.union([...FRAME_MODES]).default(DEFAULT_SETTINGS.frameMode).volatile(),
   /** Whether the whale reappears on its own in a started conversation. */
   autoAppear: z.boolean().default(DEFAULT_SETTINGS.autoAppear).volatile(),
   /** Whether entering a conversation replays the whale at once. */

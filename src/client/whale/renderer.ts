@@ -23,6 +23,9 @@ let nextFill: 'pixels' | 'code' = 'pixels'
 /** Playback phase source: the whole page, or this attachment only. */
 export type WhaleFillPhase = 'shared' | 'local'
 
+/** Which painting the whale should show: alternate frames, dots, or code lettering. */
+export type WhaleFrameMode = 'alternate' | 'pixels' | 'code'
+
 /**
  * Backing-store budget. Large / high-DPI windows would otherwise allocate and
  * composite tens of megabytes of transparent canvas for sparse dots; the
@@ -43,6 +46,8 @@ export interface PixelWhaleHandle {
   prefetch: () => void
   /** Swap the artwork (scale and ink opacity) and repaint without re-decoding the atlas. */
   update: (options: WhaleArtwork) => void
+  /** Force the dots or code painting, or resume alternating between them. */
+  setFrameMode: (mode: WhaleFrameMode) => void
   /**
    * Enable or disable time-driven replays.
    * @param intervalMs - delay between replays, or undefined to stop them.
@@ -57,6 +62,7 @@ const NO_WHALE: PixelWhaleHandle = {
   play: () => {},
   prefetch: () => {},
   update: () => {},
+  setFrameMode: () => {},
   setAutoPlay: () => {},
   dispose: () => {},
 }
@@ -98,6 +104,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let top = 0
   let fill: 'pixels' | 'code' = 'code'
   let localFill: 'pixels' | 'code' = 'pixels'
+  let frameMode: WhaleFrameMode = 'alternate'
   let code: ReturnType<typeof createCodeFill> | undefined
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
@@ -222,9 +229,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
 
   function begin(): void {
     if (!moving() || !drawable()) return
-    const playing = phase === 'local' ? localFill : nextFill
-    if (phase === 'local') localFill = playing === 'pixels' ? 'code' : 'pixels'
-    else nextFill = playing === 'pixels' ? 'code' : 'pixels'
+    const playing = frameMode === 'alternate' ? (phase === 'local' ? localFill : nextFill) : frameMode
+    if (frameMode === 'alternate') {
+      if (phase === 'local') localFill = playing === 'pixels' ? 'code' : 'pixels'
+      else nextFill = playing === 'pixels' ? 'code' : 'pixels'
+    }
     if (playing === 'code') {
       code ??= createCodeFill(artwork, ATLAS)
       if (code === undefined) { fail(new Error('Home whale code Canvas context is unavailable')); return }
@@ -289,6 +298,10 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     resize()
   }
 
+  function setFrameMode(mode: WhaleFrameMode): void {
+    frameMode = mode
+  }
+
   function setAutoPlay(intervalMs: number | undefined, playNow = true): void {
     if (disposed) return
     const next = intervalMs === undefined || intervalMs <= 0 ? undefined : intervalMs
@@ -337,5 +350,5 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     document.removeEventListener('visibilitychange', resume)
     media.removeEventListener('change', resume)
   }
-  return { play, prefetch, update, setAutoPlay, dispose }
+  return { play, prefetch, update, setAutoPlay, setFrameMode, dispose }
 }

@@ -7,8 +7,8 @@
  * reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { COLOR_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
-import type { WhaleColorMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
+import { COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
+import type { WhaleColorMode, WhaleFrameMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
@@ -35,6 +35,8 @@ export interface SettingsPageActions {
   setSize: (size: number) => void
   /** Change the ink strength response. */
   setOpacity: (opacity: number) => void
+  /** Choose which painting the whale shows. */
+  setFrameMode: (mode: WhaleFrameMode) => void
   /** Enable automatic replays in a started conversation. */
   setAutoAppear: (enabled: boolean) => void
   /** Replay at once when a conversation is entered. */
@@ -91,6 +93,13 @@ const MOTION_LABELS: Record<WhaleMarkMotion, LocaleKey> = {
   explore: 'motionExplore',
   hero: 'motionHero',
   sway: 'motionSway',
+}
+
+/** Labels for the painting choices. */
+const FRAME_LABELS: Record<WhaleFrameMode, LocaleKey> = {
+  alternate: 'frameAlternate',
+  pixels: 'frameDots',
+  code: 'frameCode',
 }
 
 /** Replay cadence of the background preview stage. */
@@ -306,13 +315,18 @@ function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
     handle.prefetch()
     const current = latest.current
     handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size * PREVIEW_SCALE })
+    handle.setFrameMode(current.frameMode)
     handle.setAutoPlay(PREVIEW_INTERVAL_MS)
   }, [])
 
-  const { opacity, size, colorMode, customColor } = settings
+  const { opacity, size, colorMode, customColor, frameMode } = settings
   useEffect(() => {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE })
   }, [opacity, size, colorMode, customColor])
+
+  useEffect(() => {
+    whale.current?.setFrameMode(frameMode)
+  }, [frameMode])
 
   useEffect(() => {
     const canvas = node.current
@@ -461,6 +475,21 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={`${Math.round(settings.opacity * 100)}%`}
                 disabled={disabled}
                 onChange={actions.setOpacity}
+              />
+
+              <Row
+                stack
+                label={t('frameMode')}
+                hint={t('frameModeHint')}
+                control={
+                  <ChoiceRow
+                    label={t('frameMode')}
+                    value={settings.frameMode}
+                    disabled={disabled}
+                    options={FRAME_MODES.map(mode => ({ value: mode, label: t(FRAME_LABELS[mode]) }))}
+                    onChange={actions.setFrameMode}
+                  />
+                }
               />
             </Group>
 

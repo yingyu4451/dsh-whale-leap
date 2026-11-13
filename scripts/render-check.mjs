@@ -62,6 +62,8 @@ const landmarks = {
   iconGroup: markPage.includes('任务图标'),
   motionGroup: markPage.includes('motionGrid'),
   englishSwing: englishMarkPage.includes('Swing amplitude'),
+  frameModeChoices: ['frameAlternate', 'frameDots', 'frameCode'].every(token => page.includes(token)),
+  englishFrameMode: englishPage.includes('Frame mode') && englishPage.includes('Alternate') && englishPage.includes('Dots'),
   autoToggle: page.includes('autoHint') && page.includes('role="switch"'),
   englishAutoToggle: englishPage.includes('Show in conversations') && englishPage.includes('role="switch"'),
   markColorRows: markPage.includes('whale-leap-mark-color') && markPage.includes('whale-leap-label-color'),

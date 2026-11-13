@@ -32,6 +32,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Color | Follow the theme's text tone, or pick a custom ink color. |
 | Background size | Scale of the painted scene (50 %–150 %). |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
+| Frame mode | Dots, code lettering, or alternate between both (the default). |
 
 **Playback**
 

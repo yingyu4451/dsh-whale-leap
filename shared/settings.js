@@ -20,6 +20,9 @@ export const SIZE_FIELD = 'size'
 /** Field holding the ink strength response. */
 export const OPACITY_FIELD = 'opacity'
 
+/** Field holding which painting the whale shows: alternating, dots, or code. */
+export const FRAME_MODE_FIELD = 'frameMode'
+
 /** Field holding whether the whale reappears on its own in a started conversation. */
 export const AUTO_APPEAR_FIELD = 'autoAppear'
 
@@ -65,6 +68,9 @@ export const MARK_MOTION_FIELD = 'markMotion'
 /** Ink source choices. */
 export const COLOR_MODES = ['theme', 'custom']
 
+/** Frame choices, in display order: alternate, dots, code. */
+export const FRAME_MODES = ['alternate', 'pixels', 'code']
+
 /** Background size multiplier bounds. */
 export const SIZE_RANGE = { min: 0.5, max: 1.5, step: 0.05 }
 
@@ -98,6 +104,7 @@ export const DEFAULT_SETTINGS = {
   customColor: '#7d9bff',
   size: 1,
   opacity: 0.6,
+  frameMode: 'alternate',
   autoAppear: false,
   playOnSwitch: true,
   intervalSeconds: 30,

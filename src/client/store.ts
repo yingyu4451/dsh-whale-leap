@@ -6,7 +6,7 @@
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
 import { DEFAULT_SETTINGS, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
-import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
+import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFrameMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
 export const WRITE_DELAY_MS = 150
@@ -147,6 +147,15 @@ export class WhaleSettingsRuntime {
     const next = clamp(opacity, OPACITY_RANGE)
     this.patch({ opacity: next })
     this.schedule('opacity', next)
+  }
+
+  /**
+   * Choose which painting the whale shows.
+   * @param mode - alternating frames, dots only, or code only.
+   */
+  setFrameMode(mode: WhaleFrameMode): void {
+    this.patch({ frameMode: mode })
+    this.commit('frameMode', mode)
   }
 
   /**
