@@ -39,6 +39,8 @@ export interface SettingsPageActions {
   setPlayOnSwitch: (enabled: boolean) => void
   /** Set the replay interval. */
   setInterval: (seconds: number) => void
+  /** Replace the shipped running icon with the fish mark. */
+  setReplaceMark: (enabled: boolean) => void
   /** Set the running mark size. */
   setMarkSize: (px: number) => void
   /** Choose the running mark motion. */
@@ -78,9 +80,6 @@ const PREVIEW_INTERVAL_MS = 4200
 
 /** The preview stage draws a smaller scene than the real conversation background. */
 const PREVIEW_SCALE = 0.5
-
-/** Mark size rendered in the running-icon preview. */
-const MARK_PREVIEW_SIZE = 52
 
 /** Mark size rendered inside each motion card. */
 const OPTION_FISH_SIZE = 34
@@ -367,9 +366,21 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           ) : (
             <div id="whale-leap-panel-mark" role="tabpanel" aria-labelledby="whale-leap-tab-mark" className={css.card}>
               <div className={css.markStage}>
-                <WhaleMarkFish size={MARK_PREVIEW_SIZE} motion={settings.markMotion} />
+                {settings.replaceMark ? (
+                  <WhaleMarkFish size={settings.markSize} motion={settings.markMotion} />
+                ) : (
+                  <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
+                )}
                 <span className={css.stageHint}>{t('markPreviewHint')}</span>
               </div>
+
+              <ToggleRow
+                label={t('replaceMark')}
+                hint={t('replaceMarkHint')}
+                checked={settings.replaceMark}
+                disabled={disabled}
+                onChange={actions.setReplaceMark}
+              />
 
               <div className={css.motionGrid} role="group" aria-label={t('motion')}>
                 {MARK_MOTIONS.map(motion => {
@@ -380,7 +391,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                       type="button"
                       className={css.motionOption}
                       aria-pressed={selected}
-                      disabled={disabled}
+                      disabled={disabled || !settings.replaceMark}
                       onClick={() => {
                         actions.setMarkMotion(motion)
                       }}
@@ -407,7 +418,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 max={MARK_SIZE_RANGE.max}
                 step={MARK_SIZE_RANGE.step}
                 display={`${settings.markSize}px`}
-                disabled={disabled}
+                disabled={disabled || !settings.replaceMark}
                 onChange={actions.setMarkSize}
               />
             </div>

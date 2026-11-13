@@ -13,6 +13,13 @@ const LINE_STEP = 1
 const WORD_GAP_MIN = 0.1
 const MASK_GAIN = 2.2
 
+/**
+ * Scene width the authored font size was designed for. Lettering keeps its
+ * relative weight when the scene is drawn smaller (settings preview stages) or
+ * larger (wide conversation panes) by scaling the em size with this ratio.
+ */
+const REFERENCE_WIDTH = 1200
+
 interface CodeFill {
   resize(canvas: HTMLCanvasElement, width: number): void
   paint(ctx: CanvasRenderingContext2D, pixels: Uint8ClampedArray, frame: number,
@@ -54,7 +61,7 @@ export function createCodeFill(
       ink.setTransform(dpr, 0, 0, dpr, 0, 0)
       const style = getComputedStyle(canvas)
       ink.fillStyle = style.getPropertyValue('--home-whale-code-ink')
-      const size = options.fontSize * LETTERING_SCALE
+      const size = options.fontSize * LETTERING_SCALE * (width / REFERENCE_WIDTH)
       ink.font = `${LETTERING_WEIGHT} ${size}px ${style.fontFamily}`
       ink.textBaseline = 'middle'
       let seed = 0x9e3779b9

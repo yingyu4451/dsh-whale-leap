@@ -36,6 +36,8 @@ export const Config = z.object({
   playOnSwitch: z.boolean().default(DEFAULT_SETTINGS.playOnSwitch).volatile(),
   /** Seconds between automatic replays. */
   intervalSeconds: z.number().step(INTERVAL_RANGE.step).min(INTERVAL_RANGE.min).max(INTERVAL_RANGE.max).default(DEFAULT_SETTINGS.intervalSeconds).volatile(),
+  /** Whether the plugin's fish replaces the shipped running mark. */
+  replaceMark: z.boolean().default(DEFAULT_SETTINGS.replaceMark).volatile(),
   /** Running mark size in pixels. */
   markSize: z.number().step(MARK_SIZE_RANGE.step).min(MARK_SIZE_RANGE.min).max(MARK_SIZE_RANGE.max).default(DEFAULT_SETTINGS.markSize).volatile(),
   /** Running mark motion preset. */

@@ -178,6 +178,15 @@ export class WhaleSettingsRuntime {
   }
 
   /**
+   * Enable or disable replacing the shipped running mark.
+   * @param enabled - whether the plugin's fish takes the mark's place.
+   */
+  setReplaceMark(enabled: boolean): void {
+    this.patch({ replaceMark: enabled })
+    this.commit('replaceMark', enabled)
+  }
+
+  /**
    * Set the running mark's size.
    * @param px - requested icon size in pixels.
    */

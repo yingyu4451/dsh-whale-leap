@@ -1,6 +1,6 @@
 {
   "name": "dsh-whale-leap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
@@ -48,4 +48,5 @@
     "react-dom": "18.2.0"
   }
 }
+
 

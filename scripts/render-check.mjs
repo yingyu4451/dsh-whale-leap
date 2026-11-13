@@ -38,6 +38,8 @@ const landmarks = {
   tabs: ['whale-leap-tab-background', 'whale-leap-tab-mark'].every(token => page.includes(token)),
   previewStage: page.includes('stageCanvas'),
   motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
+  replaceSwitch: markPage.includes('aria-label="replaceMark"'),
+  markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
   markSizeSlider: markPage.includes('whale-leap-mark-size'),
   markFish: mark.includes('data-motion="swim"'),
   heroLayer: layer.includes('data-whale-layer="hero"'),

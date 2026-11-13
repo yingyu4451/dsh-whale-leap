@@ -29,6 +29,8 @@ export interface WhaleSettings {
   playOnSwitch: boolean
   /** Seconds between automatic replays. */
   intervalSeconds: number
+  /** Whether the plugin's fish replaces the shipped running mark. */
+  replaceMark: boolean
   /** Running mark size in pixels. */
   markSize: number
   /** Running mark motion preset. */

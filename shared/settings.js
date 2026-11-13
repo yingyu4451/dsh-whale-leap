@@ -29,6 +29,9 @@ export const PLAY_ON_SWITCH_FIELD = 'playOnSwitch'
 /** Field holding seconds between automatic replays. */
 export const INTERVAL_FIELD = 'intervalSeconds'
 
+/** Field holding whether the plugin's fish replaces the shipped running mark. */
+export const REPLACE_MARK_FIELD = 'replaceMark'
+
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
@@ -65,6 +68,7 @@ export const DEFAULT_SETTINGS = {
   autoAppear: false,
   playOnSwitch: true,
   intervalSeconds: 30,
+  replaceMark: true,
   markSize: 14,
   markMotion: 'swim',
 }

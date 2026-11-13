@@ -28,7 +28,7 @@ interface ClientLocale {
 
 /** Slots service slice. */
 interface ClientSlots {
-  inject(name: string, factory: () => unknown): void
+  inject(name: string, factory: () => unknown): () => void
   register(options: Record<string, unknown>, component: unknown): unknown
 }
 
@@ -63,6 +63,9 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setInterval: seconds => {
       runtime.setInterval(seconds)
     },
+    setReplaceMark: enabled => {
+      runtime.setReplaceMark(enabled)
+    },
     setMarkSize: px => {
       runtime.setMarkSize(px)
     },
@@ -87,9 +90,29 @@ export function apply(ctx: ClientContext): void {
     ctx.slots.register({ name: 'conversation.hero.frame', id: 'whale-leap', inject: state }, WhaleLayer),
   )
 
-  ctx.slots.inject('conversation.chat.running.mark', () =>
-    ctx.slots.register({ name: 'conversation.chat.running.mark', id: 'whale-leap', inject: state }, RunningMark),
-  )
+  // The mark slot is filled only while the switch is on; disposing the
+  // registration hands the slot back to the shipped whale tail.
+  let releaseMark: (() => void) | undefined
+  const syncMark = (): void => {
+    const enabled = runtime.store.getSnapshot().replaceMark
+    if (enabled && releaseMark === undefined) {
+      releaseMark = ctx.slots.inject('conversation.chat.running.mark', () =>
+        ctx.slots.register({ name: 'conversation.chat.running.mark', id: 'whale-leap', inject: state }, RunningMark),
+      )
+    } else if (!enabled && releaseMark !== undefined) {
+      releaseMark()
+      releaseMark = undefined
+    }
+  }
+  ctx.effect(() => {
+    const stopWatching = runtime.store.subscribe(syncMark)
+    syncMark()
+    return () => {
+      stopWatching()
+      releaseMark?.()
+      releaseMark = undefined
+    }
+  }, 'whale-leap: running mark registration')
 
   ctx.slots.inject('settings.section', () =>
     ctx.slots.register(

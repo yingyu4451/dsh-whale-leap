@@ -161,6 +161,14 @@
   bottom: 8px;
 }
 
+.markStageOff {
+  padding: 0 24px;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  color: var(--dsw-alias-label-tertiary);
+}
+
 .row {
   display: flex;
   align-items: center;
