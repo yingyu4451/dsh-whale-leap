@@ -8,6 +8,7 @@
  */
 import { DICTIONARIES } from './i18n.js'
 import { SettingsPage, type SettingsPageActions } from './settings/SettingsPage.js'
+import { installDomMark } from './whale/dom-mark.js'
 import { RunningMark } from './whale/RunningMark.js'
 import { applyRunningLabelStyle } from './whale/running-label.js'
 import { WhaleLayer } from './whale/WhaleLayer.js'
@@ -115,16 +116,33 @@ export function apply(ctx: ClientContext): void {
   // The mark slot is filled only while the switch is on; disposing the
   // registration hands the slot back to the shipped whale tail.
   let releaseMark: (() => void) | undefined
+  // True once the app exposes (and the plugin fills) the running-mark slot.
+  let slotOwned = false
+  // Builds without that slot keep the shipped icon in the row; the adapter then
+  // mounts the same mark through its own React root. It stays inert when the
+  // slot owns the mark, so the two paths never render twice.
+  const domMark = installDomMark(() => {
+    if (slotOwned) return undefined
+    const snapshot = runtime.store.getSnapshot()
+    return snapshot.replaceMark ? snapshot : undefined
+  })
   const syncMark = (): void => {
     const enabled = runtime.store.getSnapshot().replaceMark
     if (enabled && releaseMark === undefined) {
-      releaseMark = ctx.slots.inject('conversation.chat.running.mark', () =>
-        ctx.slots.register({ name: 'conversation.chat.running.mark', id: 'whale-leap', inject: state }, RunningMark),
-      )
+      releaseMark = ctx.slots.inject('conversation.chat.running.mark', () => {
+        slotOwned = true
+        domMark.refresh()
+        return ctx.slots.register(
+          { name: 'conversation.chat.running.mark', id: 'whale-leap', inject: state },
+          RunningMark,
+        )
+      })
     } else if (!enabled && releaseMark !== undefined) {
       releaseMark()
       releaseMark = undefined
+      slotOwned = false
     }
+    domMark.refresh()
   }
   ctx.effect(() => {
     const stopWatching = runtime.store.subscribe(syncMark)
@@ -133,6 +151,8 @@ export function apply(ctx: ClientContext): void {
       stopWatching()
       releaseMark?.()
       releaseMark = undefined
+      slotOwned = false
+      domMark.dispose()
     }
   }, 'whale-leap: running mark registration')
 

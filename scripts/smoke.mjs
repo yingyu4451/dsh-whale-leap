@@ -18,6 +18,9 @@ const react = {
   Fragment: Symbol('Fragment'),
 }
 const jsxRuntime = { jsx: type => ({ type }), jsxs: type => ({ type }), Fragment: react.Fragment }
+const reactDomClient = {
+  createRoot: () => ({ render() {}, unmount() {} }),
+}
 
 const styles = []
 const documentStub = {
@@ -32,7 +35,7 @@ let artifact = null
 const windowStub = {
   __ModuleLoader__: {
     load({ id, factory }) {
-      artifact = { id, exports: factory(name => (name === 'react' ? react : name === 'react/jsx-runtime' ? jsxRuntime : (() => { throw new Error(`unexpected require ${name}`) })())) }
+      artifact = { id, exports: factory(name => (name === 'react' ? react : name === 'react/jsx-runtime' ? jsxRuntime : name === 'react-dom/client' ? reactDomClient : (() => { throw new Error(`unexpected require ${name}`) })())) }
     },
   },
 }

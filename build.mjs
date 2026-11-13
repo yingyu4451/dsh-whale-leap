@@ -30,7 +30,7 @@ await build({
   platform: 'browser',
   target: ['es2022'],
   jsx: 'automatic',
-  external: ['react', 'react/jsx-runtime'],
+  external: ['react', 'react/jsx-runtime', 'react-dom/client'],
   plugins: [cssModules()],
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(version) },
   banner: {

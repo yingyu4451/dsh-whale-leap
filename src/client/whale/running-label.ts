@@ -5,7 +5,8 @@
  * page cannot reach it through React props. One scoped stylesheet rule carries
  * the chosen size and color instead. Only `font-size` and `color` change: the
  * status row keeps its own fixed line height and padding, so a larger label
- * never moves the layout.
+ * never moves the layout. A custom color also re-mixes the shimmer token that
+ * the sweep overlay paints with, so the moving highlight follows the label.
  */
 
 /** Id of the style element this module owns. */
@@ -42,6 +43,8 @@ export function applyRunningLabelStyle(style: RunningLabelStyle | undefined): vo
     sheet.id = STYLE_ID
     document.head.append(sheet)
   }
-  const color = style.color === undefined ? '' : `; color: ${style.color}`
+  const color = style.color === undefined
+    ? ''
+    : `; color: ${style.color}; --dsw-alias-label-shimmer: color-mix(in srgb, ${style.color} 55%, var(--dsw-alias-label-primary))`
   sheet.textContent = `${LABEL_SELECTOR} { font-size: ${style.size}px${color}; }`
 }

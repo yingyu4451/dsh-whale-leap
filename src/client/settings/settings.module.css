@@ -184,8 +184,11 @@
   padding: 14px 18px;
 }
 
+/* Sticky so the live preview stays in view while the settings list scrolls. */
 .stage {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 2;
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
@@ -193,7 +196,9 @@
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
   box-sizing: border-box;
-}.stageCanvas {
+}
+
+.stageCanvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -216,8 +221,11 @@
   pointer-events: none;
 }
 
+/* Sticky so the simulated status row stays in view while scrolling. */
 .markStage {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: flex-start;

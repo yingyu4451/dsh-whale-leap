@@ -40,13 +40,13 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appearance mode | Both (play on a conversation switch and repeat on the interval), Switch only, Interval only, or Off. |
 | Appearance interval | 5–300 s between automatic replays; shown for Both and Interval only. |
 
-A live preview canvas sits above the controls and replays with the current settings.
+A live preview canvas sits above the controls and replays with the current settings; it stays pinned to the top while you scroll the rest of the page.
 
 ### Running icon tab
 
 **Running icon**
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label — and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
+**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label — stays pinned while the settings list scrolls, and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker; a custom label color also re-mixes the shimmer highlight token, so the moving sweep follows it. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
 
 **Motion**
 
@@ -55,13 +55,14 @@ The motion cards each preview their own preset, and the selected card carries a 
 ## Behavior and limits
 
 - Web client only. It registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`, so it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
+- The running icon prefers the `conversation.chat.running.mark` slot; on official builds that do not declare it, a DOM adapter mounts the same mark into the status row and hides the shipped icon, so Web and Desktop both work and turning the switch off restores the original.
 - Settings are workspace-scoped and stored in the section namespace `whale-leap`.
 - Reduced motion: all playback and sway stop; the mark stays static.
 - Each appearance — on a conversation switch or on the interval — alternates between the dotted and code-lettered frames; a single playback never switches.
 - Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
 - Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
-- **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. It does require a DSH build that declares `conversation.chat.running.mark` (current checkout).
+- **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, the DOM adapter mounts the mark and hides the shipped icon.
 - **The atlas is read at runtime, not shipped.** The Host half serves `@deepseek-ai/dsh-client-ui-brand-official`'s installed `lib/assets/breach-atlas-*.webp` on `/whale-leap/assets/atlas.webp`; standard Web and Desktop builds install that package. When it is missing, the background whale stays absent and the rest of the plugin keeps working.
 - The renderer, code fill, and running-mark motion are adapted from DeepSeek Harness source under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
 
