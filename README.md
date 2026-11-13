@@ -67,14 +67,28 @@ node scripts/host-check.mjs   # asserts the atlas route and schema
 
 ## Publishing
 
-Publish only to npmjs; npmmirror is a read-only mirror and syncs automatically.
+Publishing runs in GitHub Actions through npm [trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC). After the one-time setup there is no token, no `npm login`, and no 2FA prompt. The workflow lives in [`.github/workflows/publish.yml`](.github/workflows/publish.yml) and publishes only to npmjs; npmmirror mirrors it automatically.
+
+One-time setup on npmjs.com — package **Settings → Trusted publishing → Add trusted publisher → GitHub Actions**:
+
+| Field | Value |
+| --- | --- |
+| Organization or user | `yingyu4451` |
+| Repository | `dsh-whale-leap` |
+| Workflow filename | `publish.yml` |
+| Environment name | leave empty |
+| Allowed actions | enable **npm publish** |
+
+Then release from the repository:
 
 ```powershell
-pnpm run build
-npm publish --access public
+pnpm run release:patch     # bumps package.json, commits, creates the vX.Y.Z tag
+git push --follow-tags     # triggers the publish workflow
 ```
 
-`prepublishOnly` rebuilds before the tarball is packed. Authentication is per machine (`npm login`); the registry is pinned to `registry.npmjs.org` in `publishConfig`.
+The workflow runs `pnpm run check`, verifies that the tag matches `package.json`, and publishes. To publish the current `package.json` version without a tag, run **Actions → Publish → Run workflow** manually.
+
+`prepublishOnly` rebuilds before packing, and `publishConfig` pins the registry to `registry.npmjs.org`.
 
 ## Layout
 

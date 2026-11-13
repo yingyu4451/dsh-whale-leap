@@ -1,6 +1,6 @@
 {
   "name": "dsh-whale-leap",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
   "exports": {
@@ -28,7 +28,10 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "node build.mjs && node scripts/smoke.mjs && node scripts/render-check.mjs && node scripts/host-check.mjs",
-    "prepublishOnly": "node build.mjs"
+    "prepublishOnly": "node build.mjs",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major"
   },
   "dsh": {
     "bundle": {

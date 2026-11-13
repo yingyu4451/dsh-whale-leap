@@ -67,14 +67,28 @@ node scripts/host-check.mjs   # 校验图集路由与 schema
 
 ## 发布
 
-只向 npmjs 发布；npmmirror 是只读镜像，会自动同步。
+发布通过 GitHub Actions 上的 npm [可信发布](https://docs.npmjs.com/trusted-publishers)（OIDC）完成。一次性配置之后不再需要 token、`npm login` 或 2FA 验证码。工作流位于 [`.github/workflows/publish.yml`](.github/workflows/publish.yml)，只向 npmjs 发布；npmmirror 是只读镜像，会自动同步。
+
+一次性配置：在 npmjs.com 打开本包 **Settings → Trusted publishing → Add trusted publisher → GitHub Actions**，填写：
+
+| 字段 | 值 |
+| --- | --- |
+| Organization or user | `yingyu4451` |
+| Repository | `dsh-whale-leap` |
+| Workflow filename | `publish.yml` |
+| Environment name | 留空 |
+| Allowed actions | 勾选 **npm publish** |
+
+之后在仓库里发布：
 
 ```powershell
-pnpm run build
-npm publish --access public
+pnpm run release:patch     # 提升 package.json 版本、提交并创建 vX.Y.Z 标签
+git push --follow-tags     # 触发发布工作流
 ```
 
-`prepublishOnly` 会在打包前自动重新构建。npm 认证按机器保存（`npm login`），`publishConfig` 已固定指向 `registry.npmjs.org`。
+工作流会先跑 `pnpm run check`、校验标签与 `package.json` 版本一致，然后发布。若想不建标签、直接发布当前 `package.json` 版本，可在 GitHub 的 **Actions → Publish → Run workflow** 手动触发。
+
+`prepublishOnly` 会在打包前重新构建，`publishConfig` 已把 registry 固定为 `registry.npmjs.org`。
 
 ## 目录
 
