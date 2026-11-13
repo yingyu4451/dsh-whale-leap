@@ -27,7 +27,7 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 
 - Web client only; it needs the `ui-conversation`, `ui-chat`, and `ui-settings` client packages.
 - Settings are workspace-scoped and stored in the settings namespace `whale-leap`.
-- Do not install it alongside the official brand package's whale; both register the same slots, so you would get two canvases and two swimming marks.
+- The built-in brand package no longer paints any whale; it only supplies sidebar artwork, so this plugin does not overlap with it. Requires a DSH build declaring `conversation.chat.running.mark`.
 - Whale artwork is derived from DeepSeek Harness brand assets and is intended for this local plugin.
 
 ## Build

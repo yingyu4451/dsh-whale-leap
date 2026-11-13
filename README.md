@@ -40,7 +40,7 @@ Four presets: **Swimming** (tail-stroke drift), **Explore** (rises toward the un
 - Settings are workspace-scoped and stored in the section namespace `whale-leap`.
 - Reduced motion: all playback and sway stop; the mark stays static.
 - The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
-- **Do not install this plugin next to the official brand package's whale.** Both register the same background and running-mark slots; you would get two canvases and two swimming marks. Use one of them.
+- **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. It does require a DSH build that declares `conversation.chat.running.mark` (current checkout).
 - The whale artwork is derived from DeepSeek Harness brand assets and is meant for this local plugin only.
 
 ## Build

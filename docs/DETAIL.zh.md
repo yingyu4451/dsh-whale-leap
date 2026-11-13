@@ -26,7 +26,7 @@
 
 - 仅网页端，需要 `ui-conversation`、`ui-chat`、`ui-settings` 客户端包。
 - 设置是工作区级的，命名空间为 `whale-leap`。
-- 不要与官方品牌包的鲸鱼同时安装：两者注册相同插槽，会出现两层画布和两条游动的鱼。
+- 内置品牌包不再绘制任何鲸鱼，只提供侧栏品牌图形，因此不会与本插件重叠；需要声明 `conversation.chat.running.mark` 的 DSH 构建。
 - 鲸鱼素材来自 DeepSeek Harness 品牌资源，仅供本地插件使用。
 
 ## 构建
