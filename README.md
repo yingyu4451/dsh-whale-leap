@@ -17,7 +17,7 @@
 
 **更新已安装的副本。** 拉取或修改本目录后运行 `pnpm run build`。Harness 会自动热替换已加载的客户端 bundle（网页端常驻 client HMR 链路），新的设置界面无需重启也无需手动刷新即可生效。只有 Host 半发生变化时才需要重启 `dsh web`——`index.js`、设置 schema、`cordis.patch.yml` 或 `locale/` 下的包元数据；Host 只在启动时读取这些内容。从本地目录安装时，profile 里保存的是一份目录副本：重启前先把重新构建的包复制到 `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap`（或在「插件」里移除后重新添加）。
 
-设置页头部会显示当前版本与「检查更新」按钮：检查优先读取 jsDelivr 的标签镜像（不受 GitHub API 配额限制），并用仓库的 `releases/latest` 与标签列表兜底——与已安装版本比较，有新版本时给出 Release 链接；尚无发布或检查失败时会明确提示（含 GitHub 限流、网络不可达、超时等具体原因），并可一键打开发布页。
+设置页头部会显示当前版本与「检查更新」按钮：检查会并行查询 GitHub Release API 与 jsDelivr 标签镜像，优先采用 Release 结果，镜像作为兜底（不受 GitHub API 配额限制）——与已安装版本比较，有新版本时给出 Release 链接；尚无发布或检查失败时会明确提示（含 GitHub 限流、网络不可达、超时等具体原因），并可一键打开发布页。
 
 ## 设置
 

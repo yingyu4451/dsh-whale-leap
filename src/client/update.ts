@@ -4,6 +4,11 @@
  * The settings page asks the public GitHub API for the latest release tag and
  * compares it with the running build. The repository is the single source of
  * truth for releases; npm publishing is optional and does not drive updates.
+ *
+ * The API and jsDelivr's tag mirror are queried in parallel: the release API
+ * answers immediately and authoritatively, while the mirror is not bound by the
+ * unauthenticated API quota and can stand in when the API is rate-limited or
+ * unreachable.
  */
 import { PLUGIN_VERSION } from './version.js'
 
@@ -197,21 +202,28 @@ async function mirrorRelease(): Promise<{ version?: string; url?: string }> {
 
 /**
  * Ask GitHub whether a newer build exists.
+ *
+ * Both sources are queried in parallel. The release API wins when it answers so
+ * a fresh release is reported immediately; the jsDelivr mirror covers the case
+ * where the API is rate-limited or unreachable, and may lag behind by a few
+ * minutes after a brand-new tag is published.
  * @param currentVersion - running build version; defaults to the compiled-in one.
  * @returns the probe result.
  */
 export async function checkForUpdate(currentVersion: string = PLUGIN_VERSION): Promise<UpdateResult> {
-  let result = await mirrorRelease()
-  if (result.version === undefined) {
-    const api = await latestRelease()
-    if (api.missing === true) return { status: 'no-release' }
-    if (api.version === undefined) {
-      const status = api.kind === 'rate-limited' || api.kind === 'network' || api.kind === 'timeout'
-        ? api.kind
-        : 'failed'
-      return { status, error: api.error ?? 'Unknown release error' }
-    }
-    result = api
+  const [api, mirror] = await Promise.all([latestRelease(), mirrorRelease()])
+  let result: { version: string; url?: string }
+  if (api.version !== undefined) {
+    result = { version: api.version, url: api.url }
+  } else if (mirror.version !== undefined) {
+    result = mirror
+  } else if (api.missing === true) {
+    return { status: 'no-release' }
+  } else {
+    const status = api.kind === 'rate-limited' || api.kind === 'network' || api.kind === 'timeout'
+      ? api.kind
+      : 'failed'
+    return { status, error: api.error ?? 'Unknown release error' }
   }
   return compareVersions(result.version, currentVersion) > 0
     ? { status: 'available', latest: result.version, url: result.url }

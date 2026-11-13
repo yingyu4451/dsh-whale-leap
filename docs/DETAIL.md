@@ -7,7 +7,7 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 - A whale canvas behind the blank home. With **Show in conversations** enabled it also paints behind started conversations, replaying on a configurable interval. Each appearance alternates between the dotted and code-lettered frames. Clicking blank conversation space replays it once.
 - A swimming fish mark left of the running Turn label. A switch decides whether it replaces the shipped whale tail; the fish uses the same silhouette as the blank home, at a size of 8–28 px with a swing amplitude of 50 %–200 %, both the icon color and the status-label color can follow the theme or be picked, and the running-label size of 11–20 px never changes the row's height or padding. Independent horizontal and vertical start offsets, four motion presets, a Replay control, and a live preview that mirrors the real conversation status row complete it.
 - A settings section, **Settings › Whale leap**, split into a Background tab and a Running icon tab; each tab groups its controls under Appearance, Playback, Display, or Motion headings.
-- A version line and **Check for updates** in the settings header: it reads the newest tag from the jsDelivr mirror first (no GitHub API quota), falls back to the latest GitHub release and tags, links the newer release, and reports plainly when nothing has been released.
+- A version line and **Check for updates** in the settings header: it queries the GitHub release API and the jsDelivr tag mirror in parallel, preferring the release result and falling back to the mirror (no GitHub API quota), links the newer release, and reports plainly when nothing has been released.
 
 ## Use
 
