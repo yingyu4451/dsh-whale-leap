@@ -15,7 +15,9 @@
 
 **更新已安装的副本。** 拉取或修改本目录后先 `pnpm run build`，再重启一次 `dsh web`。Host 只在启动时读取设置 schema，因此新增字段（例如任务图标开关）要等这次重启后才能保存。
 
-这是一个本地私有 bundle（`dsh-whale-leap`），不会发布到任何源。仓库：[yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap)。
+插件即 bundle `dsh-whale-leap`，同一份包已准备发布到 npm，并由 npmmirror 自动镜像。仓库：[yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap)。
+
+设置页头部会显示当前版本与「检查更新」按钮：依次读取 `registry.npmjs.org` 与 `registry.npmmirror.com` 上的最新版本，有新版本时给出下载链接；尚未发布时会明确提示，而不是静默失败。
 
 ## 设置
 
@@ -53,7 +55,18 @@ pnpm install        # 只安装 esbuild
 pnpm run build      # 生成 ModuleLoader 产物 lib/client.js
 ```
 
-`lib/client.js` 会把图集内嵌为 data URL；Host 半部分是普通 ESM（`index.js`），从运行中的 profile 引入 `@deepseek-ai/schemastery`。
+`lib/client.js` 会把图集内嵌为 data URL；Host 半部分是普通 ESM（`index.js`），从运行中的 profile 引入 `@deepseek-ai/schemastery`。浏览器产物还会内嵌 `package.json` 的版本号，供检查更新使用。
+
+## 发布
+
+只向 npmjs 发布；npmmirror 是只读镜像，会自动同步。
+
+```powershell
+pnpm run build
+npm publish --access public
+```
+
+`prepublishOnly` 会在打包前自动重新构建。npm 认证按机器保存（`npm login`），`publishConfig` 已固定指向 `registry.npmjs.org`。
 
 ## 目录
 

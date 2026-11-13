@@ -15,7 +15,9 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
 **Updating an installed copy.** Pull or edit this directory, run `pnpm run build`, then restart `dsh web` once more. The Host reads the settings schema only at startup, so new fields (for example the running-icon switch) do not persist until that restart.
 
-The plugin is a local, private bundle (`dsh-whale-leap`); nothing is published to a registry. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
+The plugin is the bundle `dsh-whale-leap`; the same package is prepared for npm and mirrored by npmmirror. Repository: [yingyu4451/dsh-whale-leap](https://github.com/yingyu4451/dsh-whale-leap).
+
+The settings header shows the running version and a **Check for updates** button. The check reads the latest published version from `registry.npmjs.org` and falls back to `registry.npmmirror.com`; a newer release is linked for download, and an unpublished package reports that plainly.
 
 ## Settings
 
@@ -53,7 +55,18 @@ pnpm install        # pulls esbuild only
 pnpm run build      # writes lib/client.js as a ModuleLoader artifact
 ```
 
-`lib/client.js` embeds the atlas as a data URL. The Host half is plain ESM (`index.js`) importing `@deepseek-ai/schemastery` from the running profile.
+`lib/client.js` embeds the atlas as a data URL. The Host half is plain ESM (`index.js`) importing `@deepseek-ai/schemastery` from the running profile. The browser bundle also embeds `package.json`'s version for the update check.
+
+## Publishing
+
+Publish only to npmjs; npmmirror is a read-only mirror and syncs automatically.
+
+```powershell
+pnpm run build
+npm publish --access public
+```
+
+`prepublishOnly` rebuilds before the tarball is packed. Authentication is per machine (`npm login`); the registry is pinned to `registry.npmjs.org` in `publishConfig`.
 
 ## Layout
 

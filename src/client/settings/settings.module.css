@@ -28,6 +28,72 @@
   color: var(--dsw-alias-label-tertiary);
 }
 
+.headerTop {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.version {
+  font-family: var(--ds-font-family-code), monospace;
+  font-size: 12px;
+  line-height: 20px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.updateRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.updateButton {
+  height: 28px;
+  padding: 0 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-sm);
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.updateButton:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.updateButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.updateButton:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: 2px;
+}
+
+.updateNotice {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.updateNotice[data-status='available'] {
+  color: var(--dsw-alias-label-primary);
+}
+
+.updateNotice[data-status='failed'] {
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.updateLink {
+  color: var(--dsw-alias-brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .shell {
   display: flex;
   align-items: flex-start;

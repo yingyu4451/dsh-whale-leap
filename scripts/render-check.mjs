@@ -4,13 +4,14 @@
  * and asserts the important landmarks survive.
  */
 import { build } from 'esbuild'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { cssModules } from './css-modules.mjs'
 
 const root = process.cwd()
 const outfile = path.join(root, '.tmp/render-entry.mjs')
+const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
 await mkdir(path.dirname(outfile), { recursive: true })
 
 await build({
@@ -23,6 +24,7 @@ await build({
   loader: { '.webp': 'dataurl' },
   external: ['react', 'react-dom', 'react-dom/server', 'react/jsx-runtime'],
   plugins: [cssModules()],
+  define: { __WHALE_LEAP_VERSION__: JSON.stringify(manifest.version) },
   logLevel: 'silent',
 })
 
@@ -37,6 +39,8 @@ const { page, markPage, mark, layer } = check()
 const landmarks = {
   tabs: ['whale-leap-tab-background', 'whale-leap-tab-mark'].every(token => page.includes(token)),
   previewStage: page.includes('stageCanvas'),
+  updateCheck: page.includes('checkUpdate'),
+  updateNotice: page.includes('updateNotice'),
   motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
   replaceSwitch: markPage.includes('aria-label="replaceMark"'),
   markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),

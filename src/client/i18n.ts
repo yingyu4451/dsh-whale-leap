@@ -41,6 +41,14 @@ const zh = {
   preview: '预览',
   previewHint: '当前动画的实时效果。',
   selected: '已选',
+  version: 'v{version}',
+  checkUpdate: '检查更新',
+  checking: '检查中…',
+  upToDate: '已是最新版本（{version}）',
+  updateAvailable: '发现新版本 {version}',
+  updateFailed: '检查更新失败，请稍后再试。',
+  notPublished: '尚未发布到 npm，暂时无法检查更新。',
+  viewVersion: '查看 {version}',
 }
 
 /** Keys shared by every dictionary. */
@@ -82,6 +90,14 @@ const en: Record<LocaleKey, string> = {
   preview: 'Preview',
   previewHint: 'Live preview of the selected motion.',
   selected: 'Selected',
+  version: 'v{version}',
+  checkUpdate: 'Check for updates',
+  checking: 'Checking…',
+  upToDate: 'Up to date ({version})',
+  updateAvailable: 'Version {version} is available',
+  updateFailed: 'Update check failed. Try again later.',
+  notPublished: 'Not published to npm yet, so updates cannot be checked.',
+  viewVersion: 'View {version}',
 }
 
 /** Japanese dictionary. */
@@ -120,6 +136,14 @@ const ja: Record<LocaleKey, string> = {
   preview: 'プレビュー',
   previewHint: '選択中のアニメーションのライブ表示です。',
   selected: '選択中',
+  version: 'v{version}',
+  checkUpdate: '更新を確認',
+  checking: '確認中…',
+  upToDate: '最新です（{version}）',
+  updateAvailable: '新しいバージョン {version} があります',
+  updateFailed: '更新の確認に失敗しました。後でもう一度お試しください。',
+  notPublished: 'まだ npm に公開されていないため、更新を確認できません。',
+  viewVersion: '{version} を見る',
 }
 
 /** Spanish dictionary. */
@@ -158,6 +182,14 @@ const es: Record<LocaleKey, string> = {
   preview: 'Vista previa',
   previewHint: 'Vista previa en vivo del movimiento elegido.',
   selected: 'Elegido',
+  version: 'v{version}',
+  checkUpdate: 'Buscar actualizaciones',
+  checking: 'Comprobando…',
+  upToDate: 'Ya está actualizado ({version})',
+  updateAvailable: 'La versión {version} está disponible',
+  updateFailed: 'No se pudo comprobar la actualización. Inténtalo más tarde.',
+  notPublished: 'Aún no está publicado en npm, así que no se pueden comprobar actualizaciones.',
+  viewVersion: 'Ver {version}',
 }
 
 /** French dictionary. */
@@ -196,6 +228,14 @@ const fr: Record<LocaleKey, string> = {
   preview: 'Aperçu',
   previewHint: "Aperçu en direct de l'animation choisie.",
   selected: 'Choisi',
+  version: 'v{version}',
+  checkUpdate: 'Vérifier les mises à jour',
+  checking: 'Vérification…',
+  upToDate: 'À jour ({version})',
+  updateAvailable: 'La version {version} est disponible',
+  updateFailed: 'Échec de la vérification. Réessayez plus tard.',
+  notPublished: 'Pas encore publié sur npm ; impossible de vérifier les mises à jour.',
+  viewVersion: 'Voir {version}',
 }
 
 /** German dictionary. */
@@ -234,6 +274,14 @@ const de: Record<LocaleKey, string> = {
   preview: 'Vorschau',
   previewHint: 'Live-Vorschau der gewählten Animation.',
   selected: 'Gewählt',
+  version: 'v{version}',
+  checkUpdate: 'Nach Updates suchen',
+  checking: 'Wird geprüft…',
+  upToDate: 'Aktuell ({version})',
+  updateAvailable: 'Version {version} ist verfügbar',
+  updateFailed: 'Update-Prüfung fehlgeschlagen. Bitte später erneut versuchen.',
+  notPublished: 'Noch nicht auf npm veröffentlicht; Updates können nicht geprüft werden.',
+  viewVersion: '{version} ansehen',
 }
 
 /** Russian dictionary. */
@@ -272,6 +320,14 @@ const ru: Record<LocaleKey, string> = {
   preview: 'Просмотр',
   previewHint: 'Живой просмотр выбранной анимации.',
   selected: 'Выбрано',
+  version: 'v{version}',
+  checkUpdate: 'Проверить обновления',
+  checking: 'Проверка…',
+  upToDate: 'Актуальная версия ({version})',
+  updateAvailable: 'Доступна версия {version}',
+  updateFailed: 'Не удалось проверить обновления. Повторите позже.',
+  notPublished: 'Ещё не опубликовано в npm, поэтому проверка обновлений недоступна.',
+  viewVersion: 'Открыть {version}',
 }
 
 /** Portuguese dictionary. */
@@ -310,6 +366,14 @@ const pt: Record<LocaleKey, string> = {
   preview: 'Prévia',
   previewHint: 'Prévia ao vivo da animação escolhida.',
   selected: 'Selecionado',
+  version: 'v{version}',
+  checkUpdate: 'Verificar atualizações',
+  checking: 'Verificando…',
+  upToDate: 'Já está atualizado ({version})',
+  updateAvailable: 'A versão {version} está disponível',
+  updateFailed: 'Falha ao verificar atualizações. Tente novamente mais tarde.',
+  notPublished: 'Ainda não publicado no npm, então não é possível verificar atualizações.',
+  viewVersion: 'Ver {version}',
 }
 
 /** All dictionaries registered with the client locale service. */

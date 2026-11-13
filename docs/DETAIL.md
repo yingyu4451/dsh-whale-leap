@@ -7,6 +7,7 @@ Whale leap is a local DeepSeek Harness plugin that adds a swimming whale to the 
 - A whale canvas behind the blank home. With **Show in conversations** enabled it also paints behind started conversations, replaying on a configurable interval. Clicking blank conversation space replays it once.
 - A swimming fish mark left of the running Turn label. A switch decides whether it replaces the shipped whale tail; the fish uses the same silhouette as the blank home, at a size of 8–28 px, with four motion presets and a live size preview.
 - A settings section, **Settings › Whale leap**, split into a Background tab and a Running icon tab.
+- A version line and **Check for updates** in the settings header: it reads the latest published version from npmjs (npmmirror fallback), links the newer release, and reports plainly when the package is not published yet.
 
 ## Use
 

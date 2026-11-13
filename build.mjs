@@ -8,13 +8,15 @@
  * runtime expects. Only React stays external.
  */
 import { build } from 'esbuild'
-import { mkdir, rm } from 'node:fs/promises'
+import { mkdir, readFile, rm } from 'node:fs/promises'
 import path from 'node:path'
 import { cssModules } from './scripts/css-modules.mjs'
 
 const root = process.cwd()
 const outdir = path.join(root, 'lib')
-const packageName = 'dsh-whale-leap'
+const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
+const packageName = manifest.name
+const version = manifest.version
 
 await rm(outdir, { recursive: true, force: true })
 await mkdir(outdir, { recursive: true })
@@ -30,6 +32,7 @@ await build({
   loader: { '.webp': 'dataurl' },
   external: ['react', 'react/jsx-runtime'],
   plugins: [cssModules()],
+  define: { __WHALE_LEAP_VERSION__: JSON.stringify(version) },
   banner: {
     js: `window.__ModuleLoader__.load({ id: ${JSON.stringify(packageName)}, factory: (require) => {\nvar module = { exports: {} };\nvar exports = module.exports;\n`,
   },

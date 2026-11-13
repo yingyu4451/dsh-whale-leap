@@ -1,7 +1,6 @@
 {
   "name": "dsh-whale-leap",
-  "version": "0.2.0",
-  "private": true,
+  "version": "0.3.0",
   "type": "module",
   "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
   "exports": {
@@ -22,10 +21,12 @@
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
-    "README.zh.md"
+    "README.zh.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "prepublishOnly": "node build.mjs"
   },
   "dsh": {
     "bundle": {
@@ -46,7 +47,24 @@
     "esbuild": "^0.25.0",
     "react": "18.2.0",
     "react-dom": "18.2.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yingyu4451/dsh-whale-leap.git"
+  },
+  "homepage": "https://github.com/yingyu4451/dsh-whale-leap#readme",
+  "bugs": {
+    "url": "https://github.com/yingyu4451/dsh-whale-leap/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "whale",
+    "theme"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
-
-

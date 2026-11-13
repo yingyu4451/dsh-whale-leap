@@ -14,6 +14,8 @@ import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
+import { PLUGIN_VERSION } from '../version.js'
+import { PACKAGE_NAME, checkForUpdate, type UpdateResult } from '../update.js'
 import atlasUrl from '../../../assets/breach-atlas.webp'
 import css from './settings.module.css'
 
@@ -241,14 +243,59 @@ function PreviewWhale({ settings }: { settings: WhaleSettingsState }) {
 export function SettingsPage({ t, state, actions, initialTab = 'background' }: SettingsPageProps) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const [tab, setTab] = useState<Tab>(initialTab)
+  const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
   const disabled = !settings.writable
   const custom = settings.colorMode === 'custom'
+
+  const checkForUpdates = useCallback(async (): Promise<void> => {
+    setUpdate({ status: 'checking' })
+    setUpdate(await checkForUpdate())
+  }, [])
+
+  let updateNotice = ''
+  if (update.status === 'latest' && update.latest !== undefined) {
+    updateNotice = t('upToDate', { version: update.latest })
+  } else if (update.status === 'available' && update.latest !== undefined) {
+    updateNotice = t('updateAvailable', { version: update.latest })
+  } else if (update.status === 'failed') {
+    updateNotice = t('updateFailed')
+  } else if (update.status === 'not-published') {
+    updateNotice = t('notPublished')
+  }
 
   return (
     <section className={css.section}>
       <header className={css.header}>
-        <h2 className={css.title}>{t('nav')}</h2>
+        <div className={css.headerTop}>
+          <h2 className={css.title}>{t('nav')}</h2>
+          <span className={css.version}>{t('version', { version: PLUGIN_VERSION })}</span>
+        </div>
         <p className={css.intro}>{t('intro')}</p>
+        <div className={css.updateRow}>
+          <button
+            type="button"
+            className={css.updateButton}
+            disabled={update.status === 'checking'}
+            onClick={() => {
+              void checkForUpdates()
+            }}
+          >
+            {update.status === 'checking' ? t('checking') : t('checkUpdate')}
+          </button>
+          <span className={css.updateNotice} role="status" data-status={update.status}>
+            {updateNotice}
+          </span>
+          {update.status === 'available' && update.latest !== undefined && (
+            <a
+              className={css.updateLink}
+              href={`https://www.npmjs.com/package/${PACKAGE_NAME}/v/${update.latest}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t('viewVersion', { version: update.latest })}
+            </a>
+          )}
+        </div>
       </header>
 
       <div className={css.shell}>
