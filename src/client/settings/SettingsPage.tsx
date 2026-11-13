@@ -89,9 +89,15 @@ const PREVIEW_SCALE = 0.5
 const OPTION_FISH_SIZE = 34
 
 /** One labelled settings row. */
-function Row({ label, hint, control }: { label: string; hint?: string; control: ReactNode }) {
+function Row({ label, hint, control, stack = false }: {
+  label: string
+  hint?: string
+  control: ReactNode
+  /** Stack the control under the label at very narrow widths. */
+  stack?: boolean
+}) {
   return (
-    <div className={css.row}>
+    <div className={stack ? `${css.row} ${css.rowStacked}` : css.row}>
       <div className={css.rowText}>
         <span className={css.label}>{label}</span>
         {hint !== undefined && <span className={css.hint}>{hint}</span>}
@@ -126,6 +132,7 @@ function SliderRow(props: {
 }) {
   return (
     <Row
+      stack
       label={props.label}
       hint={props.hint}
       control={
@@ -281,9 +288,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
         <div className={css.headerTop}>
           <h2 className={css.title}>{t('nav')}</h2>
           <span className={css.version}>{t('version', { version: PLUGIN_VERSION })}</span>
-        </div>
-        <p className={css.intro}>{t('intro')}</p>
-        <div className={css.updateRow}>
           <button
             type="button"
             className={css.updateButton}
@@ -294,20 +298,25 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           >
             {update.status === 'checking' ? t('checking') : t('checkUpdate')}
           </button>
-          <span className={css.updateNotice} role="status" data-status={update.status}>
-            {updateNotice}
-          </span>
-          {update.status === 'available' && update.latest !== undefined && (
-            <a
-              className={css.updateLink}
-              href={update.url ?? RELEASES_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t('viewVersion', { version: update.latest })}
-            </a>
-          )}
         </div>
+        <p className={css.intro}>{t('intro')}</p>
+        {(updateNotice !== '' || update.status === 'available') && (
+          <div className={css.updateRow}>
+            <span className={css.updateNotice} role="status" data-status={update.status}>
+              {updateNotice}
+            </span>
+            {update.status === 'available' && update.latest !== undefined && (
+              <a
+                className={css.updateLink}
+                href={update.url ?? RELEASES_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t('viewVersion', { version: update.latest })}
+              </a>
+            )}
+          </div>
+        )}
       </header>
 
       <div className={css.tabs} role="tablist" aria-label={t('nav')}>
@@ -344,6 +353,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
 
             <Group title={t('groupAppearance')}>
               <Row
+                stack
                 label={t('color')}
                 hint={t('colorHint')}
                 control={
@@ -456,7 +466,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
               ) : (
                 <span className={css.markStageOff}>{t('replaceMarkHint')}</span>
               )}
-              <span className={css.stageHint}>{t('markPreviewHint')}</span>
+              {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
             </div>
 
             <Group title={t('groupIcon')}>

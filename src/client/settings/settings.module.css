@@ -25,20 +25,25 @@
   margin: 0;
   font-size: 13px;
   line-height: 20px;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .headerTop {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+}
+
+.headerTop .updateButton {
+  margin-left: auto;
 }
 
 .version {
   font-family: var(--ds-font-family-code), monospace;
   font-size: 12px;
   line-height: 20px;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .updateRow {
@@ -46,7 +51,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  min-height: 28px;
   font-size: 12px;
   line-height: 18px;
 }
@@ -77,7 +81,7 @@
 }
 
 .updateNotice {
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .updateNotice[data-status='available'] {
@@ -165,11 +169,10 @@
 
 .groupTitle {
   margin: 0;
-  padding: 0 4px;
   font-size: 12px;
   line-height: 18px;
   font-weight: 500;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .card {
@@ -188,9 +191,7 @@
   overflow: hidden;
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-module-platform);
-}
-
-.stageCanvas {
+}.stageCanvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -209,7 +210,7 @@
   background: var(--dsw-alias-bg-layer-1);
   font-size: 11px;
   line-height: 16px;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
   pointer-events: none;
 }
 
@@ -233,7 +234,7 @@
   font-size: 12px;
   line-height: 18px;
   text-align: center;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .markRunning {
@@ -325,7 +326,7 @@
 .hint {
   font-size: 12px;
   line-height: 18px;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .control {
@@ -347,6 +348,10 @@
 }
 
 .slider:disabled {
+  opacity: 0.4;
+}
+
+.sliderField:has(.slider:disabled) .sliderValue {
   opacity: 0.4;
 }
 
@@ -491,6 +496,10 @@
   color: var(--dsw-alias-label-primary);
 }
 
+.motionOption:disabled .motionTick {
+  visibility: hidden;
+}
+
 .motionFish {
   display: flex;
   align-items: center;
@@ -523,7 +532,14 @@
   margin: 0 0 10px;
   font-size: 12px;
   line-height: 18px;
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
+}
+
+@media (min-width: 768px) {
+  .stage {
+    aspect-ratio: auto;
+    height: 240px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -536,6 +552,43 @@
   }
 
   .sliderField {
+    flex: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  .rowStacked {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rowStacked .rowText {
+    flex: 1 1 100%;
+  }
+
+  .rowStacked .control {
+    width: 100%;
+  }
+
+  .rowStacked .sliderField {
+    flex: 1;
+  }
+
+  .rowStacked .slider {
+    width: 100%;
+  }
+
+  .rowStacked .colorGroup {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .rowStacked .choice {
+    width: 100%;
+  }
+
+  .rowStacked .choiceButton,
+  .rowStacked .choiceSelected {
     flex: 1;
   }
 }
