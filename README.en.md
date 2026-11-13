@@ -17,7 +17,7 @@ Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
 **Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup. When the plugin was installed from a folder, the profile keeps a directory copy: copy the rebuilt package over `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap` (or remove and re-add it in Plugins) before restarting.
 
-The settings header shows the running version and a **Check for updates** button. The check reads the latest release from GitHub — the repository's `releases/latest` endpoint, then its tags when no release exists yet — compares it with the installed build, links the release page when a newer version exists, and reports plainly when nothing has been released or the probe fails, including the reason (GitHub rate limit, network, or timeout) plus a link to the releases page.
+The settings header shows the running version and a **Check for updates** button. The check reads the newest tag from jsDelivr's mirror (not bound by the GitHub API quota), falling back to the repository's `releases/latest` and tags, and compares it with the installed build, links the release page when a newer version exists, and reports plainly when nothing has been released or the probe fails, including the reason (GitHub rate limit, network, or timeout) plus a link to the releases page.
 
 ## Settings
 
@@ -34,7 +34,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Horizontal position | Start X of the background whale, −200 to +200 px; negative moves left, positive right. |
 | Vertical position | Start Y of the background whale, −200 to +200 px; negative moves up, positive down. |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
-| Frame mode | Alternate dots + code (default), dots, code lettering, ASCII glyphs, binary tokens, or hatching. |
+| Fill style | The switch alternates dots and code fill automatically; turn it off to pick dots, code fill, glyphs, binary tokens, or hatching. |
 
 **Playback**
 

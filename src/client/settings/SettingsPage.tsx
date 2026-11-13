@@ -102,6 +102,8 @@ const MOTION_LABELS: Record<WhaleMarkMotion, LocaleKey> = {
 }
 
 /** Labels for the painting choices. */
+const MANUAL_FRAME_MODES = FRAME_MODES.filter(mode => mode !== 'alternate')
+
 const FRAME_LABELS: Record<WhaleFrameMode, LocaleKey> = {
   alternate: 'frameAlternate',
   pixels: 'frameDots',
@@ -767,20 +769,31 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 onChange={actions.setOpacity}
               />
 
-              <Row
-                stack
-                label={t('frameMode')}
-                hint={t('frameModeHint')}
-                control={
-                  <ChoiceRow
-                    label={t('frameMode')}
-                    value={settings.frameMode}
-                    disabled={disabled}
-                    options={FRAME_MODES.map(mode => ({ value: mode, label: t(FRAME_LABELS[mode]) }))}
-                    onChange={actions.setFrameMode}
-                  />
-                }
+              <ToggleRow
+                label={t('fillStyle')}
+                hint={t('fillStyleHint')}
+                checked={settings.frameMode === 'alternate'}
+                disabled={disabled}
+                onChange={(enabled) => {
+                  actions.setFrameMode(enabled ? 'alternate' : 'pixels')
+                }}
               />
+
+              {settings.frameMode !== 'alternate' && (
+                <Row
+                  stack
+                  label={t('fillStyleManual')}
+                  control={
+                    <ChoiceRow
+                      label={t('fillStyleManual')}
+                      value={settings.frameMode}
+                      disabled={disabled}
+                      options={MANUAL_FRAME_MODES.map(mode => ({ value: mode, label: t(FRAME_LABELS[mode]) }))}
+                      onChange={actions.setFrameMode}
+                    />
+                  }
+                />
+              )}
             </Group>
 
             <p className={css.note}>{t('peekAutoHint')}</p>

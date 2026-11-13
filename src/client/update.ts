@@ -40,6 +40,9 @@ export interface UpdateResult {
 /** GitHub API base of the repository. */
 const API = `https://api.github.com/repos/${REPOSITORY}`
 
+/** jsDelivr's tag listing for the repository; not subject to the GitHub API quota. */
+const MIRROR = `https://data.jsdelivr.com/v1/package/gh/${REPOSITORY}`
+
 /** How long one API request may take. */
 const TIMEOUT_MS = 8000
 
@@ -163,18 +166,52 @@ async function latestRelease(): Promise<{
 }
 
 /**
+ * Read the newest tag from jsDelivr, which mirrors the repository's git tags
+ * without the unauthenticated GitHub API quota.
+ * @returns the newest version and its release page, or an empty object.
+ */
+async function mirrorRelease(): Promise<{ version?: string; url?: string }> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => {
+    controller.abort()
+  }, TIMEOUT_MS)
+  try {
+    const response = await fetch(MIRROR, { signal: controller.signal, headers: { accept: 'application/json' } })
+    if (!response.ok) return {}
+    const body = await response.json()
+    const versions = typeof body === 'object' && body !== null ? (body as { versions?: unknown }).versions : undefined
+    if (!Array.isArray(versions)) return {}
+    let best: string | undefined
+    for (const entry of versions) {
+      const version = typeof entry === 'string' ? tagVersion(entry) : undefined
+      if (version !== undefined && (best === undefined || compareVersions(version, best) > 0)) best = version
+    }
+    if (best === undefined) return {}
+    return { version: best, url: `${RELEASES_URL}/tag/v${best}` }
+  } catch {
+    return {}
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
  * Ask GitHub whether a newer build exists.
  * @param currentVersion - running build version; defaults to the compiled-in one.
  * @returns the probe result.
  */
 export async function checkForUpdate(currentVersion: string = PLUGIN_VERSION): Promise<UpdateResult> {
-  const result = await latestRelease()
-  if (result.missing === true) return { status: 'no-release' }
+  let result = await mirrorRelease()
   if (result.version === undefined) {
-    const status = result.kind === 'rate-limited' || result.kind === 'network' || result.kind === 'timeout'
-      ? result.kind
-      : 'failed'
-    return { status, error: result.error ?? 'Unknown release error' }
+    const api = await latestRelease()
+    if (api.missing === true) return { status: 'no-release' }
+    if (api.version === undefined) {
+      const status = api.kind === 'rate-limited' || api.kind === 'network' || api.kind === 'timeout'
+        ? api.kind
+        : 'failed'
+      return { status, error: api.error ?? 'Unknown release error' }
+    }
+    result = api
   }
   return compareVersions(result.version, currentVersion) > 0
     ? { status: 'available', latest: result.version, url: result.url }
