@@ -53,6 +53,9 @@ export const BG_OFFSET_X_FIELD = 'bgOffsetX'
 /** Field holding the background scene's vertical start offset in pixels. */
 export const BG_OFFSET_Y_FIELD = 'bgOffsetY'
 
+/** Field holding whether each appearance picks a random, fully visible position. */
+export const RANDOM_POSITION_FIELD = 'randomPosition'
+
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
@@ -123,6 +126,7 @@ export const DEFAULT_SETTINGS = {
   replaceMark: true,
   bgOffsetX: 0,
   bgOffsetY: 0,
+  randomPosition: false,
   markColorMode: 'theme',
   markColor: '#345ebe',
   labelColorMode: 'theme',

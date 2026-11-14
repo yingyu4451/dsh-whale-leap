@@ -57,11 +57,19 @@ export function createStore<T>(initial: T): Store<T> {
   }
 }
 
+/** One atomic field write queued through the settings form. */
+export interface FieldWrite {
+  op: 'set'
+  path: [string]
+  value: string | number | boolean | string[]
+}
+
 /** The slice of the settings mirror this module needs. */
 export interface SettingsFormLike {
   getSnapshot(): { value?: unknown; writable: boolean }
   subscribe(listener: () => void): () => void
   set(field: string, value: unknown): Promise<boolean>
+  mutate?(ops: readonly FieldWrite[], expectedRevision?: number): Promise<boolean>
 }
 
 /** The slice of the client context this module needs. */
@@ -230,6 +238,52 @@ export class WhaleSettingsRuntime {
     const next = clamp(px, BG_OFFSET_RANGE)
     this.patch({ bgOffsetY: next })
     this.schedule('bgOffsetY', next)
+  }
+
+  /**
+   * Pick a random visible position for every appearance.
+   * @param enabled - whether random placement is on.
+   */
+  setRandomPosition(enabled: boolean): void {
+    this.patch({ randomPosition: enabled })
+    this.commit('randomPosition', enabled)
+  }
+
+  /** Restore every field to its factory default. */
+  reset(): void {
+    void this.resetAll()
+  }
+
+  /**
+   * Restore every field in one atomic settings mutation.
+   *
+   * Field-by-field writes queue behind every other write and a full reset takes
+   * several seconds, so the whole section is patched at once when the form
+   * offers its batch API; older forms fall back to parallel field writes.
+   */
+  private async resetAll(): Promise<void> {
+    const defaults: WhaleSettings = { ...DEFAULT_SETTINGS, fillStyles: [...DEFAULT_SETTINGS.fillStyles] }
+    this.patch(defaults)
+    if (this.disposed || !this.store.getSnapshot().writable) return
+    const ops: FieldWrite[] = Object.entries(defaults).map(([field, value]) => ({
+      op: 'set',
+      path: [field],
+      value: value as FieldWrite['value'],
+    }))
+    this.pending += 1
+    try {
+      if (this.host.mutate !== undefined) {
+        await this.host.mutate(ops)
+      } else {
+        const writes = ops.map(op => this.host.set(op.path[0], op.value))
+        await Promise.all(writes)
+      }
+    } catch {
+      return
+    } finally {
+      this.pending -= 1
+    }
+    this.adopt()
   }
 
   /**

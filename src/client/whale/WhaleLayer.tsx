@@ -80,10 +80,14 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     handle.prefetch()
   }, [])
 
-  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY } = settings
+  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY, randomPosition } = settings
   useEffect(() => {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
   }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
+
+  useEffect(() => {
+    whale.current?.setRandomPosition(randomPosition && !hero)
+  }, [randomPosition, hero])
 
   const fillStyleKey = fillStyles.join(',')
   useEffect(() => {

@@ -1,4 +1,5 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
+import { BG_OFFSET_RANGE } from '../../../shared/settings.js'
 import type { WhaleFillStyle } from '../settings.ts'
 import type { WhaleArtwork } from './artwork.ts'
 import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
@@ -67,6 +68,14 @@ export interface PixelWhaleHandle {
    * @param active - whether preview rendering is active.
    */
   setPreview: (active: boolean) => void
+  /**
+   * Randomize the scene placement before every playback.
+   *
+   * The pick is constrained by the atlas' alpha bounding box across all frames,
+   * so the whole breach animation stays inside the canvas for the entire leap.
+   * @param enabled - whether every playback picks a random visible position.
+   */
+  setRandomPosition: (enabled: boolean) => void
   /** Release frame work, atlas pixels, and observers; late atlas loads are ignored. */
   dispose: () => void
 }
@@ -78,6 +87,7 @@ const NO_WHALE: PixelWhaleHandle = {
   setFillStyles: () => {},
   setAutoPlay: () => {},
   setPreview: () => {},
+  setRandomPosition: () => {},
   dispose: () => {},
 }
 
@@ -128,6 +138,10 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let codeMode: WhaleTextureMode | undefined
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
+  let randomMode = false
+  let randomUnitsX = 0
+  let randomUnitsY = 0
+  let whaleBox: { x0: number; y0: number; x1: number; y1: number } | undefined
 
   const moving = () => !media.matches
   const drawable = () => !disposed && !document.hidden && visible && width > 0 && height > 0
@@ -240,9 +254,8 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.fillStyle = nextColor
     sceneWidth = nextSceneWidth
-    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
-    left = (width - sceneWidth) / 2 + nextOffsetX
-    top = height * 0.43 - sceneHeight / 2 + nextOffsetY
+    if (randomMode) placeRandom(false)
+    else placeFromArtwork()
     if (code !== undefined && sceneWidth > 0) code.resize(canvas, sceneWidth)
     resume()
   }
@@ -254,6 +267,97 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       layoutFrame = 0
       resize()
     })
+  }
+
+  /**
+   * Normalized bounds of the solid whale across the whole frame set.
+   *
+   * A raw union includes the thin water splash that touches the cell edge in a
+   * few frames; using it makes the safe interval empty on typical canvases, so
+   * each column and row must hold a minimum amount of opaque content before it
+   * counts toward the box.
+   * @param source - decoded atlas pixels.
+   * @returns the normalized bounding box of the whale body.
+   */
+  function measureWhaleBox(source: Uint8ClampedArray): { x0: number; y0: number; x1: number; y1: number } {
+    const minAlpha = 0.3
+    const minCount = 16
+    let minX = ATLAS.width
+    let minY = ATLAS.height
+    let maxX = -1
+    let maxY = -1
+    const stride = ATLAS.width * ATLAS.columns
+    const columns = new Uint16Array(ATLAS.width)
+    const rows = new Uint16Array(ATLAS.height)
+    for (let index = 0; index < ATLAS.frames; index++) {
+      columns.fill(0)
+      rows.fill(0)
+      const offsetX = (index % ATLAS.columns) * ATLAS.width
+      const offsetY = Math.floor(index / ATLAS.columns) * ATLAS.height
+      for (let y = 0; y < ATLAS.height; y++) {
+        for (let x = 0; x < ATLAS.width; x++) {
+          if ((source[((offsetY + y) * stride + offsetX + x) * 4 + 1] as number) / 255 < minAlpha) continue
+          columns[x] = (columns[x] as number) + 1
+          rows[y] = (rows[y] as number) + 1
+        }
+      }
+      for (let x = 0; x < ATLAS.width; x++) {
+        if ((columns[x] as number) < minCount) continue
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+      }
+      for (let y = 0; y < ATLAS.height; y++) {
+        if ((rows[y] as number) < minCount) continue
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+      }
+    }
+    if (maxX < minX || maxY < minY) return { x0: 0, y0: 0, x1: 1, y1: 1 }
+    return { x0: minX / ATLAS.width, y0: minY / ATLAS.height, x1: (maxX + 1) / ATLAS.width, y1: (maxY + 1) / ATLAS.height }
+  }
+
+  /**
+   * Offset-unit interval that keeps the whole whale inside the canvas.
+   * @returns the safe interval, or undefined before layout or decode completes.
+   */
+  function placementBounds(): { minX: number; maxX: number; minY: number; maxY: number } | undefined {
+    if (whaleBox === undefined || width <= 0 || height <= 0 || sceneWidth <= 0) return undefined
+    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    const unit = width / 1000
+    const baseLeft = (width - sceneWidth) / 2
+    const baseTop = height * 0.43 - sceneHeight / 2
+    return {
+      minX: Math.max(BG_OFFSET_RANGE.min, (-baseLeft - whaleBox.x0 * sceneWidth) / unit),
+      maxX: Math.min(BG_OFFSET_RANGE.max, (width - baseLeft - whaleBox.x1 * sceneWidth) / unit),
+      minY: Math.max(BG_OFFSET_RANGE.min, (-baseTop - whaleBox.y0 * sceneHeight) / unit),
+      maxY: Math.min(BG_OFFSET_RANGE.max, (height - baseTop - whaleBox.y1 * sceneHeight) / unit),
+    }
+  }
+
+  /**
+   * Place the scene from the random offsets, clamped to the visible interval.
+   * @param pick - whether to draw a new random pair first.
+   */
+  function placeRandom(pick: boolean): void {
+    const bounds = placementBounds()
+    if (bounds === undefined) return
+    if (pick) {
+      randomUnitsX = bounds.minX <= bounds.maxX ? bounds.minX + Math.random() * (bounds.maxX - bounds.minX) : 0
+      randomUnitsY = bounds.minY <= bounds.maxY ? bounds.minY + Math.random() * (bounds.maxY - bounds.minY) : 0
+    }
+    const clampUnit = (value: number, min: number, max: number): number => min <= max ? Math.max(min, Math.min(max, value)) : (min + max) / 2
+    const unit = width / 1000
+    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    left = (width - sceneWidth) / 2 + clampUnit(randomUnitsX, bounds.minX, bounds.maxX) * unit
+    top = height * 0.43 - sceneHeight / 2 + clampUnit(randomUnitsY, bounds.minY, bounds.maxY) * unit
+  }
+
+  /** Restore the placement the sliders describe. */
+  function placeFromArtwork(): void {
+    const unit = width / 1000
+    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    left = (width - sceneWidth) / 2 + artwork.offsetX * unit
+    top = height * 0.43 - sceneHeight / 2 + artwork.offsetY * unit
   }
 
   function ensureTexture(mode: WhaleFillStyle): boolean {
@@ -284,6 +388,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
+    if (randomMode) placeRandom(true)
     started = performance.now()
     resume()
   }
@@ -302,6 +407,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       if (reader === null) { fail(new Error('Home whale atlas Canvas context is unavailable')); return }
       reader.drawImage(image, 0, 0)
       pixels = reader.getImageData(0, 0, source.width, source.height).data
+      whaleBox = measureWhaleBox(pixels)
       atlasCache.set(atlasUrl, pixels)
     } catch (error) {
       fail(error)
@@ -329,7 +435,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   function prefetch(): void {
     if (disposed || failed || pixels !== undefined || !moving()) return
     const cached = atlasCache.get(atlasUrl)
-    if (cached !== undefined) { pixels = cached; return }
+    if (cached !== undefined) {
+      pixels = cached
+      whaleBox = measureWhaleBox(cached)
+      return
+    }
     if (loading) return
     loading = true
     image.src = atlasUrl
@@ -376,6 +486,14 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     scheduleResize()
   }
 
+  function setRandomPosition(enabled: boolean): void {
+    if (disposed || randomMode === enabled) return
+    randomMode = enabled
+    if (randomMode) placeRandom(true)
+    else placeFromArtwork()
+    resume()
+  }
+
   const sizeObserver = new ResizeObserver(scheduleResize)
   const visibilityObserver = new IntersectionObserver(([entry]) => {
     visible = entry?.isIntersecting ?? false
@@ -410,5 +528,5 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     document.removeEventListener('visibilitychange', resume)
     media.removeEventListener('change', resume)
   }
-  return { play, prefetch, update, setAutoPlay, setFillStyles, setPreview, dispose }
+  return { play, prefetch, update, setAutoPlay, setFillStyles, setPreview, setRandomPosition, dispose }
 }

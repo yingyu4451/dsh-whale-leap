@@ -77,6 +77,12 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setBgOffsetY: px => {
       runtime.setBgOffsetY(px)
     },
+    setRandomPosition: enabled => {
+      runtime.setRandomPosition(enabled)
+    },
+    reset: () => {
+      runtime.reset()
+    },
     setMarkColorMode: mode => {
       runtime.setMarkColorMode(mode)
     },

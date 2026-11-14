@@ -50,6 +50,8 @@ export const Config = z.object({
   bgOffsetX: z.number().step(BG_OFFSET_RANGE.step).min(BG_OFFSET_RANGE.min).max(BG_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.bgOffsetX).volatile(),
   /** Background scene vertical start offset in pixels. */
   bgOffsetY: z.number().step(BG_OFFSET_RANGE.step).min(BG_OFFSET_RANGE.min).max(BG_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.bgOffsetY).volatile(),
+  /** Whether each appearance picks a random, fully visible position. */
+  randomPosition: z.boolean().default(DEFAULT_SETTINGS.randomPosition).volatile(),
   /** Running mark color source: theme tone or a custom pick. */
   markColorMode: z.union([...COLOR_MODES]).default(DEFAULT_SETTINGS.markColorMode).volatile(),
   /** Lowercase custom running mark color. */

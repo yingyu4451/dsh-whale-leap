@@ -351,6 +351,40 @@
   border-radius: var(--dsw-radius-md);
 }
 
+.entryActions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.resetButton {
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 22px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.resetButton:hover {
+  background: color-mix(in srgb, var(--dsw-alias-bg-module-platform) 88%, var(--dsw-alias-label-primary) 12%);
+}
+
+.resetButton[data-confirm='true'] {
+  color: var(--dsw-alias-label-on-color);
+  background: var(--dsw-alias-state-business-primary);
+}
+
+.resetButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .randomButton {
   height: 32px;
   padding: 0 14px;
@@ -1386,6 +1420,15 @@
 
   .entryHint {
     flex: 0 0 auto;
+  }
+
+  .entryActions {
+    width: 100%;
+  }
+
+  .entryActions > button {
+    flex: 1;
+    width: auto;
   }
 
   .entryCard .stageLive {

@@ -40,6 +40,8 @@ export interface WhaleSettings {
   bgOffsetX: number
   /** Background scene vertical start offset in pixels. */
   bgOffsetY: number
+  /** Whether each appearance picks a random, fully visible position. */
+  randomPosition: boolean
   /** Running mark color source. */
   markColorMode: WhaleColorMode
   /** Lowercase custom running mark color. */

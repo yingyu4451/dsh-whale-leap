@@ -67,6 +67,10 @@ export interface SettingsPageActions {
   setBgOffsetX: (px: number) => void
   /** Move the background scene vertically. */
   setBgOffsetY: (px: number) => void
+  /** Pick a random visible position for every appearance. */
+  setRandomPosition: (enabled: boolean) => void
+  /** Restore every setting to its factory default. */
+  reset: () => void
   /** Choose the running mark motion. */
   setMarkMotion: (motion: WhaleMarkMotion) => void
 }
@@ -105,13 +109,6 @@ const FRAME_LABELS: Record<WhaleFillStyle, LocaleKey> = {
   binary: 'frameBinary',
   lines: 'frameLines',
 }
-
-/**
- * Edge fraction of the rendered scene that the atlas frames keep sparse
- * particles in. Random placement targets the inner part so the whale itself
- * stays visible while the canvas edges only clip stray particles.
- */
-const WHALE_INSET = 0.2
 
 /**
  * Format a start offset for the slider value label.
@@ -323,42 +320,6 @@ function FillStyleButtons({ t, styles, disabled, onToggle }: {
 }
 
 /**
- * Pick a random background offset that keeps the whole whale scene visible.
- *
- * The range mirrors the renderer's fit math (`scene = clamp(...) * size` and the
- * offset unit `width / 1000`), so any pick keeps the whale's core inside the
- * canvas instead of letting the animation clip at an edge. The atlas frames
- * carry sparse edge particles, so the fit targets the inner `WHALE_INSET` of the
- * scene rather than its exact bounding box (which is always canvas-sized).
- * @param settings - live whale settings.
- * @returns offsets in settings units, or null when no conversation canvas is mounted.
- */
-function randomBackgroundOffset(settings: WhaleSettingsState): { x: number; y: number } | null {
-  if (typeof document === 'undefined') return null
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-whale-layer] canvas')
-  if (canvas === null) return null
-  const width = canvas.clientWidth
-  const height = canvas.clientHeight
-  if (width <= 0 || height <= 0) return null
-  const sceneWidth = Math.min(Math.max(width * 0.94, 720), height * 1.6, 1120) * 1.12 * settings.size
-  const sceneHeight = sceneWidth * 0.5625
-  const baseLeft = (width - sceneWidth) / 2
-  const baseTop = height * 0.43 - sceneHeight / 2
-  const unit = width / 1000
-  const inset = WHALE_INSET
-  const coreWidth = sceneWidth * (1 - inset * 2)
-  const coreHeight = sceneHeight * (1 - inset * 2)
-  const fit = (min: number, max: number): number => {
-    if (max < min) return Math.round((min + max) / 2)
-    return Math.round(min + Math.random() * (max - min))
-  }
-  const x = fit((-baseLeft - inset * sceneWidth) / unit, (width - baseLeft - inset * sceneWidth - coreWidth) / unit)
-  const y = fit((-baseTop - inset * sceneHeight) / unit, (height - baseTop - inset * sceneHeight - coreHeight) / unit)
-  const clamp = (value: number): number => Math.max(BG_OFFSET_RANGE.min, Math.min(BG_OFFSET_RANGE.max, value))
-  return { x: clamp(x), y: clamp(y) }
-}
-
-/**
  * Floating appearance panel shown while the settings dialog is hidden, so the
  * background and running icon can be tuned against the real conversation.
  * @param props.t - locale-bound translator.
@@ -475,7 +436,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               max={BG_OFFSET_RANGE.max}
               step={BG_OFFSET_RANGE.step}
               display={formatOffsetPx(settings.bgOffsetX)}
-              disabled={disabled}
+              disabled={disabled || settings.randomPosition}
               onChange={actions.setBgOffsetX}
             />
             <SliderRow
@@ -487,27 +448,15 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               max={BG_OFFSET_RANGE.max}
               step={BG_OFFSET_RANGE.step}
               display={formatOffsetPx(settings.bgOffsetY)}
-              disabled={disabled}
+              disabled={disabled || settings.randomPosition}
               onChange={actions.setBgOffsetY}
             />
-            <Row
-              label={t('bgPosition')}
-              hint={t('bgPositionHint')}
-              control={
-                <button
-                  type="button"
-                  className={css.randomButton}
-                  disabled={disabled}
-                  onClick={() => {
-                    const next = randomBackgroundOffset(settings)
-                    if (next === null) return
-                    actions.setBgOffsetX(next.x)
-                    actions.setBgOffsetY(next.y)
-                  }}
-                >
-                  {t('randomPosition')}
-                </button>
-              }
+            <ToggleRow
+              label={t('randomPosition')}
+              hint={t('randomPositionHint')}
+              checked={settings.randomPosition}
+              disabled={disabled}
+              onChange={actions.setRandomPosition}
             />
               </div>
             </PeekSection>
@@ -853,10 +802,6 @@ function DemoTranscript({ t }: { t: Translate }) {
     { user: t('demoUser2'), reply: t('demoReply2') },
     { user: t('demoUser3'), reply: t('demoReply3') },
   ]
-  const cards = [
-    { title: t('demoImage1Title'), desc: t('demoImage1Desc') },
-    { title: t('demoImage2Title'), desc: t('demoImage2Desc') },
-  ]
   return (
     <div className={css.demoThread}>
       <p className={css.demoMeta}>{t('demoMeta')}</p>
@@ -864,29 +809,6 @@ function DemoTranscript({ t }: { t: Translate }) {
         <div key={index} className={css.demoExchange}>
           <div className={css.demoUser}>{exchange.user}</div>
           <div className={css.demoReply}>{exchange.reply}</div>
-          {index === exchanges.length - 1 && (
-            <div className={css.demoCards}>
-              {cards.map((card) => (
-                <div key={card.title} className={css.demoCard} data-demo-card>
-                  <span className={css.demoCardThumb} aria-hidden="true">
-                    <svg viewBox="0 0 20 20" className={css.demoCardThumbIcon}>
-                      <path d="M3 4.5h14v11H3z" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                      <path d="M3 13l4.2-4 3.4 3 2.6-2.4L17 13" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                      <circle cx="13.4" cy="7.4" r="1.3" fill="currentColor" />
-                    </svg>
-                  </span>
-                  <span className={css.demoCardBody}>
-                    <span className={css.demoCardTitle}>{card.title}</span>
-                    <span className={css.demoCardDesc}>{card.desc}</span>
-                  </span>
-                  <span className={css.demoCardActions} aria-hidden="true">
-                    <span className={css.demoCardAction}>{'↧'}</span>
-                    <span className={css.demoCardAction}>{'⋮'}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       ))}
     </div>
@@ -904,9 +826,15 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
   const rootRef = useRef<HTMLElement | null>(null)
   const [peeking, setPeeking] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const resetTimer = useRef<number | undefined>(undefined)
   const overlayRef = useRef<{ element: HTMLElement; display: string } | null>(null)
   const live = useRef({ t, state, actions })
   live.current = { t, state, actions }
+
+  useEffect(() => () => {
+    if (resetTimer.current !== undefined) window.clearTimeout(resetTimer.current)
+  }, [])
 
   useEffect(() => {
     if (!peeking) return
@@ -1139,15 +1067,38 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
       <div className={css.entryLayout}>
         <div className={css.entryCard} data-whale-leap-entry>
           <p className={css.entryHint}>{t('openPreviewHint')}</p>
-          <button
-            type="button"
-            className={css.stageLive}
-            onClick={() => {
-              setPeeking(true)
-            }}
-          >
-            {t('livePreview')}
-          </button>
+          <div className={css.entryActions}>
+            <button
+              type="button"
+              className={css.resetButton}
+              data-confirm={confirmReset ? 'true' : undefined}
+              onClick={() => {
+                if (resetTimer.current !== undefined) window.clearTimeout(resetTimer.current)
+                if (!confirmReset) {
+                  setConfirmReset(true)
+                  resetTimer.current = window.setTimeout(() => {
+                    setConfirmReset(false)
+                    resetTimer.current = undefined
+                  }, 4000)
+                  return
+                }
+                setConfirmReset(false)
+                resetTimer.current = undefined
+                actions.reset()
+              }}
+            >
+              {confirmReset ? t('resetConfirm') : t('resetDefaults')}
+            </button>
+            <button
+              type="button"
+              className={css.stageLive}
+              onClick={() => {
+                setPeeking(true)
+              }}
+            >
+              {t('livePreview')}
+            </button>
+          </div>
         </div>
       </div>
     </section>
