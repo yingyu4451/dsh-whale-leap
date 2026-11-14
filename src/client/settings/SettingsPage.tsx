@@ -668,6 +668,49 @@ function findSettingsOverlay(start: HTMLElement | null): HTMLElement | null {
 }
 
 /**
+ * The real conversation elements reused by preview mode.
+ */
+interface ConversationThread {
+  scroll: HTMLElement
+  session: HTMLElement | null
+  composer: HTMLElement | null
+}
+
+/**
+ * Find the real conversation transcript so preview mode can temporarily show
+ * demo messages in place of the saved ones. Returns null on the home screen.
+ * @returns the scroll container, session slot and composer seat, when present.
+ */
+function findConversationThread(): ConversationThread | null {
+  if (typeof document === 'undefined') return null
+  const scroll = document.querySelector<HTMLElement>('[data-conversation-scroll]')
+  if (scroll === null) return null
+  const tabs = [...document.querySelectorAll('[role="tablist"]')]
+  const isConversation = tabs.some((tab) => (tab.textContent ?? '').includes('对话'))
+  if (!isConversation) return null
+  return {
+    scroll,
+    session: scroll.querySelector<HTMLElement>('[data-slot="conversation.session"]'),
+    composer: scroll.querySelector<HTMLElement>('[data-composer-seat]'),
+  }
+}
+
+/**
+ * Demo messages shown inside the real conversation transcript during preview.
+ * @param props.t - locale-bound translator.
+ * @returns the demo thread.
+ */
+function DemoTranscript({ t }: { t: Translate }) {
+  return (
+    <div className={css.demoThread}>
+      <p className={css.demoMeta}>{t('demoMeta')}</p>
+      <div className={css.demoUser}>{t('demoUser')}</div>
+      <div className={css.demoReply}>{t('demoReply')}</div>
+    </div>
+  )
+}
+
+/**
  * Plugin settings page.
  * @param props.t - locale-bound translator.
  * @param props.state - live whale settings.
@@ -692,6 +735,23 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     if (overlay !== null) {
       overlayRef.current = { element: overlay, display: overlay.style.display }
       overlay.style.display = 'none'
+    }
+    let demoHost: HTMLDivElement | null = null
+    let demoRoot: Root | null = null
+    let hiddenSession: { element: HTMLElement; display: string } | null = null
+    const thread = findConversationThread()
+    if (thread !== null) {
+      if (thread.session !== null) {
+        hiddenSession = { element: thread.session, display: thread.session.style.display }
+        thread.session.style.display = 'none'
+      }
+      demoHost = document.createElement('div')
+      demoHost.className = css.demoHost
+      if (thread.composer !== null) thread.scroll.insertBefore(demoHost, thread.composer)
+      else thread.scroll.append(demoHost)
+      demoRoot = createRoot(demoHost)
+      demoRoot.render(<DemoTranscript t={live.current.t} />)
+      thread.scroll.scrollTop = 0
     }
     const host = document.createElement('div')
     document.body.append(host)
@@ -721,6 +781,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       window.clearTimeout(safety)
       window.removeEventListener('keydown', onKey, true)
       setPeekMode(false)
+      demoRoot?.unmount()
+      demoHost?.remove()
+      if (hiddenSession !== null) hiddenSession.element.style.display = hiddenSession.display
       root.unmount()
       host.remove()
       const hidden = overlayRef.current

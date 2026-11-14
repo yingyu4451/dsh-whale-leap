@@ -862,3 +862,48 @@
     min-height: 0;
   }
 }
+
+/* Demo messages rendered inside the real conversation transcript during preview. */
+.demoHost {
+  display: block;
+}
+
+.demoThread {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 32px min(520px, 48%) 8px 56px;
+  box-sizing: border-box;
+}
+
+.demoMeta {
+  margin: 0;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.demoUser {
+  align-self: flex-end;
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.demoReply {
+  max-width: 84%;
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 24px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+  .demoThread {
+    padding: 20px 18px 4px;
+  }
+}
