@@ -354,9 +354,9 @@
 .randomButton {
   height: 32px;
   padding: 0 14px;
-  border: none;
+  border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
-  background: var(--dsw-alias-bg-module-platform);
+  background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
   font-size: 13px;
   line-height: 20px;
@@ -365,7 +365,8 @@
 }
 
 .randomButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--dsw-alias-bg-module-platform) 86%, var(--dsw-alias-label-primary) 14%);
+  border-color: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-state-business-primary);
 }
 
 .randomButton:disabled {
@@ -595,15 +596,14 @@
 
 /* Multi-select buttons (fill styles, motion presets) use the filled state. */
 .choiceButtonActive {
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-label-on-color);
   font-weight: 500;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), inset 0 0 0 0.5px var(--dsw-alias-border-l2);
 }
 
 .choiceButtonActive:hover {
-  background: var(--dsw-alias-bg-layer-1);
-  color: var(--dsw-alias-label-primary);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
+  color: var(--dsw-alias-label-on-color);
 }
 
 .choiceButtonActive:disabled,
@@ -888,7 +888,7 @@
   padding: 2px 12px 8px;
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
-  background: transparent;
+  background: var(--dsw-alias-bg-module-platform);
 }
 
 .peekSection + .peekSection {
