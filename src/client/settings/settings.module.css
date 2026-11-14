@@ -222,6 +222,14 @@
   min-width: 0;
 }
 
+.subTitle {
+  padding: 4px 0 2px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-secondary);
+}
+
 .groupTitle {
   margin: 0;
   font-size: 12px;
@@ -285,6 +293,23 @@
 
 .stageReplay:hover {
   color: var(--dsw-alias-label-primary);
+}
+
+.stageLive {
+  height: 22px;
+  padding: 0 9px;
+  border: 0.5px solid transparent;
+  border-radius: var(--dsw-radius-sm);
+  background: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-label-on-color);
+  font-size: 11px;
+  line-height: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.stageLive:hover {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
 }
 
 .stageHint {
@@ -715,6 +740,35 @@
   font-size: 12px;
   line-height: 18px;
   color: var(--dsw-alias-label-secondary);
+}
+
+.peekTabs {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--dsw-radius-sm);
+  background: var(--dsw-alias-bg-module-platform);
+}
+
+.peekTab,
+.peekTabActive {
+  height: 22px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: calc(var(--dsw-radius-sm) - 2px);
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.peekTabActive {
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), inset 0 0 0 0.5px var(--dsw-alias-border-l2);
 }
 
 .peekReplay,

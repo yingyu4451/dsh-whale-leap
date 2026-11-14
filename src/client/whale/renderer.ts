@@ -1,4 +1,5 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
+import type { WhaleFillStyle } from '../settings.ts'
 import type { WhaleArtwork } from './artwork.ts'
 import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
 
@@ -12,19 +13,19 @@ const INK_GAIN = 1.5
 const atlasCache = new Map<string, Uint8ClampedArray>()
 
 /**
- * Phase of the next playback, shared across renderer attachments.
+ * Index of the next playback's texture, shared across renderer attachments.
  *
- * Each conversation switch mounts a new decoration; a per-attachment phase
+ * Each conversation switch mounts a new decoration; a per-attachment index
  * would make every switch start on the same fill. Keeping it module-wide lets
- * consecutive appearances alternate between dots and code frames.
+ * consecutive appearances walk the enabled textures in display order.
  */
-let nextFill: 'pixels' | 'code' = 'pixels'
+let nextStyle = 0
 
 /** Playback phase source: the whole page, or this attachment only. */
 export type WhaleFillPhase = 'shared' | 'local'
 
-/** Which painting the whale should show: alternate frames, dots, or code lettering. */
-export type WhaleFrameMode = 'alternate' | 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
+/** Ink textures the renderer can paint; the settings list chooses which ones participate. */
+export type { WhaleFillStyle } from '../settings.ts'
 
 /**
  * Backing-store budget. Large / high-DPI windows would otherwise allocate and
@@ -46,8 +47,8 @@ export interface PixelWhaleHandle {
   prefetch: () => void
   /** Swap the artwork (scale and ink opacity) and repaint without re-decoding the atlas. */
   update: (options: WhaleArtwork) => void
-  /** Force the dots or code painting, or resume alternating between them. */
-  setFrameMode: (mode: WhaleFrameMode) => void
+  /** Replace the enabled texture list; playback walks it in display order. */
+  setFillStyles: (styles: WhaleFillStyle[]) => void
   /**
    * Enable or disable time-driven replays.
    * @param intervalMs - delay between replays, or undefined to stop them.
@@ -62,7 +63,7 @@ const NO_WHALE: PixelWhaleHandle = {
   play: () => {},
   prefetch: () => {},
   update: () => {},
-  setFrameMode: () => {},
+  setFillStyles: () => {},
   setAutoPlay: () => {},
   dispose: () => {},
 }
@@ -105,9 +106,9 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let lastOffsetY = Number.NaN
   let left = 0
   let top = 0
-  let fill: WhaleFrameMode = 'code'
-  let localFill: 'pixels' | 'code' = 'pixels'
-  let frameMode: WhaleFrameMode = 'alternate'
+  let fill: WhaleFillStyle = 'code'
+  let localStyle = 0
+  let styles: WhaleFillStyle[] = ['pixels', 'code']
   let code: ReturnType<typeof createCodeFill> | undefined
   let codeMode: WhaleTextureMode | undefined
   let autoInterval: number | undefined
@@ -238,7 +239,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     })
   }
 
-  function ensureTexture(mode: WhaleFrameMode): boolean {
+  function ensureTexture(mode: WhaleFillStyle): boolean {
     if (mode === 'pixels') return true
     const textureMode = mode as WhaleTextureMode
     if (code !== undefined && codeMode === textureMode) return true
@@ -258,11 +259,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
 
   function begin(): void {
     if (!moving() || !drawable()) return
-    const playing = frameMode === 'alternate' ? (phase === 'local' ? localFill : nextFill) : frameMode
-    if (frameMode === 'alternate') {
-      if (phase === 'local') localFill = playing === 'pixels' ? 'code' : 'pixels'
-      else nextFill = playing === 'pixels' ? 'code' : 'pixels'
-    }
+    const enabled = styles.length > 0 ? styles : ['pixels', 'code'] as WhaleFillStyle[]
+    const cursor = phase === 'local' ? localStyle : nextStyle
+    const playing = enabled[cursor % enabled.length] as WhaleFillStyle
+    if (phase === 'local') localStyle = cursor + 1
+    else nextStyle = cursor + 1
     if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
@@ -323,11 +324,13 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     resize()
   }
 
-  function setFrameMode(mode: WhaleFrameMode): void {
-    if (frameMode === mode) return
-    frameMode = mode
-    // A forced texture only takes effect on the next playback; end the current
-    // one so a settings change swaps the painting immediately.
+  function setFillStyles(next: WhaleFillStyle[]): void {
+    const filtered = next.filter(style => style === 'pixels' || style === 'code' || style === 'glyphs' || style === 'binary' || style === 'lines')
+    const normalized = filtered.length > 0 ? filtered : ['pixels'] as WhaleFillStyle[]
+    if (normalized.length === styles.length && normalized.every((style, index) => style === styles[index])) return
+    styles = normalized
+    // The change takes effect on the next playback; end the current one so a
+    // settings change swaps the painting immediately.
     if (started !== undefined) {
       started = undefined
       clear()
@@ -382,5 +385,5 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     document.removeEventListener('visibilitychange', resume)
     media.removeEventListener('change', resume)
   }
-  return { play, prefetch, update, setAutoPlay, setFrameMode, dispose }
+  return { play, prefetch, update, setAutoPlay, setFillStyles, dispose }
 }

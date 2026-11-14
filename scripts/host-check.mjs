@@ -52,13 +52,16 @@ expect(typeof host.apply === 'function', 'apply is exported')
 expect(host.Config !== undefined, 'Config is exported')
 
 const schema = JSON.stringify(host.Config.toJSON())
-for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'frameMode', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'bgOffsetX', 'bgOffsetY', 'markColorMode', 'markColor', 'labelColorMode', 'labelColor', 'markSize', 'markLabelSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
+for (const field of ['colorMode', 'customColor', 'size', 'opacity', 'fillStyles', 'autoAppear', 'playOnSwitch', 'intervalSeconds', 'replaceMark', 'bgOffsetX', 'bgOffsetY', 'markColorMode', 'markColor', 'labelColorMode', 'labelColor', 'markSize', 'markLabelSize', 'markSwing', 'markOffsetX', 'markOffsetY', 'markMotion']) {
   expect(schema.includes(`"${field}"`), `schema contains ${field}`)
 }
 expect(schema.includes('"volatile":true'), 'schema marks fields volatile')
-for (const mode of ['alternate', 'pixels', 'code', 'glyphs', 'binary', 'lines']) {
-  expect(schema.includes(`"${mode}"`), `frame mode includes ${mode}`)
+for (const mode of ['pixels', 'code', 'glyphs', 'binary', 'lines']) {
+  expect(schema.includes(`"${mode}"`), `fill style includes ${mode}`)
 }
+
+expect(schema.includes('"type":"array"'), 'fill styles is an array')
+expect(schema.includes('"default":["pixels","code"]'), 'fill styles default to pixels and code')
 
 const benchResult = bench()
 expect(benchResult.injections.length === 1, 'apply injects the settings service once')
@@ -75,5 +78,5 @@ if (failures.length > 0) {
   console.error('Host check failed:', failures.join('; '))
   process.exitCode = 1
 } else {
-  console.log(JSON.stringify({ ok: true, fields: 21, frameModes: 6 }, null, 2))
+  console.log(JSON.stringify({ ok: true, fields: 21, fillStyles: 'pixels,code' }, null, 2))
 }

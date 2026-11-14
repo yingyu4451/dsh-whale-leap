@@ -11,7 +11,7 @@ import { DEFAULT_SETTINGS } from '../../shared/settings.js'
 export type WhaleColorMode = 'theme' | 'custom'
 
 /** Painting the whale shows: alternating frames, dots, or code lettering. */
-export type WhaleFrameMode = 'alternate' | 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
+export type WhaleFillStyle = 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
 
 /** Running-mark motion presets. */
 export type WhaleMarkMotion = 'swim' | 'explore' | 'hero' | 'sway'
@@ -27,7 +27,7 @@ export interface WhaleSettings {
   /** Ink strength response; the renderer squares it against a design gain. */
   opacity: number
   /** Painting the whale shows: alternating frames, dots, or code lettering. */
-  frameMode: WhaleFrameMode
+  fillStyles: WhaleFillStyle[]
   /** Whether the whale reappears on its own in a started conversation. */
   autoAppear: boolean
   /** Whether entering a conversation replays the whale at once. */

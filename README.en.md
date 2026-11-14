@@ -34,7 +34,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Horizontal position | Start X of the background whale, −200 to +200 px; negative moves left, positive right. |
 | Vertical position | Start Y of the background whale, −200 to +200 px; negative moves up, positive down. |
 | Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
-| Fill style | The switch alternates dots and code fill automatically; turn it off to pick dots, code fill, glyphs, binary tokens, or hatching. |
+| Fill style | Dots, code fill, glyphs, binary tokens, and hatching each have their own switch; enabled styles alternate in order and at least one stays on. |
 
 **Playback**
 
@@ -44,7 +44,7 @@ Tabs sit in a full-width bar above the panel; the selected tab is a filled segme
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. Releasing the background size or a position slider hides the settings dialog automatically and keeps the whale playing on a loop in the real conversation, while a small floating bar lets you adjust the background size and the horizontal/vertical start offsets; press Esc or Back to settings to return.
+A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. The Live preview button hides the settings dialog and keeps the whale playing on a loop in the real conversation; the floating bar switches between Background and Running icon to adjust background size and horizontal/vertical offsets, or icon size, label size, and icon offsets. Press Esc or Back to settings to return.
 
 ### Running icon tab
 

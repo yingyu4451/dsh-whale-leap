@@ -56,8 +56,8 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setOpacity: opacity => {
       runtime.setOpacity(opacity)
     },
-    setFrameMode: mode => {
-      runtime.setFrameMode(mode)
+    setFillStyle: (style, enabled) => {
+      runtime.setFillStyle(style, enabled)
     },
     setAutoAppear: enabled => {
       runtime.setAutoAppear(enabled)

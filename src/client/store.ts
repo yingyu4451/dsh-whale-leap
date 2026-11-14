@@ -5,8 +5,8 @@
  * observable store that both the settings page and the two artwork slots read.
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
-import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
-import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFrameMode, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
+import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
+import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFillStyle, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
 export const WRITE_DELAY_MS = 150
@@ -80,6 +80,16 @@ function clamp(value: number, bounds: Bounds): number {
   return Math.min(bounds.max, Math.max(bounds.min, value))
 }
 
+/**
+ * Keep only known textures in the shared display order; an empty list falls back to the default pair.
+ * @param value - durable or default values.
+ * @returns the normalized list.
+ */
+function normalizeFillStyles(value: readonly string[]): WhaleFillStyle[] {
+  const accepted = FRAME_MODES.filter(style => value.includes(style)) as WhaleFillStyle[]
+  return accepted.length > 0 ? accepted : [...DEFAULT_SETTINGS.fillStyles]
+}
+
 /** Mirror the durable whale section into a store and write user edits back. */
 export class WhaleSettingsRuntime {
   /** Live settings shared with slots and the settings page. */
@@ -150,12 +160,19 @@ export class WhaleSettingsRuntime {
   }
 
   /**
-   * Choose which painting the whale shows.
-   * @param mode - alternating frames, dots only, or code only.
+   * Enable or disable one ink texture.
+   *
+   * Enabled textures alternate in the shared display order, so `点阵` + `代码填充`
+   * keeps the classic two-phase playback. The last enabled texture stays on.
+   * @param style - texture to toggle.
+   * @param enabled - whether playback may use it.
    */
-  setFrameMode(mode: WhaleFrameMode): void {
-    this.patch({ frameMode: mode })
-    this.commit('frameMode', mode)
+  setFillStyle(style: WhaleFillStyle, enabled: boolean): void {
+    const current = this.store.getSnapshot().fillStyles
+    const next = FRAME_MODES.filter(candidate => candidate === style ? enabled : current.includes(candidate))
+    if (next.length === 0) return
+    this.patch({ fillStyles: next })
+    this.commit('fillStyles', next)
   }
 
   /**
@@ -331,7 +348,9 @@ export class WhaleSettingsRuntime {
     const snapshot = this.host.getSnapshot()
     if (snapshot.value === undefined) return
     const section = snapshot.value as Partial<WhaleSettings>
-    this.store.set({ ...DEFAULT_SETTINGS, ...section, writable: snapshot.writable })
+    const merged = { ...DEFAULT_SETTINGS, ...section, writable: snapshot.writable }
+    merged.fillStyles = normalizeFillStyles(merged.fillStyles)
+    this.store.set(merged)
   }
 
   /**

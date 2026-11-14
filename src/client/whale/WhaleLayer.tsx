@@ -80,14 +80,15 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     handle.prefetch()
   }, [])
 
-  const { opacity, size, colorMode, customColor, frameMode, bgOffsetX, bgOffsetY } = settings
+  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY } = settings
   useEffect(() => {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
   }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
 
+  const fillStyleKey = fillStyles.join(',')
   useEffect(() => {
-    whale.current?.setFrameMode(frameMode)
-  }, [frameMode])
+    whale.current?.setFillStyles(fillStyles)
+  }, [fillStyleKey])
 
   const [peek, setPeek] = useState(false)
   useEffect(() => {

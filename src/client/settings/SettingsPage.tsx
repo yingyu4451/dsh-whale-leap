@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
-import type { WhaleColorMode, WhaleFrameMode, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
+import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
@@ -38,7 +38,7 @@ export interface SettingsPageActions {
   /** Change the ink strength response. */
   setOpacity: (opacity: number) => void
   /** Choose which painting the whale shows. */
-  setFrameMode: (mode: WhaleFrameMode) => void
+  setFillStyle: (style: WhaleFillStyle, enabled: boolean) => void
   /** Enable automatic replays in a started conversation. */
   setAutoAppear: (enabled: boolean) => void
   /** Replay at once when a conversation is entered. */
@@ -101,11 +101,8 @@ const MOTION_LABELS: Record<WhaleMarkMotion, LocaleKey> = {
   sway: 'motionSway',
 }
 
-/** Labels for the painting choices. */
-const MANUAL_FRAME_MODES = FRAME_MODES.filter(mode => mode !== 'alternate')
-
-const FRAME_LABELS: Record<WhaleFrameMode, LocaleKey> = {
-  alternate: 'frameAlternate',
+/** Labels for the selectable ink textures. */
+const FRAME_LABELS: Record<WhaleFillStyle, LocaleKey> = {
   pixels: 'frameDots',
   code: 'frameCode',
   glyphs: 'frameGlyphs',
@@ -173,7 +170,6 @@ function SliderRow(props: {
   display: string
   disabled: boolean
   onChange: (value: number) => void
-  onCommit?: () => void
 }) {
   return (
     <Row
@@ -194,7 +190,6 @@ function SliderRow(props: {
             onChange={event => {
               props.onChange(Number(event.target.value))
             }}
-            onPointerUp={props.onCommit}
           />
           <span className={css.sliderValue}>{props.display}</span>
         </span>
@@ -328,11 +323,11 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
     handle.prefetch()
     const current = latest.current
     handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size * PREVIEW_SCALE, offsetX: current.bgOffsetX, offsetY: current.bgOffsetY })
-    handle.setFrameMode(current.frameMode)
+    handle.setFillStyles(current.fillStyles)
     handle.setAutoPlay(PREVIEW_INTERVAL_MS)
   }, [])
 
-  const { opacity, size, colorMode, customColor, frameMode, bgOffsetX, bgOffsetY } = settings
+  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY } = settings
   useEffect(() => {
     const handle = whale.current
     if (handle === undefined) return
@@ -340,12 +335,13 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
     handle.play()
   }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
 
+  const fillStyleKey = fillStyles.join(',')
   useEffect(() => {
     const handle = whale.current
     if (handle === undefined) return
-    handle.setFrameMode(frameMode)
+    handle.setFillStyles(fillStyles)
     handle.play()
-  }, [frameMode])
+  }, [fillStyleKey])
 
   useEffect(() => {
     if (replayToken === 0) return
@@ -394,8 +390,8 @@ function PeekSlider(props: {
 }
 
 /**
- * Floating controls shown after the settings dialog is temporarily hidden, so
- * the background size and start offsets can be tuned against the real conversation.
+ * Floating controls shown while the settings dialog is hidden, so the
+ * background and running icon can be tuned against the real conversation.
  * @param props.t - locale-bound translator.
  * @param props.state - live whale settings.
  * @param props.actions - write callbacks.
@@ -410,11 +406,37 @@ function PeekBar({ t, state, actions, onReturn }: {
 }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const disabled = !settings.writable
+  const markDisabled = disabled || !settings.replaceMark
+  const [tab, setTab] = useState<'background' | 'mark'>('background')
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')}>
       <div className={css.peekHead}>
         <span className={css.peekTitle}>{t('peekTitle')}</span>
         <span className={css.peekHint}>{t('peekHint')}</span>
+        <div className={css.peekTabs} role="tablist" aria-label={t('nav')}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'background'}
+            className={tab === 'background' ? css.peekTabActive : css.peekTab}
+            onClick={() => {
+              setTab('background')
+            }}
+          >
+            {t('tabBackground')}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'mark'}
+            className={tab === 'mark' ? css.peekTabActive : css.peekTab}
+            onClick={() => {
+              setTab('mark')
+            }}
+          >
+            {t('tabMark')}
+          </button>
+        </div>
         <button type="button" className={css.peekReplay} onClick={replayPeek}>
           {t('replay')}
         </button>
@@ -423,41 +445,87 @@ function PeekBar({ t, state, actions, onReturn }: {
         </button>
       </div>
       <div className={css.peekControls}>
-        <PeekSlider
-          label={t('size')}
-          value={settings.size}
-          min={SIZE_RANGE.min}
-          max={SIZE_RANGE.max}
-          step={SIZE_RANGE.step}
-          display={`${Math.round(settings.size * 100)}%`}
-          disabled={disabled}
-          onChange={actions.setSize}
-        />
-        <PeekSlider
-          label={t('bgOffsetX')}
-          value={settings.bgOffsetX}
-          min={BG_OFFSET_RANGE.min}
-          max={BG_OFFSET_RANGE.max}
-          step={BG_OFFSET_RANGE.step}
-          display={formatOffsetPx(settings.bgOffsetX)}
-          disabled={disabled}
-          onChange={actions.setBgOffsetX}
-        />
-        <PeekSlider
-          label={t('bgOffsetY')}
-          value={settings.bgOffsetY}
-          min={BG_OFFSET_RANGE.min}
-          max={BG_OFFSET_RANGE.max}
-          step={BG_OFFSET_RANGE.step}
-          display={formatOffsetPx(settings.bgOffsetY)}
-          disabled={disabled}
-          onChange={actions.setBgOffsetY}
-        />
+        {tab === 'background' ? (
+          <>
+            <PeekSlider
+              label={t('size')}
+              value={settings.size}
+              min={SIZE_RANGE.min}
+              max={SIZE_RANGE.max}
+              step={SIZE_RANGE.step}
+              display={`${Math.round(settings.size * 100)}%`}
+              disabled={disabled}
+              onChange={actions.setSize}
+            />
+            <PeekSlider
+              label={t('bgOffsetX')}
+              value={settings.bgOffsetX}
+              min={BG_OFFSET_RANGE.min}
+              max={BG_OFFSET_RANGE.max}
+              step={BG_OFFSET_RANGE.step}
+              display={formatOffsetPx(settings.bgOffsetX)}
+              disabled={disabled}
+              onChange={actions.setBgOffsetX}
+            />
+            <PeekSlider
+              label={t('bgOffsetY')}
+              value={settings.bgOffsetY}
+              min={BG_OFFSET_RANGE.min}
+              max={BG_OFFSET_RANGE.max}
+              step={BG_OFFSET_RANGE.step}
+              display={formatOffsetPx(settings.bgOffsetY)}
+              disabled={disabled}
+              onChange={actions.setBgOffsetY}
+            />
+          </>
+        ) : (
+          <>
+            <PeekSlider
+              label={t('markSize')}
+              value={settings.markSize}
+              min={MARK_SIZE_RANGE.min}
+              max={MARK_SIZE_RANGE.max}
+              step={MARK_SIZE_RANGE.step}
+              display={`${settings.markSize}px`}
+              disabled={markDisabled}
+              onChange={actions.setMarkSize}
+            />
+            <PeekSlider
+              label={t('labelSize')}
+              value={settings.markLabelSize}
+              min={MARK_LABEL_SIZE_RANGE.min}
+              max={MARK_LABEL_SIZE_RANGE.max}
+              step={MARK_LABEL_SIZE_RANGE.step}
+              display={`${settings.markLabelSize}px`}
+              disabled={markDisabled}
+              onChange={actions.setMarkLabelSize}
+            />
+            <PeekSlider
+              label={t('offsetX')}
+              value={settings.markOffsetX}
+              min={MARK_OFFSET_RANGE.min}
+              max={MARK_OFFSET_RANGE.max}
+              step={MARK_OFFSET_RANGE.step}
+              display={formatOffsetPx(settings.markOffsetX)}
+              disabled={markDisabled}
+              onChange={actions.setMarkOffsetX}
+            />
+            <PeekSlider
+              label={t('offsetY')}
+              value={settings.markOffsetY}
+              min={MARK_OFFSET_RANGE.min}
+              max={MARK_OFFSET_RANGE.max}
+              step={MARK_OFFSET_RANGE.step}
+              display={formatOffsetPx(settings.markOffsetY)}
+              disabled={markDisabled}
+              onChange={actions.setMarkOffsetY}
+            />
+          </>
+        )}
       </div>
     </div>
   )
 }
-
 /**
  * Find the fixed overlay that hosts the settings dialog, so preview mode can
  * hide it without hiding the conversation behind it.
@@ -647,6 +715,15 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
             >
               {t('replay')}
             </button>
+            <button
+              type="button"
+              className={css.stageLive}
+              onClick={() => {
+                setPeeking(true)
+              }}
+            >
+              {t('livePreview')}
+            </button>
           </div>
         </div>
       ) : (
@@ -680,6 +757,17 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           ) : (
             <span className={css.markStageOff}>{t('markStageOff')}</span>
           )}
+          <div className={css.stageActions}>
+            <button
+              type="button"
+              className={css.stageLive}
+              onClick={() => {
+                setPeeking(true)
+              }}
+            >
+              {t('livePreview')}
+            </button>
+          </div>
           {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
         </div>
       )}
@@ -718,9 +806,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={`${Math.round(settings.size * 100)}%`}
                 disabled={disabled}
                 onChange={actions.setSize}
-                onCommit={() => {
-                  setPeeking(true)
-                }}
               />
 
               <SliderRow
@@ -734,9 +819,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={formatOffsetPx(settings.bgOffsetX)}
                 disabled={disabled}
                 onChange={actions.setBgOffsetX}
-                onCommit={() => {
-                  setPeeking(true)
-                }}
               />
 
               <SliderRow
@@ -750,9 +832,6 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 display={formatOffsetPx(settings.bgOffsetY)}
                 disabled={disabled}
                 onChange={actions.setBgOffsetY}
-                onCommit={() => {
-                  setPeeking(true)
-                }}
               />
 
 
@@ -769,34 +848,25 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                 onChange={actions.setOpacity}
               />
 
-              <ToggleRow
-                label={t('fillStyle')}
-                hint={t('fillStyleHint')}
-                checked={settings.frameMode === 'alternate'}
-                disabled={disabled}
-                onChange={(enabled) => {
-                  actions.setFrameMode(enabled ? 'alternate' : 'pixels')
-                }}
-              />
+              <div className={css.subTitle}>{t('fillStyle')}</div>
 
-              {settings.frameMode !== 'alternate' && (
-                <Row
-                  stack
-                  label={t('fillStyleManual')}
-                  control={
-                    <ChoiceRow
-                      label={t('fillStyleManual')}
-                      value={settings.frameMode}
-                      disabled={disabled}
-                      options={MANUAL_FRAME_MODES.map(mode => ({ value: mode, label: t(FRAME_LABELS[mode]) }))}
-                      onChange={actions.setFrameMode}
-                    />
-                  }
-                />
-              )}
+              {FRAME_MODES.map(style => {
+                const enabled = settings.fillStyles.includes(style)
+                return (
+                  <ToggleRow
+                    key={style}
+                    label={t(FRAME_LABELS[style])}
+                    checked={enabled}
+                    disabled={disabled || (enabled && settings.fillStyles.length === 1)}
+                    onChange={(next) => {
+                      actions.setFillStyle(style, next)
+                    }}
+                  />
+                )
+              })}
+
+              <p className={css.note}>{t('fillStyleHint')}</p>
             </Group>
-
-            <p className={css.note}>{t('peekAutoHint')}</p>
 
             <Group title={t('groupPlayback')}>
               <ToggleRow
