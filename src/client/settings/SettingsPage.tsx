@@ -713,7 +713,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                 <IntervalRow
                   id="whale-leap-interval"
                   label={t('interval')}
-                  hint={settings.randomInterval ? t('intervalRandomHint') : t('intervalHint')}
+                  hint={t('intervalHint')}
                   seconds={settings.intervalSeconds}
                   minuteUnit={t('minutesUnit')}
                   secondUnit={t('secondsUnit')}
@@ -966,25 +966,31 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       disabled={markDisabled}
                       onChange={actions.setMarkOffsetY}
                     />
-                    <div className={css.choice} role="group" aria-label={t('motion')}>
-                      {MARK_MOTIONS.map(motion => {
-                        const selected = settings.markMotion === motion
-                        return (
-                          <button
-                            key={motion}
-                            type="button"
-                            className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
-                            aria-pressed={selected}
-                            disabled={markDisabled}
-                            onClick={() => {
-                              actions.setMarkMotion(motion)
-                            }}
-                          >
-                            {t(MOTION_LABELS[motion])}
-                          </button>
-                        )
-                      })}
-                    </div>
+                    <Row
+                      stack
+                      label={t('motionTitle')}
+                      control={(
+                        <div className={css.choice} role="group" aria-label={t('motion')}>
+                          {MARK_MOTIONS.map(motion => {
+                            const selected = settings.markMotion === motion
+                            return (
+                              <button
+                                key={motion}
+                                type="button"
+                                className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
+                                aria-pressed={selected}
+                                disabled={markDisabled}
+                                onClick={() => {
+                                  actions.setMarkMotion(motion)
+                                }}
+                              >
+                                {t(MOTION_LABELS[motion])}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    />
                     <SliderRow
                       id="whale-leap-mark-swing"
                       label={t('swing')}
