@@ -719,14 +719,24 @@ function findConversationThread(): ConversationThread | null {
  * @param props.settings - live whale settings.
  * @returns the shimmering running label.
  */
-function DemoRunningLabel({ t, settings }: { t: Translate; settings: WhaleSettingsState }) {
-  const text = t('runningLabel')
+/** Elapsed seconds for the simulated running row; restarts every minute of preview. */
+function useElapsedSeconds(): number {
+  const [seconds, setSeconds] = useState(1)
+  useEffect(() => {
+    const timer = window.setInterval(() => { setSeconds(value => value + 1) }, 1000)
+    return () => { window.clearInterval(timer) }
+  }, [])
+  return seconds
+}
+
+function DemoRunningLabel({ t, settings, seconds }: { t: Translate; settings: WhaleSettingsState; seconds: number }) {
+  const text = t('runningElapsed', { seconds })
   const custom = settings.labelColorMode === 'custom' ? settings.labelColor : undefined
   const shimmer = custom === undefined
     ? 'var(--dsw-alias-label-deep-diving-shimmer)'
     : `color-mix(in srgb, ${custom} 55%, var(--dsw-alias-label-primary))`
   return (
-    <span className={css.demoLabel} style={{ fontSize: settings.markLabelSize, color: custom }} data-demo-label>
+    <span className={css.demoLabel} style={{ fontSize: settings.markLabelSize, color: custom }} data-demo-label data-running-label>
       <span className={css.demoLabelContent}>{text}</span>
       <span className={css.demoLabelDecoration} aria-hidden="true">
         <span className={css.demoLabelSweep} style={{ color: shimmer }}>
@@ -753,6 +763,7 @@ const DEMO_FILES = [
  */
 function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
+  const seconds = useElapsedSeconds()
   const exchanges = [
     { user: t('demoUser1'), reply: t('demoReply1') },
     { user: t('demoUser2'), reply: t('demoReply2') },
@@ -834,7 +845,7 @@ function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettings
               color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
             />
           </span>
-          <DemoRunningLabel t={t} settings={settings} />
+          <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
         </span>
       </div>
     </div>
@@ -853,6 +864,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
   const [tab, setTab] = useState<Tab>(initialTab)
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
   const [replayToken, setReplayToken] = useState(0)
+  const seconds = useElapsedSeconds()
   const rootRef = useRef<HTMLElement | null>(null)
   const [peeking, setPeeking] = useState(false)
   const overlayRef = useRef<{ element: HTMLElement; display: string } | null>(null)
@@ -1102,16 +1114,7 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
                     color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
                   />
                 </span>
-                <span
-                  className={css.markRunningLabel}
-                  style={{
-                    fontSize: `${settings.markLabelSize}px`,
-                    color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
-                  }}
-                  data-running-label
-                >
-                  {t('runningLabel')}
-                </span>
+                <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
               </span>
             </div>
           ) : (

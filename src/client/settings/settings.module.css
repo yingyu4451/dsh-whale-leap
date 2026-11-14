@@ -380,22 +380,22 @@
   gap: 6px;
   height: 28px;
   max-width: 100%;
+  font-size: 12px;
+  line-height: 22px;
   /* Same semantic color as the real running row: the mark inherits it. */
   color: var(--dsw-alias-label-deep-diving);
 }
 
 .markIcon {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-}
-
-.markRunningLabel {
-  font-size: 13px;
-  line-height: 22px;
-  white-space: nowrap;
-  color: var(--dsw-alias-label-deep-diving);
+  min-width: 14px;
+  min-height: 14px;
+  contain: layout style;
+  overflow: visible;
 }
 
 .row {
