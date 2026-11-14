@@ -147,7 +147,7 @@ export const DEFAULT_SETTINGS = {
   autoAppear: false,
   playOnSwitch: false,
   intervalSeconds: 30,
-  randomInterval: true,
+  randomInterval: false,
   replaceMark: false,
   bgOffsetX: 0,
   bgOffsetY: 0,

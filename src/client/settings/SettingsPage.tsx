@@ -712,11 +712,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                 <IntervalRow
                   id="whale-leap-interval"
                   label={t('interval')}
-                  hint={t('intervalHint')}
+                  hint={settings.randomInterval ? t('intervalRandomHint') : t('intervalHint')}
                   seconds={settings.intervalSeconds}
                   minuteUnit={t('minutesUnit')}
                   secondUnit={t('secondsUnit')}
-                  disabled={disabled || !settings.autoAppear}
+                  disabled={disabled || !settings.autoAppear || settings.randomInterval}
                   onChange={actions.setInterval}
                 />
                 <ToggleRow
