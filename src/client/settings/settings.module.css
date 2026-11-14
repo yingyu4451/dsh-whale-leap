@@ -75,10 +75,10 @@
   min-width: 104px;
   height: 28px;
   padding: 0 12px;
-  border: 0.5px solid transparent;
+  border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-sm);
-  background: var(--dsw-alias-state-business-primary);
-  color: var(--dsw-alias-label-on-color);
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
   font-size: 13px;
   line-height: 20px;
   font-weight: 500;
@@ -87,7 +87,7 @@
 }
 
 .updateButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
+  background: color-mix(in srgb, var(--dsw-alias-bg-module-platform) 88%, var(--dsw-alias-label-primary) 12%);
 }
 
 .updateSpinner {
@@ -935,6 +935,28 @@
 
 .peekGroup > .row:last-child {
   border-bottom: 0;
+}
+
+/* The floating panel is always narrow: give stacked color rows the full width
+   instead of squeezing their hint into a three-line column. */
+.peekBody .rowStacked {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.peekBody .rowStacked .rowText {
+  flex: 1 1 100%;
+}
+
+.peekBody .rowStacked .control {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.peekBody .rowStacked .colorGroup {
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 @media (max-width: 900px) {
