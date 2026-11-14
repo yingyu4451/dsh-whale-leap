@@ -34,7 +34,7 @@ globalThis.document = {
 }
 
 const { check } = await import(pathToFileURL(outfile).href)
-const { page, englishPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, peekPlaybackPage, englishPeekPlaybackPage, mark, layer } = check()
+const { page, englishPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, mark, layer } = check()
 
 const landmarks = {
   entryPoint: page.includes('data-whale-leap-entry') && page.includes('livePreview'),
@@ -45,11 +45,14 @@ const landmarks = {
   updateCheck: page.includes('checkUpdate'),
   updateButton: page.includes('updateButton'),
   idleUpdateRow: !page.includes('updateRow'),
-  peekTabs: peekPage.includes('tabBackground') && peekPage.includes('tabMark') && peekPage.includes('tabPlayback'),
-  playbackTab: peekPlaybackPage.includes('在会话中自动出现') && peekPlaybackPage.includes('role="switch"'),
-  englishPlaybackTab: englishPeekPlaybackPage.includes('Show in conversations') && englishPeekPlaybackPage.includes('role="switch"'),
+  peekTabs: peekPage.includes('tabBackground') && peekPage.includes('tabMark'),
+  playbackSection: peekPage.includes('tabPlayback') && peekPage.includes('role="switch"'),
+  englishPlaybackSection: englishPeekPage.includes('Show in conversations') && englishPeekPage.includes('role="switch"'),
   randomPosition: peekPage.includes('randomPosition') && peekPage.includes('bgPositionHint'),
   englishRandomPosition: englishPeekPage.includes('Random position'),
+  backgroundGroups: ['groupLook', 'groupPosition', 'groupFill'].every(key => peekPage.includes(key)),
+  markGroups: ['尺寸', '动画'].every(label => peekMarkPage.includes(label)),
+  englishGroups: ['Size', 'Animation'].every(label => englishPeekMarkPage.includes(label)),
   englishNav: englishPage.includes('Whale leap'),
   englishInk: englishPeekPage.includes('Ink strength'),
   englishMarkTab: englishPeekPage.includes('Running icon'),

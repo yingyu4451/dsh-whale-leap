@@ -865,6 +865,29 @@
   flex-direction: column;
 }
 
+.peekSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.peekSection + .peekSection {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+.peekSectionTitle {
+  padding: 8px 0 2px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+}
+
+.peekSection:first-child .peekSectionTitle {
+  padding-top: 2px;
+}
+
 .peekGroup .subTitle {
   padding-top: 8px;
 }

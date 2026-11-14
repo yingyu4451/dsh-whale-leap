@@ -22,7 +22,7 @@ import css from './settings.module.css'
 type Translate = (key: LocaleKey, params?: Record<string, unknown>) => string
 
 /** Tab identifiers of the live preview panel. */
-type PeekTab = 'background' | 'mark' | 'playback'
+type PeekTab = 'background' | 'mark'
 
 /** Write callbacks the page calls on user input. */
 export interface SettingsPageActions {
@@ -86,7 +86,6 @@ export interface SettingsPageProps {
 const PEEK_TABS: readonly { value: PeekTab; label: LocaleKey }[] = [
   { value: 'background', label: 'tabBackground' },
   { value: 'mark', label: 'tabMark' },
-  { value: 'playback', label: 'tabPlayback' },
 ]
 
 /** Labels for the motion presets. */
@@ -408,7 +407,10 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
       </div>
       <div className={css.peekBody}>
         {tab === 'background' ? (
-          <div className={css.peekGroup}>
+          <>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupLook')}</div>
+              <div className={css.peekGroup}>
             <ColorPickerRow
               id="whale-leap-custom-color"
               label={t('color')}
@@ -445,6 +447,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               disabled={disabled}
               onChange={actions.setOpacity}
             />
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupPosition')}</div>
+              <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-bg-offset-x"
               label={t('bgOffsetX')}
@@ -488,7 +495,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                 </button>
               }
             />
-            <div className={css.subTitle}>{t('fillStyle')}</div>
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupFill')}</div>
+              <div className={css.peekGroup}>
             <FillStyleButtons
               t={t}
               styles={settings.fillStyles}
@@ -496,9 +507,49 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onToggle={actions.setFillStyle}
             />
             <p className={css.note}>{t('fillStyleHint')}</p>
-          </div>
-        ) : tab === 'mark' ? (
-          <div className={css.peekGroup}>
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('tabPlayback')}</div>
+              <div className={css.peekGroup}>
+                <ToggleRow
+                  label={t('auto')}
+                  hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
+                  checked={settings.autoAppear}
+                  disabled={disabled}
+                  onChange={actions.setAutoAppear}
+                />
+                {settings.autoAppear && (
+                  <>
+                    <ToggleRow
+                      label={t('playOnSwitch')}
+                      hint={t('playOnSwitchHint')}
+                      checked={settings.playOnSwitch}
+                      disabled={disabled}
+                      onChange={actions.setPlayOnSwitch}
+                    />
+                    <SliderRow
+                      id="whale-leap-interval"
+                      label={t('interval')}
+                      hint={t('intervalHint')}
+                      value={settings.intervalSeconds}
+                      min={INTERVAL_RANGE.min}
+                      max={INTERVAL_RANGE.max}
+                      step={INTERVAL_RANGE.step}
+                      display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                      disabled={disabled}
+                      onChange={actions.setInterval}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupLook')}</div>
+              <div className={css.peekGroup}>
             <ToggleRow
               label={t('replaceMark')}
               hint={t('replaceMarkHint')}
@@ -530,6 +581,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onMode={actions.setLabelColorMode}
               onColor={actions.setLabelColor}
             />
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupSize')}</div>
+              <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-size"
               label={t('markSize')}
@@ -554,6 +610,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               disabled={markDisabled}
               onChange={actions.setMarkLabelSize}
             />
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupPosition')}</div>
+              <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-offset-x"
               label={t('offsetX')}
@@ -578,7 +639,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               disabled={markDisabled}
               onChange={actions.setMarkOffsetY}
             />
-            <div className={css.subTitle}>{t('motion')}</div>
+              </div>
+            </div>
+            <div className={css.peekSection}>
+              <div className={css.peekSectionTitle}>{t('groupMotion')}</div>
+              <div className={css.peekGroup}>
             <div className={css.choice} role="group" aria-label={t('motion')}>
               {MARK_MOTIONS.map(motion => {
                 const selected = settings.markMotion === motion
@@ -611,40 +676,9 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onChange={actions.setMarkSwing}
             />
             <p className={css.note}>{t('motionHint')}</p>
-          </div>
-        ) : (
-          <div className={css.peekGroup}>
-            <ToggleRow
-              label={t('auto')}
-              hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
-              checked={settings.autoAppear}
-              disabled={disabled}
-              onChange={actions.setAutoAppear}
-            />
-            {settings.autoAppear && (
-              <>
-                <ToggleRow
-                  label={t('playOnSwitch')}
-                  hint={t('playOnSwitchHint')}
-                  checked={settings.playOnSwitch}
-                  disabled={disabled}
-                  onChange={actions.setPlayOnSwitch}
-                />
-                <SliderRow
-                  id="whale-leap-interval"
-                  label={t('interval')}
-                  hint={t('intervalHint')}
-                  value={settings.intervalSeconds}
-                  min={INTERVAL_RANGE.min}
-                  max={INTERVAL_RANGE.max}
-                  step={INTERVAL_RANGE.step}
-                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                  disabled={disabled}
-                  onChange={actions.setInterval}
-                />
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

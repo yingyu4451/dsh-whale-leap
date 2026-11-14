@@ -31,8 +31,8 @@ function translate(dictionary: Record<string, string>): (key: string, params?: R
 const actions = new Proxy({}, { get: () => () => {} }) as unknown as SettingsPageActions
 
 /**
- * Render the settings entry page and the live preview in all three tabs and
- * both locales, plus the running mark and the background layer.
+ * Render the settings entry page and the live preview in both tabs and both
+ * locales, plus the running mark and the background layer.
  * @returns markup of each component plus the initial state.
  */
 export function check(): {
@@ -42,8 +42,6 @@ export function check(): {
   englishPeekPage: string
   peekMarkPage: string
   englishPeekMarkPage: string
-  peekPlaybackPage: string
-  englishPeekPlaybackPage: string
   mark: string
   layer: string
   initial: WhaleSettingsState
@@ -63,17 +61,11 @@ export function check(): {
   const englishPeekMarkPage = renderToStaticMarkup(
     <PeekBar t={translate(DICTIONARIES.en)} state={state} actions={actions} onReturn={() => undefined} initialTab="mark" />,
   )
-  const peekPlaybackPage = renderToStaticMarkup(
-    <PeekBar t={translate(DICTIONARIES.zh)} state={state} actions={actions} onReturn={() => undefined} initialTab="playback" />,
-  )
-  const englishPeekPlaybackPage = renderToStaticMarkup(
-    <PeekBar t={translate(DICTIONARIES.en)} state={state} actions={actions} onReturn={() => undefined} initialTab="playback" />,
-  )
   const mark = renderToStaticMarkup(<RunningMark state={state} />)
   const layer = renderToStaticMarkup(
     <WhaleLayer hero state={state}>
       <p>body</p>
     </WhaleLayer>,
   )
-  return { page, englishPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, peekPlaybackPage, englishPeekPlaybackPage, mark, layer, initial: INITIAL_SETTINGS }
+  return { page, englishPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, mark, layer, initial: INITIAL_SETTINGS }
 }
