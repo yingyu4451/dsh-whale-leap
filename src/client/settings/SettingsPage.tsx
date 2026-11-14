@@ -754,23 +754,39 @@ const DEMO_FILES = [
   { path: '~/Desktop/dsh project/whale-leap/.tmp/probe-content.mjs', add: '+47', remove: '-0' },
 ] as const
 
-/**
- * Demo messages shown inside the real conversation transcript during preview,
- * including a running row that follows the live mark settings.
- * @param props.t - locale-bound translator.
- * @param props.state - live whale settings.
- * @returns the demo thread.
- */
-function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
+function DemoRunningRow({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const seconds = useElapsedSeconds()
+  return (
+    <div className={css.demoRunning} data-demo-running>
+      <span className={css.demoRunningDivider} data-demo-divider aria-hidden="true" />
+      <span className={css.demoRunningContent} data-demo-content>
+        <span className={css.demoRunningIcon}>
+          <WhaleMarkFish
+            size={settings.markSize}
+            motion={settings.markMotion}
+            swing={settings.markSwing}
+            offsetX={settings.markOffsetX}
+            offsetY={settings.markOffsetY}
+            color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
+          />
+        </span>
+        <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
+      </span>
+    </div>
+  )
+}
+
+/**
+ * Demo messages shown inside the real conversation transcript during preview.
+ * @param props.t - locale-bound translator.
+ * @returns the demo thread.
+ */
+function DemoTranscript({ t }: { t: Translate }) {
   const exchanges = [
     { user: t('demoUser1'), reply: t('demoReply1') },
     { user: t('demoUser2'), reply: t('demoReply2') },
     { user: t('demoUser3'), reply: t('demoReply3') },
-    { user: t('demoUser4'), reply: t('demoReply4') },
-    { user: t('demoUser5'), reply: t('demoReply5') },
-    { user: t('demoUser6'), reply: t('demoReply6') },
   ]
   const cards = [
     { title: t('demoImage1Title'), desc: t('demoImage1Desc') },
@@ -832,22 +848,6 @@ function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettings
           )}
         </div>
       ))}
-      <div className={css.demoRunning} data-demo-running>
-        <span className={css.demoRunningDivider} data-demo-divider aria-hidden="true" />
-        <span className={css.demoRunningContent} data-demo-content>
-          <span className={css.demoRunningIcon}>
-            <WhaleMarkFish
-              size={settings.markSize}
-              motion={settings.markMotion}
-              swing={settings.markSwing}
-              offsetX={settings.markOffsetX}
-              offsetY={settings.markOffsetY}
-              color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
-            />
-          </span>
-          <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
-        </span>
-      </div>
     </div>
   )
 }
@@ -881,6 +881,8 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     }
     let demoHost: HTMLDivElement | null = null
     let demoRoot: Root | null = null
+    let dockHost: HTMLDivElement | null = null
+    let dockRoot: Root | null = null
     let hiddenSession: { element: HTMLElement; display: string } | null = null
     let scrollTimer: number | null = null
     const syncTimers: number[] = []
@@ -903,20 +905,39 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       if (thread.composer !== null) thread.scroll.insertBefore(demoHost, thread.composer)
       else thread.scroll.append(demoHost)
       demoRoot = createRoot(demoHost)
-      demoRoot.render(<DemoTranscript t={live.current.t} state={live.current.state} />)
+      demoRoot.render(<DemoTranscript t={live.current.t} />)
+      // The running row is pinned above the composer instead of scrolling with
+      // the demo transcript, the way the tail of a live conversation follows.
+      dockHost = document.createElement('div')
+      dockHost.className = css.demoRunningDock
+      document.body.append(dockHost)
+      dockRoot = createRoot(dockHost)
+      dockRoot.render(<DemoRunningRow t={live.current.t} state={live.current.state} />)
       // DSH keeps the transcript pinned to the newest row; scroll the demo back
       // to its first message once React has committed the rows.
       const toTop = (): void => { thread.scroll.scrollTop = 0 }
       requestAnimationFrame(() => { requestAnimationFrame(toTop) })
       scrollTimer = window.setTimeout(toTop, 80)
       // The chat column can change width (window resize, width handles), and the
-      // composer follows it. Mirror the measured column width into the demo host.
+      // composer follows it. Mirror the measured column width into the demo host
+      // and keep the running dock aligned to the column above the composer.
+      const syncDock = (): void => {
+        if (dockHost === null || demoHost === null) return
+        const column = demoHost.getBoundingClientRect()
+        if (column.width <= 0) return
+        dockHost.style.left = `${column.left}px`
+        dockHost.style.width = `${column.width}px`
+        const composer = thread.composer?.getBoundingClientRect()
+        const gap = composer === undefined ? 0 : window.innerHeight - composer.top + 6
+        dockHost.style.bottom = `${Math.max(24, gap)}px`
+      }
       const syncWidth = (): void => {
         if (demoHost === null) return
         const width = measureChatWidth(thread.scroll)
         if (width <= 0) return
         demoHost.style.width = `${width}px`
         demoHost.style.margin = '0 auto'
+        syncDock()
       }
       const widthTimer = window.setInterval(syncWidth, 250)
       syncTimers.push(widthTimer)
@@ -968,6 +989,8 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       if (onResize !== null) window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKey, true)
       setPeekMode(false)
+      dockRoot?.unmount()
+      dockHost?.remove()
       demoRoot?.unmount()
       demoHost?.remove()
       if (hiddenSession !== null) hiddenSession.element.style.display = hiddenSession.display

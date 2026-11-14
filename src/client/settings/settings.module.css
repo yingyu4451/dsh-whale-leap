@@ -1095,6 +1095,18 @@
 
 /* Real DSH running row: 28px content row under a 4px offset, with the divider
    drawn inside the 16px tail offset and the label shimmering via a moving mask. */
+.demoRunningDock {
+  position: fixed;
+  z-index: 2147482000;
+  padding-top: 12px;
+  background: linear-gradient(to bottom, transparent, var(--dsw-alias-bg-layer-2) 12px);
+  pointer-events: none;
+}
+
+.demoRunningDock .demoRunning {
+  margin-top: 0;
+}
+
 .demoRunning {
   position: relative;
   display: flex;
@@ -1207,5 +1219,9 @@
 @media (max-width: 900px) {
   .demoThread {
     padding: 20px 0 4px;
+  }
+
+  .demoRunningDock {
+    display: none;
   }
 }
