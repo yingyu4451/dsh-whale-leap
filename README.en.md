@@ -1,116 +1,144 @@
-# Whale leap
+# Whale Leap
 
-[English](README.en.md) · [Chinese](README.md)
+[![release](https://img.shields.io/github/v/release/yingyu4451/dsh-whale-leap?style=flat-square)](https://github.com/yingyu4451/dsh-whale-leap/releases)
+[![powered by dsh](https://img.shields.io/badge/powered_by_dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
-Whale leap adds a swimming whale to the DeepSeek Harness web client:
+[English](README.en.md) · [中文](README.md)
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate through the enabled fill styles (dots and code fill by default). Random position picks a new spot each time and draws 2–3 whales together, spread apart without overlapping; farther whales use lighter ink, and their entrance can be simultaneous or randomized, with a configurable farthest-to-nearest size range. Clicking blank conversation space replays it. The frame atlas ships inside the plugin bundle and works offline.
-- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its icon color and status-label color can follow the theme or be picked. Its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets are adjusted in the Live preview panel, while the preview mirrors the real status row (hairline divider, 28 px row) and shows the status label.
-- **Settings page** — the page keeps only the playback group, a preview canvas per tab, and one Live preview entry; every appearance control lives in the floating preview panel, grouped into Background and Running icon tabs. The interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
+A swimming whale for the DeepSeek Harness web app: the blank home screen and running conversations get a breaching-whale background animation, and the little fish in the running status line can become a swimmer too.
+
+![Blank home](docs/images/home.png)
+
+## Preview
+
+Live preview hides the settings dialog and keeps the whale looping in the real conversation, with a floating control panel for tuning. On a blank home screen it stages a demo conversation and a running status row.
+
+![Live preview panel](docs/images/preview-panel.png)
+
+The “Running icon” tab tunes the little fish and the running label:
+
+![Running icon](docs/images/preview-mark.png)
+
+## Features
+
+- **Background whale**: five fill styles (dots, code, glyphs, binary, lines) that alternate when several are enabled; theme or custom ink; background size, ink strength, and horizontal/vertical offsets.
+- **Multiple whales**: “Multiple whales” shows 1–3 whales per appearance without overlap; random position scatters them separately, fixed position keeps a centered formation that the offsets can shift. Entrance can be together or at random times, distance ink fades farther whales, and size range sets the farthest-to-nearest scale (20–100%).
+- **Running icon**: replace the whale icon left of the running label with four motions (swim, explore, home swim, sway); icon color, label color, icon size (8–28 px), label size (11–20 px), start offset, and swing amplitude are adjustable.
+- **Accordion settings**: dependent controls live under their parent switch. They auto-expand while the parent is on and collapse when it is off; the chevron next to the parent opens them on demand, with the children disabled while the parent is off.
+- **Settings are a preview**: the settings page keeps only playback controls and the live-preview entry; every appearance control lives in the floating panel. Press `Esc` or “Back to settings” to restore the dialog.
+- **One-click upgrade**: update checks query the GitHub release and the jsDelivr mirror in parallel; when a newer version exists, “Upgrade” reinstalls that version through the DSH plugin manager (with automatic rollback on failure). Restart `dsh web` afterwards.
+- Localized for 中文, English, 日本語, Español, Français, Deutsch, Русский, and Português, following the Harness language.
 
 ## Install
 
-1. Open **Plugins** in the DeepSeek Harness web client.
-2. Choose **Add plugin** and enter this directory: `C:\Users\Y\Desktop\dsh project\whale-leap`.
-3. Restart `dsh web` once. The Host loads the package the first time it appears in the profile, so the new settings section does not exist until that restart. Refresh the page after it.
-4. Open **Settings › Whale leap**.
+From GitHub:
 
-**Updating an installed copy.** Pull or edit this directory, then run `pnpm run build`. The Harness replaces a changed client bundle in open pages on its own (the web app mounts the client HMR chain), so the updated settings UI appears without a restart or a manual refresh. Restart `dsh web` only when the Host half changed — `index.js`, the settings schema, `cordis.patch.yml`, or the package metadata under `locale/` — because the Host reads those at startup. When the plugin was installed from a folder, the profile keeps a directory copy: copy the rebuilt package over `%USERPROFILE%\.dsh\profiles\web\node_modules\dsh-whale-leap` (or remove and re-add it in Plugins) before restarting.
+1. Open **Plugins** in the Harness web app.
+2. Choose **Add plugin** and enter `github:yingyu4451/dsh-whale-leap`.
+3. Restart `dsh web` once, then refresh the page.
+4. Open **Settings › Whale Leap**.
 
-The settings header shows the running version and a **Check for updates** button. The check queries the GitHub release API and jsDelivr's tag mirror in parallel, preferring the release result and falling back to the mirror (not bound by the GitHub API quota). When a newer version exists it offers an **Upgrade** button: the version's tag is resolved to a commit, the DSH plugin manager reinstalls Whale leap at that commit (with automatic rollback on failure), and `dsh web` must be restarted afterwards to load the new build. If the plugin manager is unavailable or the probe fails, the release-page link is kept as a fallback, and the reason (GitHub rate limit, network, or timeout) is reported plainly.
+From a local directory (development):
+
+```bash
+dsh plugin --profile <profile> add /path/to/dsh-whale-leap
+```
+
+After rebuilding, overwrite the build into `$DSH_HOME/profiles/<profile>/node_modules/dsh-whale-leap` and restart `dsh web`; alternatively remove and re-add the plugin in **Plugins**.
+
+## Update
+
+The settings header shows the current version and a check-for-updates button. When a newer version is found, an “Upgrade” button resolves the tag to its commit and reinstalls through the DSH plugin manager (rolling back if installation fails); restart `dsh web` to load the new version. When the plugin manager is unavailable or the check fails, the release-page link remains, distinguishing rate limiting, network failure, and timeouts.
 
 ## Settings
 
-The settings page keeps only the playback controls, a preview canvas above each tab, and one Live preview entry. Every appearance control lives in the floating preview panel, so the page does not duplicate them. The header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them.
+The settings page keeps only playback controls, the preview canvas on each tab, and the live-preview entry; every appearance control lives in the live-preview panel, which uses a frosted translucent surface with a border and shadow so it reads clearly against the page.
 
 ### Background
 
-The page shows only the Playback group:
+| Option | Meaning |
+| --- | --- |
+| Color | Follow the theme or set a custom ink color. |
+| Background size | Scene scale, 50–150%. |
+| Ink strength | 10–100%; 100% gives pure-black dots. |
+| Fill styles | Dots, code, glyphs, binary, lines — multiple allowed; enabled styles alternate in order and at least one must stay on. |
+
+### Appearance
 
 | Option | Meaning |
 | --- | --- |
-| Show in conversations | Whether the whale appears on its own after a conversation starts. |
-| Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
-| Appearance interval | 5–300 s between automatic replays. |
+| Multiple whales | Show 1–3 whales per appearance; off means a single whale. |
+| Entrance | Together (all leap at once) or random times (each picks its own start). Only with multiple whales. |
+| Size range | Farthest-to-nearest pod whale scale, 20–100%. Only with multiple whales. |
+| Distance ink | Farther whales use lighter ink. Only with multiple whales. |
+| Random position | New positions each appearance, keeping the whole breach visible; off keeps a fixed centered formation. |
+| Horizontal / vertical offset | Shifts the fixed formation by −200 to +200 px each. Only when random position is off. |
 
-The preview canvas replays with the current settings; Replay restarts it, and Live preview hides the settings dialog and keeps the whale playing on a loop in the real conversation. The panel's Background tab holds every background appearance control:
+### Playback
 
 | Option | Meaning |
 | --- | --- |
-| Color | Follow the theme or pick an ink color. |
-| Background size | Scale of the painted scene, 50 %–150 %. |
-| Horizontal position | Start offset −200 to +200 px; negative moves left. |
-| Vertical position | Start offset −200 to +200 px; negative moves up. |
-| Ink strength | 10 %–100 %; 60 % keeps the authored look, 100 % pushes faint dots to solid black. |
-| Fill style | Side-by-side buttons for dots, code fill, glyphs, binary tokens, and hatching; multiple can be enabled, enabled styles alternate in order, and at least one stays on. |
-| Random position | Picks a new spot each appearance and keeps the whole breach on screen; each appearance then draws 2–3 whales. |
-| Multiple whales | With random position on, each appearance draws 2–3 whales, spread apart without overlapping or crowding. |
-| Distance ink | Farther whales use lighter ink so the pod reads with depth; turn it off to use one ink level. |
-| Entrance | Together (all leap at once) or random times (each picks its own start). |
-| Size range | Farthest-to-nearest pod whale sizes, 20 %–100 %; farther whales are smaller. |
+| Appear while talking | Whether the whale replays on an interval in a conversation. |
+| Play immediately on switch | When off, entering a conversation waits for the next interval instead of playing at once. Only with appear-while-talking on. |
+| Interval | Replay interval, 5–300 seconds. Only with appear-while-talking on. |
 
-### Running icon tab
+### Running icon
 
-The page keeps only the preview that mirrors the real status row (hairline divider, 28 px row, blue-tinted label) and the Live preview entry. The panel's Running icon tab holds: replace the running icon, icon color, text color, icon size (8–28 px), text size (11–20 px, glyphs only), horizontal/vertical position (−12 to +12 px each), motion (Swimming, Explore, Home swim, Gentle sway), and swing amplitude (50 %–200 %; Home swim ignores it). A custom text color also re-mixes the shimmer highlight.
+The “Running icon” tab adjusts: replace the running icon (switch), icon color, label color, icon size, label size, horizontal/vertical offsets (−12 to +12 px each), motion, and swing amplitude. Label size changes the font size only, not line height or padding.
 
-Press Esc or Back to settings to restore the dialog.
+## Shortcuts
 
-## Behavior and limits
+- Click empty conversation space: replay the background whale once.
+- “Replay” in the floating panel: replay the preview immediately.
+- `Esc` or “Back to settings”: leave live preview and restore the settings dialog.
 
-- Web client only. It registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`, so it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
-- The running icon prefers the `conversation.chat.running.mark` slot; on official builds that do not declare it, a DOM adapter mounts the same mark into the status row and hides the shipped icon, so Web and Desktop both work and turning the switch off restores the original.
-- Settings are workspace-scoped and stored in the section namespace `whale-leap`.
-- Reduced motion: all playback and sway stop; the mark stays static.
-- Each appearance — on a conversation switch or on the interval — cycles through the enabled fill styles; a single playback never switches. When several whales appear together, non-dot fills mask each whale by its own silhouette on an offscreen canvas before compositing, so pod members never erase one another or leave clipped seams.
-- Swing amplitude affects Swimming, Explore, and Gentle sway only; Home swim always keeps the home page's own amplitude.
-- The background size and start offsets also preview live in the conversation: release a slider to hide the settings, then keep dragging the floating bar's sliders.
-- Code lettering scales with the background scene width, so the settings preview keeps the same relative text size as the real conversation background instead of oversized glyphs.
-- The canvas backing store is capped at five million pixels and reused across layout passes, so large high-DPI windows do not allocate tens of megabytes.
-- **The built-in brand package paints no whale.** It only registers sidebar artwork; this plugin owns the background and running-mark slots, so there is nothing to double up. Builds that declare `conversation.chat.running.mark` get the slot replacement; on official builds without it, the DOM adapter mounts the mark and hides the shipped icon.
-- **The atlas ships with the plugin.** `assets/breach-atlas.webp` is redistributed under the MIT License and embedded as a data URL at build time, so the background whale renders offline and on packaged Desktop builds whose official brand package lives inside an asar archive that plain file reads cannot reach.
-- The renderer, code fill, and running-mark motion are adapted from DeepSeek Harness source under its MIT license; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md). Redistribution must keep that notice.
+## Behaviour and limits
 
-## Credits
-
-The renderer, code fill, fish paths, and running-mark motion are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek). The whale frame atlas comes from the same repository and is redistributed under the MIT License. See [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for the full license text and the list of derived files. This plugin is unofficial, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only; it grants no trademark rights in the DeepSeek name, logo, or artwork.
+- Web only. The plugin registers `conversation.hero.frame`, `conversation.chat.running.mark`, and `settings.section`; it needs `ui-conversation`, `ui-chat`, and `ui-settings`.
+- The running icon prefers the `conversation.chat.running.mark` slot; when official builds lack it, a DOM adapter mounts the mark and hides the shipped icon, restoring it when the switch is off.
+- Settings are workspace-scoped, stored in the `whale-leap` settings namespace.
+- The frame atlas ships in the bundle (webp → data URL) and works offline; the canvas backing store is capped at 5 megapixels.
+- With non-dot pod fills, each whale is masked by its own outline on an offscreen canvas before compositing, so pod members never erase each other and leave no clip seams.
+- All playback and swing stop when reduced motion is on.
+- “Home swim” ignores swing amplitude; code text scales with scene width, so preview and real conversations match.
 
 ## Build
 
-```powershell
-pnpm install        # esbuild, react, and the Host's schemastery dev copy
-pnpm run build      # writes lib/client.js as a ModuleLoader artifact
-pnpm run check      # build + smoke + render + Host route checks
+```bash
+pnpm install        # esbuild, react, and the Host-side schemastery dev copy
+pnpm run build      # emit the ModuleLoader bundle lib/client.js
+pnpm run check      # build + smoke + render + host-route checks
 ```
 
-`lib/client.js` embeds the frame atlas as a webp data URL (about 252 KB of base64). The Host half (`index.js`) only imports `@deepseek-ai/schemastery` from the running profile and registers the settings page. The browser bundle embeds `package.json`'s version for the update check.
+`lib/client.js` embeds the frame atlas (webp → data URL) and the version number; the Host half (`index.js`) only imports `@deepseek-ai/schemastery` from the running profile and registers the settings page.
 
-## Releases
+## Release
 
-GitHub is the release source of truth. The settings page compares against the newest release (or tag) of this repository.
+GitHub is the only source for releases and updates: the settings page compares the repository’s latest release (falling back to tags when there is none).
 
-1. Bump the version: `pnpm run release:patch` (or `release:minor` / `release:major`). It updates `package.json`, commits, and creates the `vX.Y.Z` tag.
-2. Push the commit and the tag: `git push --follow-tags`.
-3. Publish the GitHub release for that tag: `gh release create vX.Y.Z --title "vX.Y.Z" --notes "…"`. The update check reads this release, so publishing it is what tells installed copies that a new build exists.
-
-npm remains optional and manual: the workflow in [`.github/workflows/publish.yml`](.github/workflows/publish.yml) is `workflow_dispatch` only and needs a configured npm trusted publisher before it can publish.
+1. `pnpm run release:patch` (or `release:minor` / `release:major`) bumps the version, commits, and creates a `vX.Y.Z` tag.
+2. `git push --follow-tags`.
+3. `gh release create vX.Y.Z --title "vX.Y.Z" --notes "…"`.
 
 ## Layout
 
 ```text
-index.js                     Host half: Config schema and settings.configure
-shared/settings.js           Field names, bounds, defaults shared by both halves
-src/client/index.tsx         Client entry: three slot registrations
-src/client/atlas.ts          Data URL of the bundled frame atlas
+index.js                     Host: Config schema, settings.configure, atlas route
+shared/settings.js           Field names, ranges, and defaults for both halves
+src/client/index.tsx         Client entry: registers the three slots
+src/client/atlas.ts          Inlined frame atlas data URL
 src/client/store.ts          Settings runtime (mirror + debounced writes)
-src/client/i18n.ts           Eight locale dictionaries for the settings page
-src/client/settings/         Settings page and its module CSS
-src/client/whale/            Whale canvas, renderer, code fill, fish mark, paths
+src/client/i18n.ts           Eight language dictionaries
+src/client/settings/         Settings page and module CSS
+src/client/whale/            Whale canvas, renderer, code fill, fish icon and paths
 src/client/update.ts         GitHub release check
-src/client/upgrade.ts        In-place upgrade (tag → commit, reinstall via the plugin manager)
-locale/*.json                Plugin Manager title/description/detail metadata
-docs/DETAIL.md               Plugin detail page document
+src/client/upgrade.ts        One-click upgrade (tag → commit via the plugin manager)
+docs/images/                 README screenshots
+locale/*.json                Plugin-manager title/description/detail metadata
 ```
 
----
+## Credits and license
 
-[![](https://img.shields.io/badge/powered_by-dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
+The whale renderer, code fill, fish paths, and running-icon animation are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek); the frame atlas comes from the same repository and ships with this package. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the full license and adaptation list.
+
+This is an unofficial project, not affiliated with or endorsed by DeepSeek. The MIT license grants copyright permissions only and no trademark rights in the DeepSeek name, logos, or assets.
