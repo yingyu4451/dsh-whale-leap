@@ -712,6 +712,39 @@ function findConversationThread(): ConversationThread | null {
 }
 
 /**
+ * Render the running label with DSH's two-layer shimmer sweep.
+ * Mirrors the shipped `TextShimmer`: the decorative copy rides a moving mask so
+ * the highlight is clipped to the glyphs while the real copy stays selectable.
+ * @param props.t - locale-bound translator.
+ * @param props.settings - live whale settings.
+ * @returns the shimmering running label.
+ */
+function DemoRunningLabel({ t, settings }: { t: Translate; settings: WhaleSettingsState }) {
+  const text = t('runningLabel')
+  const custom = settings.labelColorMode === 'custom' ? settings.labelColor : undefined
+  const shimmer = custom === undefined
+    ? 'var(--dsw-alias-label-deep-diving-shimmer)'
+    : `color-mix(in srgb, ${custom} 55%, var(--dsw-alias-label-primary))`
+  return (
+    <span className={css.demoLabel} style={{ fontSize: settings.markLabelSize, color: custom }} data-demo-label>
+      <span className={css.demoLabelContent}>{text}</span>
+      <span className={css.demoLabelDecoration} aria-hidden="true">
+        <span className={css.demoLabelSweep} style={{ color: shimmer }}>
+          <span className={css.demoLabelHighlight}>{text}</span>
+        </span>
+      </span>
+    </span>
+  )
+}
+
+const DEMO_FILES = [
+  { path: '~/Desktop/dsh project/whale-leap/.tmp/i18n-demo2.mjs', add: '+89', remove: '-0' },
+  { path: '~/Desktop/dsh project/whale-leap/.tmp/i18n-demo3.mjs', add: '+68', remove: '-0' },
+  { path: '~/Desktop/dsh project/whale-leap/.tmp/probe-column.mjs', add: '+45', remove: '-0' },
+  { path: '~/Desktop/dsh project/whale-leap/.tmp/probe-content.mjs', add: '+47', remove: '-0' },
+] as const
+
+/**
  * Demo messages shown inside the real conversation transcript during preview,
  * including a running row that follows the live mark settings.
  * @param props.t - locale-bound translator.
@@ -726,6 +759,11 @@ function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettings
     { user: t('demoUser3'), reply: t('demoReply3') },
     { user: t('demoUser4'), reply: t('demoReply4') },
     { user: t('demoUser5'), reply: t('demoReply5') },
+    { user: t('demoUser6'), reply: t('demoReply6') },
+  ]
+  const cards = [
+    { title: t('demoImage1Title'), desc: t('demoImage1Desc') },
+    { title: t('demoImage2Title'), desc: t('demoImage2Desc') },
   ]
   return (
     <div className={css.demoThread}>
@@ -734,30 +772,69 @@ function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettings
         <div key={index} className={css.demoExchange}>
           <div className={css.demoUser}>{exchange.user}</div>
           <div className={css.demoReply}>{exchange.reply}</div>
+          {index === exchanges.length - 1 && (
+            <>
+              <div className={css.demoFiles} data-demo-files>
+                <div className={css.demoFilesHead}>
+                  <span className={css.demoFilesGlyph} aria-hidden="true">{'{ }'}</span>
+                  <span className={css.demoFilesTitle}>{t('demoFilesTitle')}</span>
+                  <span className={css.demoFilesStat}>
+                    <span className={css.demoAdd}>+472</span>
+                    <span className={css.demoRemove}>{'−11'}</span>
+                  </span>
+                </div>
+                <div className={css.demoFileList}>
+                  {DEMO_FILES.map((file) => (
+                    <div key={file.path} className={css.demoFileRow}>
+                      <span className={css.demoFilePath}>{file.path}</span>
+                      <span className={css.demoFileDiff}>
+                        <span className={css.demoAdd}>{file.add}</span>
+                        <span className={css.demoRemove}>{file.remove}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className={css.demoFilesMore}>{t('demoFilesMore')}<span aria-hidden="true">{' ⌄'}</span></div>
+              </div>
+              <div className={css.demoCards}>
+                {cards.map((card) => (
+                  <div key={card.title} className={css.demoCard} data-demo-card>
+                    <span className={css.demoCardThumb} aria-hidden="true">
+                      <svg viewBox="0 0 20 20" className={css.demoCardThumbIcon}>
+                        <path d="M3 4.5h14v11H3z" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                        <path d="M3 13l4.2-4 3.4 3 2.6-2.4L17 13" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                        <circle cx="13.4" cy="7.4" r="1.3" fill="currentColor" />
+                      </svg>
+                    </span>
+                    <span className={css.demoCardBody}>
+                      <span className={css.demoCardTitle}>{card.title}</span>
+                      <span className={css.demoCardDesc}>{card.desc}</span>
+                    </span>
+                    <span className={css.demoCardActions} aria-hidden="true">
+                      <span className={css.demoCardAction}>{'↧'}</span>
+                      <span className={css.demoCardAction}>{'⋮'}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       ))}
-      <div className={css.demoRunning}>
-        <span
-          className={css.demoMarkSlot}
-          style={{ width: settings.markSize + 8, height: settings.markSize + 8 }}
-        >
-          <WhaleMarkFish
-            size={settings.markSize}
-            motion={settings.markMotion}
-            swing={settings.markSwing}
-            offsetX={settings.markOffsetX}
-            offsetY={settings.markOffsetY}
-            color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
-          />
-        </span>
-        <span
-          className={css.demoRunningLabel}
-          style={{
-            fontSize: settings.markLabelSize,
-            color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
-          }}
-        >
-          {t('runningLabel')}
+      <div className={css.demoRunning} data-demo-running>
+        <span className={css.demoRunningDivider} data-demo-divider aria-hidden="true" />
+        <span className={css.demoRunningContent} data-demo-content>
+          <span className={css.demoRunningIcon}>
+            <WhaleMarkFish
+              size={settings.markSize}
+              motion={settings.markMotion}
+              swing={settings.markSwing}
+              offsetX={settings.markOffsetX}
+              offsetY={settings.markOffsetY}
+              color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
+            />
+          </span>
+          <DemoRunningLabel t={t} settings={settings} />
         </span>
       </div>
     </div>
@@ -793,8 +870,11 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     let demoHost: HTMLDivElement | null = null
     let demoRoot: Root | null = null
     let hiddenSession: { element: HTMLElement; display: string } | null = null
+    let scrollTimer: number | null = null
     const thread = findConversationThread()
+    let savedScrollTop: number | null = null
     if (thread !== null) {
+      savedScrollTop = thread.scroll.scrollTop
       if (thread.session !== null) {
         hiddenSession = { element: thread.session, display: thread.session.style.display }
         thread.session.style.display = 'none'
@@ -809,7 +889,11 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       else thread.scroll.append(demoHost)
       demoRoot = createRoot(demoHost)
       demoRoot.render(<DemoTranscript t={live.current.t} state={live.current.state} />)
-      thread.scroll.scrollTop = 0
+      // DSH keeps the transcript pinned to the newest row; scroll the demo back
+      // to its first message once React has committed the rows.
+      const toTop = (): void => { thread.scroll.scrollTop = 0 }
+      requestAnimationFrame(() => { requestAnimationFrame(toTop) })
+      scrollTimer = window.setTimeout(toTop, 80)
     }
     const host = document.createElement('div')
     document.body.append(host)
@@ -837,11 +921,13 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     }, 120000)
     return () => {
       window.clearTimeout(safety)
+      if (scrollTimer !== null) window.clearTimeout(scrollTimer)
       window.removeEventListener('keydown', onKey, true)
       setPeekMode(false)
       demoRoot?.unmount()
       demoHost?.remove()
       if (hiddenSession !== null) hiddenSession.element.style.display = hiddenSession.display
+      if (savedScrollTop !== null && thread !== null) thread.scroll.scrollTop = savedScrollTop
       root.unmount()
       host.remove()
       const hidden = overlayRef.current

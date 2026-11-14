@@ -874,7 +874,6 @@
 .demoThread {
   display: flex;
   flex-direction: column;
-  gap: 26px;
   padding: 30px 0 10px;
   box-sizing: border-box;
 }
@@ -890,6 +889,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: 26px;
 }
 
 .demoUser {
@@ -911,25 +911,297 @@
   white-space: pre-wrap;
 }
 
-.demoRunning {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-top: 2px;
-  color: var(--dsw-alias-label-deep-diving);
+/* File-edit summary card and image attachments, mirroring the real DSH message chrome. */
+.demoFiles {
+  max-width: 100%;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 14px;
+  background: var(--dsw-alias-bg-layer-1);
+  overflow: hidden;
 }
 
-.demoMarkSlot {
+.demoFilesHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+.demoFilesGlyph {
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 14%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1;
 }
 
-.demoRunningLabel {
-  color: var(--dsw-alias-label-deep-diving);
+.demoFilesTitle {
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  font-weight: 600;
   line-height: 20px;
+}
+
+.demoFilesStat {
+  display: inline-flex;
+  gap: 6px;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  margin-left: 2px;
+}
+
+.demoAdd {
+  color: var(--dsw-alias-state-success-primary, #2f9e63);
+}
+
+.demoRemove {
+  color: var(--dsw-alias-state-error-primary, #d14343);
+}
+
+.demoFileList {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+}
+
+.demoFileRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+}
+
+.demoFilePath {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.demoFileDiff {
+  display: inline-flex;
+  flex: none;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.demoFilesMore {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border-top: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.demoCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 100%;
+}
+
+.demoCard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 12px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+.demoCardThumb {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 12%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+.demoCardThumbIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.demoCardBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.demoCardTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.demoCardDesc {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.demoCardActions {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.demoCardAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Real DSH running row: 28px content row under a 4px offset, with the divider
+   drawn inside the 16px tail offset and the label shimmering via a moving mask. */
+.demoRunning {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 12px;
+  color: var(--dsw-alias-label-deep-diving);
+  font-size: calc(var(--dsh-content-font-size, 14px) - 2px);
+  line-height: calc(22px + var(--dsh-content-font-delta, 0px));
+}
+
+.demoRunningDivider {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  left: 0;
+  height: 0.5px;
+  background: color-mix(in srgb, var(--dsw-alias-border-l1) 75%, var(--dsw-alias-border-l2));
+  pointer-events: none;
+}
+
+.demoRunningContent {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  margin-top: 4px;
+  height: calc(28px + var(--dsh-content-font-delta, 0px));
+}
+
+.demoRunningIcon {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(14px + var(--dsh-content-font-delta, 0px));
+  min-height: calc(14px + var(--dsh-content-font-delta, 0px));
+  contain: layout style;
+  overflow: visible;
+}
+
+.demoLabel {
+  position: relative;
+  display: inline-grid;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.demoLabelContent {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.demoLabelDecoration {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  user-select: none;
+}
+
+.demoLabelSweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(105deg, transparent 0%, black 40% 60%, transparent 100%);
+  transform: translateX(-100%);
+  animation: whale-demo-sweep 1.5s 0.3s steps(48, end) infinite;
+}
+
+/* Opposite transforms keep every glyph aligned while the shared mask moves. */
+.demoLabelHighlight {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  white-space: nowrap;
+  transform: translateX(100%);
+  animation: whale-demo-highlight 1.5s 0.3s steps(48, end) infinite;
+}
+
+@keyframes whale-demo-sweep {
+  0% { transform: translateX(-100%); }
+  66.6667%, 100% { transform: translateX(100%); }
+}
+
+@keyframes whale-demo-highlight {
+  0% { transform: translateX(100%); }
+  66.6667%, 100% { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demoLabelDecoration {
+    display: none;
+  }
+
+  .demoLabelSweep,
+  .demoLabelHighlight {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
