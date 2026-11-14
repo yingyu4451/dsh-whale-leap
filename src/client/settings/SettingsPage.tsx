@@ -13,6 +13,7 @@ import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhalePodTiming, W
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { replayPeek, setPeekMode } from '../whale/peek.js'
+import { FISH_LOGO_PATH, FISH_LOGO_VIEWBOX } from '../whale/fish-paths.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { RunningTail } from '../whale/RunningTail.js'
 import { PLUGIN_VERSION } from '../version.js'
@@ -257,13 +258,16 @@ function SliderRow(props: {
 /**
  * One row with a pair of sliders for the pod whale size range.
  *
- * The low thumb is the farthest pod member and the high thumb the nearest one,
- * both as a share of one full scene width. Each slider is bounded by the other
- * value, so the range can never invert.
+ * Each slider carries a whale silhouette drawn at the size it produces, so the
+ * far and near ends read at a glance. The low slider is the farthest pod member
+ * and the high slider the nearest one, both as a share of one full scene width.
+ * Each slider is bounded by the other value, so the range can never invert.
  */
 function PodSizeRangeRow(props: {
   label: string
   hint: string
+  farLabel: string
+  nearLabel: string
   minLabel: string
   maxLabel: string
   min: number
@@ -272,17 +276,24 @@ function PodSizeRangeRow(props: {
   onMin: (scale: number) => void
   onMax: (scale: number) => void
 }) {
+  const fishSizes = [props.min, props.max]
   return (
     <Row
       stack
       label={props.label}
       hint={props.hint}
       control={
-        <span className={css.rangePair}>
-          <span className={css.sliderField}>
+        <span className={css.sizeRange}>
+          <span className={css.sizeField}>
+            <span className={css.sizeFish} aria-hidden="true">
+              <svg viewBox={`0 0 ${FISH_LOGO_VIEWBOX.width} ${FISH_LOGO_VIEWBOX.height}`} fill="none" style={{ width: Math.round(10 + 24 * fishSizes[0]) }}>
+                <path d={FISH_LOGO_PATH} fill="currentColor" />
+              </svg>
+            </span>
+            <span className={css.sizeLabel}>{props.farLabel}</span>
             <input
               type="range"
-              className={`${css.slider} ${css.sliderCompact}`}
+              className={css.slider}
               aria-label={props.minLabel}
               min={POD_SIZE_RANGE.min}
               max={props.max}
@@ -293,13 +304,18 @@ function PodSizeRangeRow(props: {
                 props.onMin(Number(event.target.value))
               }}
             />
-            <span className={`${css.sliderValue} ${css.sliderValueCompact}`}>{Math.round(props.min * 100)}%</span>
+            <span className={`${css.sliderValue} ${css.sizeValue}`}>{Math.round(props.min * 100)}%</span>
           </span>
-          <span className={css.rangeDash} aria-hidden="true">–</span>
-          <span className={css.sliderField}>
+          <span className={css.sizeField}>
+            <span className={css.sizeFish} aria-hidden="true">
+              <svg viewBox={`0 0 ${FISH_LOGO_VIEWBOX.width} ${FISH_LOGO_VIEWBOX.height}`} fill="none" style={{ width: Math.round(10 + 24 * fishSizes[1]) }}>
+                <path d={FISH_LOGO_PATH} fill="currentColor" />
+              </svg>
+            </span>
+            <span className={css.sizeLabel}>{props.nearLabel}</span>
             <input
               type="range"
-              className={`${css.slider} ${css.sliderCompact}`}
+              className={css.slider}
               aria-label={props.maxLabel}
               min={props.min}
               max={POD_SIZE_RANGE.max}
@@ -310,7 +326,7 @@ function PodSizeRangeRow(props: {
                 props.onMax(Number(event.target.value))
               }}
             />
-            <span className={`${css.sliderValue} ${css.sliderValueCompact}`}>{Math.round(props.max * 100)}%</span>
+            <span className={`${css.sliderValue} ${css.sizeValue}`}>{Math.round(props.max * 100)}%</span>
           </span>
         </span>
       }
@@ -696,6 +712,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                     <PodSizeRangeRow
                       label={t('podSizeRange')}
                       hint={t('podSizeRangeHint')}
+                      farLabel={t('podSizeFar')}
+                      nearLabel={t('podSizeNear')}
                       minLabel={t('podSizeMin')}
                       maxLabel={t('podSizeMax')}
                       min={settings.podSizeMin}

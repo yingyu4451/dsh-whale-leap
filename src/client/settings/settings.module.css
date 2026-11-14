@@ -1047,24 +1047,57 @@
   min-width: 42px;
 }
 
-/* Compact pair of native range inputs for the pod size range. */
-.rangePair {
+/* Pod whale size range: one labelled slider per end, each with a whale drawn at
+   the size it produces. */
+.sizeRange {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 2px 0 4px;
+}
+
+.sizeField {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
 }
 
-.rangePair .sliderCompact {
-  width: 96px;
+.sizeFish {
+  display: inline-flex;
+  flex: none;
+  width: 34px;
+  justify-content: center;
+  color: var(--dsw-alias-label-primary);
 }
 
-.rangePair .sliderValueCompact {
-  min-width: 32px;
+.sizeFish svg {
+  display: block;
+  height: auto;
 }
 
-.rangeDash {
+.sizeLabel {
+  flex: none;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
   color: var(--dsw-alias-label-secondary);
+}
+
+.sizeField .slider {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+.sizeValue {
+  min-width: 40px;
+}
+
+.sizeField:has(.slider:disabled) .sizeFish,
+.sizeField:has(.slider:disabled) .sizeLabel {
+  opacity: 0.4;
 }
 
 .peekGroup > .row:last-child {
