@@ -932,9 +932,19 @@
   white-space: nowrap;
 }
 
+.peekGroup .colorGroup {
+  flex-wrap: nowrap;
+}
+
 .peekGroup .colorGroup .choice {
-  flex: 1 1 100%;
-  width: 100%;
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.peekGroup .colorGroup .choice .choiceButton,
+.peekGroup .colorGroup .choice .choiceSelected {
+  flex: 0 0 auto;
+  padding: 0 10px;
 }
 
 .peekGroup .row {
