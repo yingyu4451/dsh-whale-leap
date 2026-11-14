@@ -32,7 +32,7 @@ await build({
   target: ['es2022'],
   jsx: 'automatic',
   external: ['react', 'react/jsx-runtime', 'react-dom/client'],
-  loader: { '.webp': 'dataurl' },
+  loader: { '.webp': 'dataurl', '.png': 'dataurl' },
   plugins: [cssModules()],
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(version) },
   banner: {

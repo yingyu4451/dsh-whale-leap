@@ -23,7 +23,7 @@ await build({
   jsx: 'automatic',
   external: ['react', 'react-dom', 'react-dom/server', 'react/jsx-runtime'],
   plugins: [cssModules()],
-  loader: { '.webp': 'dataurl' },
+  loader: { '.webp': 'dataurl', '.png': 'dataurl' },
   define: { __WHALE_LEAP_VERSION__: JSON.stringify(manifest.version) },
   logLevel: 'silent',
 })

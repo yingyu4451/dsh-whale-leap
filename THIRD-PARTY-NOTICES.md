@@ -44,6 +44,12 @@ Derived or adapted files:
   `packages/client/ui-primitives/src/FishLogo.tsx` and
   `packages/client/ui-settings-general` / `ui-conversation` behaviour.
 
+- `assets/running-whale.png`, `src/client/whale/RunningTail.tsx`: the official
+  running-status whale-tail mask and its static fallback, copied from
+  `packages/client/ui-chat/src/client/assets/running-whale@2x.png` and
+  `RunningWhaleTail.tsx`. Used in the preview when the running-icon
+  replacement is turned off.
+
 - `assets/breach-atlas.webp`: the 137-frame whale frame atlas from
   `packages/client/ui-brand-official/lib/assets/breach-atlas-*.webp`,
   redistributed unchanged under the MIT License above.

@@ -1,0 +1,43 @@
+/* Shipped running tail: animated alpha mask with a static SVG fallback. */
+.box {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  align-items: center;
+  justify-content: center;
+  color: var(--dsw-alias-label-deep-diving);
+}
+
+.animated,
+.still {
+  width: 100%;
+  height: 100%;
+}
+
+.animated {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  mask: center / 100% 100% no-repeat;
+  mask-mode: alpha;
+  will-change: transform;
+}
+
+.still {
+  display: initial;
+}
+
+@supports (mask-mode: alpha) and (mask-image: url('')) {
+  @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+    .animated {
+      display: block;
+    }
+
+    .still {
+      display: none;
+    }
+  }
+}

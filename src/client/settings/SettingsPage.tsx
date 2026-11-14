@@ -14,6 +14,7 @@ import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { replayPeek, setPeekMode } from '../whale/peek.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
+import { RunningTail } from '../whale/RunningTail.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
 import css from './settings.module.css'
@@ -367,89 +368,10 @@ function randomBackgroundOffset(settings: WhaleSettingsState): { x: number; y: n
  * @param props.initialTab - tab rendered first (used by the render smoke check).
  * @returns the floating bar.
  */
-type PeekGroupIcon = 'look' | 'position' | 'fill' | 'playback' | 'size' | 'motion'
-
-/**
- * Small stroke icon shown next to a floating-panel group title.
- * @param props.kind - which semantic icon to draw.
- * @returns the inline icon.
- */
-function PeekSectionIcon({ kind }: { kind: PeekGroupIcon }): ReactNode {
-  const common = {
-    width: 14,
-    height: 14,
-    viewBox: '0 0 16 16',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.4,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true,
-  }
-  if (kind === 'look') {
-    return (
-      <svg {...common}>
-        <circle cx="8" cy="8" r="5.6" />
-        <circle cx="8" cy="5.4" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="10.4" cy="8" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="8" cy="10.6" r=".9" fill="currentColor" stroke="none" />
-        <circle cx="5.6" cy="8" r=".9" fill="currentColor" stroke="none" />
-      </svg>
-    )
-  }
-  if (kind === 'position') {
-    return (
-      <svg {...common}>
-        <circle cx="8" cy="8" r="4.2" />
-        <path d="M8 2.2v2.2M8 11.6v2.2M2.2 8h2.2M11.6 8h2.2" />
-      </svg>
-    )
-  }
-  if (kind === 'fill') {
-    return (
-      <svg {...common}>
-        <rect x="2.6" y="2.6" width="4.4" height="4.4" rx="1" />
-        <rect x="9" y="2.6" width="4.4" height="4.4" rx="1" />
-        <rect x="2.6" y="9" width="4.4" height="4.4" rx="1" />
-        <rect x="9" y="9" width="4.4" height="4.4" rx="1" />
-      </svg>
-    )
-  }
-  if (kind === 'playback') {
-    return (
-      <svg {...common}>
-        <path d="M5.6 3.6v8.8L12.4 8z" />
-      </svg>
-    )
-  }
-  if (kind === 'size') {
-    return (
-      <svg {...common}>
-        <path d="M9.6 2.6h3.8v3.8M6.4 13.4H2.6V9.6M13.4 2.6 8.9 7.1M2.6 13.4l4.5-4.5" />
-      </svg>
-    )
-  }
-  return (
-    <svg {...common}>
-      <path d="M1.8 9.2c1.4 0 1.6-4.4 3.1-4.4s1.7 6.6 3.2 6.6 1.6-6.8 3.1-6.8 1.4 4.6 2.8 4.6" />
-    </svg>
-  )
-}
-
-/**
- * One titled block inside the floating preview panel.
- * @param props.title - localized section title.
- * @param props.icon - semantic section icon.
- * @param props.children - rows belonging to the section.
- * @returns the section card.
- */
-function PeekSection({ title, icon, children }: { title: string; icon: PeekGroupIcon; children: ReactNode }) {
+function PeekSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className={css.peekSection}>
       <h3 className={css.peekSectionTitle}>
-        <span className={css.peekSectionIcon}>
-          <PeekSectionIcon kind={icon} />
-        </span>
         <span>{title}</span>
       </h3>
       {children}
@@ -502,7 +424,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
       <div className={css.peekBody} ref={bodyRef}>
         {tab === 'background' ? (
           <>
-            <PeekSection title={t('groupLook')} icon="look">
+            <PeekSection title={t('groupLook')}>
               <div className={css.peekGroup}>
             <ColorPickerRow
               id="whale-leap-custom-color"
@@ -542,7 +464,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupPosition')} icon="position">
+            <PeekSection title={t('groupPosition')}>
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-bg-offset-x"
@@ -589,7 +511,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupFill')} icon="fill">
+            <PeekSection title={t('groupFill')}>
               <div className={css.peekGroup}>
             <FillStyleButtons
               t={t}
@@ -600,7 +522,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             <p className={css.note}>{t('fillStyleHint')}</p>
               </div>
             </PeekSection>
-            <PeekSection title={t('tabPlayback')} icon="playback">
+            <PeekSection title={t('tabPlayback')}>
               <div className={css.peekGroup}>
                 <ToggleRow
                   label={t('auto')}
@@ -637,7 +559,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
           </>
         ) : (
           <>
-            <PeekSection title={t('groupLook')} icon="look">
+            <PeekSection title={t('groupLook')}>
               <div className={css.peekGroup}>
             <ToggleRow
               label={t('replaceMark')}
@@ -672,7 +594,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupSize')} icon="size">
+            <PeekSection title={t('groupSize')}>
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-size"
@@ -700,7 +622,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupPosition')} icon="position">
+            <PeekSection title={t('groupPosition')}>
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-offset-x"
@@ -728,7 +650,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupMotion')} icon="motion">
+            <PeekSection title={t('groupMotion')}>
               <div className={css.peekGroup}>
             <div className={css.choice} role="group" aria-label={t('motion')}>
               {MARK_MOTIONS.map(motion => {
@@ -901,14 +823,18 @@ function DemoRunningRow({ t, state }: { t: Translate; state: Store<WhaleSettings
       <span className={css.demoRunningDivider} data-demo-divider aria-hidden="true" />
       <span className={css.demoRunningContent} data-demo-content>
         <span className={css.demoRunningIcon}>
-          <WhaleMarkFish
-            size={settings.markSize}
-            motion={settings.markMotion}
-            swing={settings.markSwing}
-            offsetX={settings.markOffsetX}
-            offsetY={settings.markOffsetY}
-            color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
-          />
+          {settings.replaceMark ? (
+            <WhaleMarkFish
+              size={settings.markSize}
+              motion={settings.markMotion}
+              swing={settings.markSwing}
+              offsetX={settings.markOffsetX}
+              offsetY={settings.markOffsetY}
+              color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
+            />
+          ) : (
+            <RunningTail />
+          )}
         </span>
         <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
       </span>
