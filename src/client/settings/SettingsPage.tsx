@@ -1003,7 +1003,6 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       disabled={markDisabled || settings.markMotion === 'hero'}
                       onChange={actions.setMarkSwing}
                     />
-                    <p className={css.note}>{t('motionHint')}</p>
                 </AccordionBody>
               </div>
             </PeekSection>
@@ -1055,6 +1054,9 @@ interface ConversationThread {
  * blank home looks like a started conversation without mutating React state.
  */
 const HOME_PREVIEW_ATTRIBUTE = 'data-whale-leap-home-preview'
+
+/** Local-storage key that remembers the last day the settings page auto-checked. */
+const AUTO_CHECK_STORAGE_KEY = 'whale-leap:last-auto-check'
 
 /** Layout the blank home is given for the duration of preview mode. */
 const HOME_PREVIEW_CSS = `
@@ -1444,6 +1446,25 @@ export function SettingsPage({ t, state, actions, upgrade }: SettingsPageProps) 
     setUpdate({ status: 'checking' })
     setUpdate(await checkForUpdate())
   }, [])
+
+  // Checking once a day, the first time the settings page for this plugin is
+  // opened, keeps new releases visible without hitting the network on every
+  // visit. The date lives in local storage, so the reminder survives reloads.
+  const autoChecked = useRef(false)
+  useEffect(() => {
+    if (autoChecked.current) return
+    autoChecked.current = true
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    try {
+      if (window.localStorage.getItem(AUTO_CHECK_STORAGE_KEY) === today) return
+      window.localStorage.setItem(AUTO_CHECK_STORAGE_KEY, today)
+    } catch {
+      // Storage can be blocked (private mode, embedded webviews); check anyway
+      // once per mount rather than never.
+    }
+    void checkForUpdates()
+  }, [checkForUpdates])
 
   // Installing replaces this very bundle: the manager removes the profile
   // package, installs the pinned release and lets HMR pick up the new build. The
