@@ -862,3 +862,154 @@
     min-height: 0;
   }
 }
+
+/* Simulated conversation drawn behind the floating panel during a live preview. */
+.simScene {
+  position: fixed;
+  inset: 0;
+  z-index: 2147482990;
+  display: grid;
+  place-items: center;
+  padding: 24px 460px 24px 24px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 62%, transparent);
+  backdrop-filter: blur(3px);
+  box-sizing: border-box;
+}
+
+.simWindow {
+  position: relative;
+  overflow: hidden;
+  width: min(820px, 100%);
+  height: min(78vh, 760px);
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 18px;
+  background: var(--dsw-alias-bg-layer-2);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 20%);
+}
+
+.simCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.simChrome {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.simDots {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.simDots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dsw-alias-border-l1);
+}
+
+.simTitle {
+  white-space: nowrap;
+}
+
+.simChat {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: calc(100% - 38px);
+  padding: 26px 30px 22px;
+  box-sizing: border-box;
+}
+
+.simUser {
+  align-self: flex-end;
+  max-width: 68%;
+  padding: 10px 14px;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.simReply {
+  max-width: 82%;
+  color: var(--dsw-alias-label-primary);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.simRunning {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dsw-alias-label-deep-diving);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.simRunningIcon {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: whale-leap-spin 0.8s linear infinite;
+}
+
+.simComposer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px 16px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 18px;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.simComposerText {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.simComposerSend {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--dsw-alias-state-business-primary);
+}
+
+@media (max-width: 900px) {
+  .simScene {
+    padding: 12px;
+  }
+
+  .simWindow {
+    height: min(66vh, 560px);
+  }
+
+  .simChat {
+    padding: 18px 18px 16px;
+  }
+}
