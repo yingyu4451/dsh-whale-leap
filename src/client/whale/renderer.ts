@@ -1,5 +1,4 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
-import { BG_OFFSET_RANGE } from '../../../shared/settings.js'
 import type { WhaleFillStyle } from '../settings.ts'
 import type { WhaleArtwork } from './artwork.ts'
 import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
@@ -9,6 +8,39 @@ const ATLAS = { width: 192, height: 108, columns: 12, frames: 137 } as const
 
 /** Ink response: the squared strength keeps the authored default subtle while the top of the range turns faint dots solid. */
 const INK_GAIN = 1.5
+
+/**
+ * Ink density of the farthest pod member relative to the nearest one. Depth
+ * also scales the drawing, but a distant whale needs a lighter ink body as
+ * well so the pod reads as one scene with distance instead of one flat image.
+ */
+const DEPTH_INK_FLOOR = 0.34
+
+/** Ink density multiplier of a scene: 1 is the nearest whale, 0 the horizon. */
+function depthInk(depth: number): number {
+  return DEPTH_INK_FLOOR + (1 - DEPTH_INK_FLOOR) * depth
+}
+
+/** A random appearance shows two whales, sometimes three when there is room. */
+const POD_TWO = 2
+const POD_THREE = 3
+
+/** Least distance kept between the measured drawing boxes of two pod members, in CSS pixels. */
+const POD_GAP_MIN = 28
+
+/** Axis-aligned rectangle in canvas CSS pixels, used to keep pod members apart. */
+interface PodRect {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
+/** True when two rectangles keep at least `gap` pixels on at least one axis. */
+function separated(a: PodRect, b: PodRect, gap: number): boolean {
+  if (Math.max(a.x0 - b.x1, b.x0 - a.x1) >= gap) return true
+  return Math.max(a.y0 - b.y1, b.y0 - a.y1) >= gap
+}
 
 /** Decoded atlas pixels per URL, so a remount reuses the one expensive decode. */
 const atlasCache = new Map<string, Uint8ClampedArray>()
@@ -47,6 +79,41 @@ export function clearAtlasCache(): void {
   atlasCache.clear()
 }
 
+/**
+ * One whale of a pod appearance.
+ *
+ * All lengths are in CSS pixels of the canvas. Depth selects both the drawing
+ * scale (through {@link WhaleScene.width}) and the ink density, and the delay
+ * staggers the pod so the whales do not leap in lockstep.
+ */
+interface WhaleScene {
+  /** Scene left edge inside the canvas. */
+  left: number
+  /** Scene top edge inside the canvas. */
+  top: number
+  /** Scene width; the height follows the atlas aspect ratio. */
+  width: number
+  /** Distance of the whale, from 0 (horizon) to 1 (nearest). */
+  depth: number
+  /** Milliseconds after the pod starts before this whale begins its leap. */
+  delay: number
+}
+
+/**
+ * The solid-body bounds of the atlas across all frames, normalized to the cell.
+ *
+ * A raw union includes the thin water splash that touches the cell edge in a
+ * few frames; using it makes the safe interval empty on typical canvases, so
+ * each column and row must hold a minimum amount of opaque content before it
+ * counts toward the box.
+ */
+interface WhaleBox {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
 /** Control of one attached whale decoration. */
 export interface PixelWhaleHandle {
   /** Request one playback; ignored while playing, failed, hidden, or under reduced motion. */
@@ -69,11 +136,11 @@ export interface PixelWhaleHandle {
    */
   setPreview: (active: boolean) => void
   /**
-   * Randomize the scene placement before every playback.
+   * Randomize the scene before every playback.
    *
-   * The pick is constrained by the atlas' alpha bounding box across all frames,
-   * so the whole breach animation stays inside the canvas for the entire leap.
-   * @param enabled - whether every playback picks a random visible position.
+   * Random mode lays out a small pod of two or three whales, spaced apart and
+   * painted with depth-dependent ink, instead of the single fixed whale.
+   * @param enabled - whether every playback lays out a new random pod.
    */
   setRandomPosition: (enabled: boolean) => void
   /** Release frame work, atlas pixels, and observers; late atlas loads are ignored. */
@@ -109,6 +176,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   const media = matchMedia('(prefers-reduced-motion: reduce)')
   let artwork = options
   let pixels: Uint8ClampedArray | undefined
+  let scenes: WhaleScene[] = []
   let started: number | undefined
   let loading = false
   let wanted = false
@@ -129,8 +197,6 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let lastOffsetY = Number.NaN
   let dprCap: number | undefined
   let lastDpr = 0
-  let left = 0
-  let top = 0
   let fill: WhaleFillStyle = 'code'
   let localStyle = 0
   let styles: WhaleFillStyle[] = ['pixels', 'code']
@@ -139,9 +205,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
   let randomMode = false
-  let randomUnitsX = 0
-  let randomUnitsY = 0
-  let whaleBox: { x0: number; y0: number; x1: number; y1: number } | undefined
+  let whaleBox: WhaleBox | undefined
 
   const moving = () => !media.matches
   const drawable = () => !disposed && !document.hidden && visible && width > 0 && height > 0
@@ -164,35 +228,52 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     console.warn('Home whale animation is unavailable; home remains usable. Reload the page to retry.', error)
   }
 
+  /** Delay of the last pod member in milliseconds. */
+  function finalDelay(): number {
+    let delay = 0
+    for (const scene of scenes) {
+      if (scene.delay > delay) delay = scene.delay
+    }
+    return delay
+  }
+
   function paint(now: number): void {
     clear()
     if (pixels === undefined || started === undefined) return
-    const progress = (now - started) / artwork.rippleDurationMs
-    if (progress >= 1) {
+    const elapsed = now - started
+    const duration = artwork.rippleDurationMs
+    if (elapsed >= duration + finalDelay()) {
       started = undefined
       return
     }
-    const index = Math.floor(progress * ATLAS.frames)
-    const offsetX = (index % ATLAS.columns) * ATLAS.width
-    const offsetY = Math.floor(index / ATLAS.columns) * ATLAS.height
     const stride = ATLAS.width * ATLAS.columns
-    const cell = sceneWidth / ATLAS.width
-    const fade = Math.min(1, progress * 15, (1 - progress) * 10)
-    if (fill !== 'pixels' && code !== undefined) {
-      // The code fill boosts its own coverage and mask, so the strength maps
-      // linearly here; the dotted fill squares it to keep the same response.
-      code.paint(ctx, pixels, index, left, top, sceneWidth, artwork.activeOpacity * fade)
-      return
-    }
-    for (let y = 0; y < ATLAS.height; y++) {
-      for (let x = 0; x < ATLAS.width; x++) {
-        const offset = ((offsetY + y) * stride + offsetX + x) * 4
-        const alpha = (pixels[offset + 1] as number) / 255
-        if (alpha < 0.015) continue
-        ctx.globalAlpha = Math.min(1, alpha * artwork.activeOpacity * artwork.activeOpacity * INK_GAIN * fade)
-        ctx.beginPath()
-        ctx.arc(left + (x + 0.5) * cell, top + (y + 0.5) * cell, (pixels[offset] as number) / 255 * cell, 0, Math.PI * 2)
-        ctx.fill()
+    for (const scene of scenes) {
+      const local = elapsed - scene.delay
+      if (local <= 0) continue
+      const progress = local / duration
+      if (progress >= 1) continue
+      const index = Math.min(ATLAS.frames - 1, Math.floor(progress * ATLAS.frames))
+      const offsetX = (index % ATLAS.columns) * ATLAS.width
+      const offsetY = Math.floor(index / ATLAS.columns) * ATLAS.height
+      const cell = scene.width / ATLAS.width
+      const ink = depthInk(scene.depth)
+      const fade = Math.min(1, progress * 15, (1 - progress) * 10)
+      if (fill !== 'pixels' && code !== undefined) {
+        // The code fill boosts its own coverage and mask, so the strength maps
+        // linearly here; the dotted fill squares it to keep the same response.
+        code.paint(ctx, pixels, index, scene.left, scene.top, scene.width, artwork.activeOpacity * fade * ink)
+        continue
+      }
+      for (let y = 0; y < ATLAS.height; y++) {
+        for (let x = 0; x < ATLAS.width; x++) {
+          const offset = ((offsetY + y) * stride + offsetX + x) * 4
+          const alpha = (pixels[offset + 1] as number) / 255
+          if (alpha < 0.015) continue
+          ctx.globalAlpha = Math.min(1, alpha * artwork.activeOpacity * artwork.activeOpacity * INK_GAIN * fade * ink)
+          ctx.beginPath()
+          ctx.arc(scene.left + (x + 0.5) * cell, scene.top + (y + 0.5) * cell, (pixels[offset] as number) / 255 * cell, 0, Math.PI * 2)
+          ctx.fill()
+        }
       }
     }
     ctx.globalAlpha = 1
@@ -254,8 +335,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.fillStyle = nextColor
     sceneWidth = nextSceneWidth
-    if (randomMode) placeRandom(false)
-    else placeFromArtwork()
+    scenes = randomMode ? planPod() : placeFromArtwork()
     if (code !== undefined && sceneWidth > 0) code.resize(canvas, sceneWidth)
     resume()
   }
@@ -271,15 +351,10 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
 
   /**
    * Normalized bounds of the solid whale across the whole frame set.
-   *
-   * A raw union includes the thin water splash that touches the cell edge in a
-   * few frames; using it makes the safe interval empty on typical canvases, so
-   * each column and row must hold a minimum amount of opaque content before it
-   * counts toward the box.
    * @param source - decoded atlas pixels.
    * @returns the normalized bounding box of the whale body.
    */
-  function measureWhaleBox(source: Uint8ClampedArray): { x0: number; y0: number; x1: number; y1: number } {
+  function measureWhaleBox(source: Uint8ClampedArray): WhaleBox {
     const minAlpha = 0.3
     const minCount = 16
     let minX = ATLAS.width
@@ -317,47 +392,99 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   }
 
   /**
-   * Offset-unit interval that keeps the whole whale inside the canvas.
-   * @returns the safe interval, or undefined before layout or decode completes.
+   * Place the single, slider-positioned scene.
+   * @returns the scene the artwork offsets describe.
    */
-  function placementBounds(): { minX: number; maxX: number; minY: number; maxY: number } | undefined {
-    if (whaleBox === undefined || width <= 0 || height <= 0 || sceneWidth <= 0) return undefined
-    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+  function placeFromArtwork(): WhaleScene[] {
+    if (sceneWidth <= 0 || width <= 0 || height <= 0) return []
     const unit = width / 1000
-    const baseLeft = (width - sceneWidth) / 2
-    const baseTop = height * 0.43 - sceneHeight / 2
-    return {
-      minX: Math.max(BG_OFFSET_RANGE.min, (-baseLeft - whaleBox.x0 * sceneWidth) / unit),
-      maxX: Math.min(BG_OFFSET_RANGE.max, (width - baseLeft - whaleBox.x1 * sceneWidth) / unit),
-      minY: Math.max(BG_OFFSET_RANGE.min, (-baseTop - whaleBox.y0 * sceneHeight) / unit),
-      maxY: Math.min(BG_OFFSET_RANGE.max, (height - baseTop - whaleBox.y1 * sceneHeight) / unit),
-    }
+    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    return [{
+      left: (width - sceneWidth) / 2 + artwork.offsetX * unit,
+      top: height * 0.43 - sceneHeight / 2 + artwork.offsetY * unit,
+      width: sceneWidth,
+      depth: 1,
+      delay: 0,
+    }]
   }
 
   /**
-   * Place the scene from the random offsets, clamped to the visible interval.
-   * @param pick - whether to draw a new random pair first.
+   * Lay out one pod appearance.
+   *
+   * Two or three whales are chosen with decreasing scale and depth. The nearest
+   * whale claims the lower band of the canvas first and each farther one is
+   * rejected until its measured drawing box keeps a clear gap from every whale
+   * already placed, so the pod neither overlaps nor crowds. On dense viewports
+   * the placement falls back to a compact vertical stack.
+   * @returns the scenes to paint; empty before the atlas bounds are known.
    */
-  function placeRandom(pick: boolean): void {
-    const bounds = placementBounds()
-    if (bounds === undefined) return
-    if (pick) {
-      randomUnitsX = bounds.minX <= bounds.maxX ? bounds.minX + Math.random() * (bounds.maxX - bounds.minX) : 0
-      randomUnitsY = bounds.minY <= bounds.maxY ? bounds.minY + Math.random() * (bounds.maxY - bounds.minY) : 0
+  function planPod(): WhaleScene[] {
+    if (whaleBox === undefined || sceneWidth <= 0 || width <= 0 || height <= 0) return []
+    const box = whaleBox
+    const boxWidth = Math.max(0.04, box.x1 - box.x0)
+    const boxHeight = Math.max(0.05, box.y1 - box.y0)
+    const aspect = ATLAS.height / ATLAS.width
+    const distanceGap = Math.max(POD_GAP_MIN, width * 0.06)
+    const marginX = Math.max(16, width * 0.02)
+    const marginTop = height * 0.08
+    const marginBottom = height * 0.07
+    const three = Math.random() < 0.4
+    const total = three ? POD_THREE : POD_TWO
+    // Band centers of the measured drawing box, nearest at the bottom: the depth
+    // order is also the vertical order, so far whales sit above the near ones.
+    const bandFactors = total === POD_THREE ? [0.64, 0.4, 0.2] : [0.62, 0.3]
+    const depthFactors = total === POD_THREE
+      ? [1, 0.6 + Math.random() * 0.12, 0.3 + Math.random() * 0.14]
+      : [1, 0.4 + Math.random() * 0.16]
+    const scaleFactors = total === POD_THREE
+      ? [0.6 + Math.random() * 0.05, 0.44 + Math.random() * 0.04, 0.3 + Math.random() * 0.03]
+      : [0.68 + Math.random() * 0.05, 0.42 + Math.random() * 0.04]
+    const delayStep = artwork.rippleDurationMs * (0.12 + Math.random() * 0.05)
+    const placed: { rect: PodRect; scene: WhaleScene }[] = []
+    for (let index = 0; index < total; index++) {
+      const sceneW = Math.max(150, sceneWidth * (scaleFactors[index] as number))
+      const sceneH = sceneW * aspect
+      const rectW = boxWidth * sceneW
+      const rectH = boxHeight * sceneH
+      const centerY = marginTop + (height - marginTop - marginBottom) * (bandFactors[index] as number)
+      const scene: WhaleScene = {
+        left: 0,
+        top: 0,
+        width: sceneW,
+        depth: depthFactors[index] as number,
+        // The nearest whale leaps first; the distant ones follow it in.
+        delay: index * delayStep,
+      }
+      let found = false
+      for (let attempt = 0; attempt < 120 && !found; attempt++) {
+        const centerX = marginX + rectW / 2 + Math.random() * Math.max(0, width - marginX * 2 - rectW)
+        const jitterY = centerY + (Math.random() - 0.5) * height * (index === 0 ? 0.05 : 0.1)
+        const rect: PodRect = {
+          x0: centerX - rectW / 2,
+          y0: jitterY - rectH / 2,
+          x1: centerX + rectW / 2,
+          y1: jitterY + rectH / 2,
+        }
+        if (rect.y0 < 0 || rect.y1 > height) continue
+        if (!placed.every((entry) => separated(entry.rect, rect, distanceGap))) continue
+        scene.left = rect.x0 - box.x0 * sceneW
+        scene.top = rect.y0 - box.y0 * sceneH
+        placed.push({ rect, scene })
+        found = true
+      }
+      if (!found) {
+        // Dense viewport: fall back to a compact vertical stack under the pod.
+        const last = placed[placed.length - 1]
+        const startY = last === undefined ? marginTop : last.rect.y1 + distanceGap
+        scene.left = (width - sceneW) / 2
+        scene.top = startY - box.y0 * sceneH
+        placed.push({
+          rect: { x0: scene.left + box.x0 * sceneW, y0: startY, x1: scene.left + box.x1 * sceneW, y1: startY + rectH },
+          scene,
+        })
+      }
     }
-    const clampUnit = (value: number, min: number, max: number): number => min <= max ? Math.max(min, Math.min(max, value)) : (min + max) / 2
-    const unit = width / 1000
-    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
-    left = (width - sceneWidth) / 2 + clampUnit(randomUnitsX, bounds.minX, bounds.maxX) * unit
-    top = height * 0.43 - sceneHeight / 2 + clampUnit(randomUnitsY, bounds.minY, bounds.maxY) * unit
-  }
-
-  /** Restore the placement the sliders describe. */
-  function placeFromArtwork(): void {
-    const unit = width / 1000
-    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
-    left = (width - sceneWidth) / 2 + artwork.offsetX * unit
-    top = height * 0.43 - sceneHeight / 2 + artwork.offsetY * unit
+    return placed.map((entry) => entry.scene)
   }
 
   function ensureTexture(mode: WhaleFillStyle): boolean {
@@ -388,7 +515,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
-    if (randomMode) placeRandom(true)
+    scenes = randomMode ? planPod() : placeFromArtwork()
     started = performance.now()
     resume()
   }
@@ -489,9 +616,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   function setRandomPosition(enabled: boolean): void {
     if (disposed || randomMode === enabled) return
     randomMode = enabled
-    if (randomMode) placeRandom(true)
-    else placeFromArtwork()
-    resume()
+    scenes = randomMode ? planPod() : placeFromArtwork()
+    // Toggling the switch should show the new arrangement right away instead of
+    // waiting for the next automatic appearance.
+    if (randomMode && started === undefined && pixels !== undefined && moving() && drawable()) play()
+    else resume()
   }
 
   const sizeObserver = new ResizeObserver(scheduleResize)
@@ -510,6 +639,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   const dispose = (): void => {
     disposed = true
     stop()
+    scenes = []
     if (autoTimer !== undefined) {
       clearInterval(autoTimer)
       autoTimer = undefined

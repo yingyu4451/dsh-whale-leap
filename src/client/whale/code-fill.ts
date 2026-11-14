@@ -145,12 +145,19 @@ export function createCodeFill(
       }
       matte.putImageData(alpha, 0, 0)
       const height = width * atlas.height / atlas.width
+      // destination-in erases every destination pixel the source leaves
+      // transparent, so the matte must be confined to this whale's rect;
+      // otherwise painting one pod member would wipe the ones already drawn.
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(left, top, width, height)
+      ctx.clip()
       ctx.globalAlpha = level
       ctx.drawImage(texture, left, top, width, height)
       ctx.globalAlpha = 1
       ctx.globalCompositeOperation = 'destination-in'
       ctx.drawImage(mask, left, top, width, height)
-      ctx.globalCompositeOperation = 'source-over'
+      ctx.restore()
     },
 
     dispose(): void {

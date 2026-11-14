@@ -85,10 +85,6 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
   }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
 
-  useEffect(() => {
-    whale.current?.setRandomPosition(randomPosition && !hero)
-  }, [randomPosition, hero])
-
   const fillStyleKey = fillStyles.join(',')
   useEffect(() => {
     whale.current?.setFillStyles(fillStyles)
@@ -120,6 +116,12 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
       clearInterval(timer)
     }
   }, [peek])
+
+  // In the live preview the blank home is staged like a started conversation,
+  // so random mode must reach the hero layer there too.
+  useEffect(() => {
+    whale.current?.setRandomPosition(randomPosition && (!hero || peek))
+  }, [randomPosition, hero, peek])
 
   const { autoAppear, intervalSeconds, playOnSwitch } = settings
   useEffect(() => {

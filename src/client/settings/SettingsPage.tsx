@@ -673,6 +673,60 @@ interface ConversationThread {
   session: HTMLElement | null
   composer: HTMLElement | null
   width: number
+  /** True while the surface is the blank home, whose composer sits centered. */
+  hero: boolean
+}
+
+/**
+ * Marks the home scroll body while preview docks its composer at the floor.
+ * The stylesheet below mirrors what DSH's active phase already applies, so the
+ * blank home looks like a started conversation without mutating React state.
+ */
+const HOME_PREVIEW_ATTRIBUTE = 'data-whale-leap-home-preview'
+
+/** Layout the blank home is given for the duration of preview mode. */
+const HOME_PREVIEW_CSS = `
+[${HOME_PREVIEW_ATTRIBUTE}] {
+  justify-content: flex-start !important;
+}
+[${HOME_PREVIEW_ATTRIBUTE}] > [data-composer-seat] {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  z-index: 9;
+  will-change: transform;
+  overflow-anchor: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dsw-alias-bg-base) 0%, transparent) 0px,
+    var(--dsw-alias-bg-base) 36px
+  );
+}
+[${HOME_PREVIEW_ATTRIBUTE}] [class*="composerHero"] {
+  padding-bottom: 0 !important;
+}
+`
+
+/**
+ * Hide the blank-home hero chrome (headline and workspace row), leaving only
+ * the composer card the preview transcript should end at. Children owning a
+ * hero slot are the chrome; the composer bar owns none, so it stays.
+ * @param composer - the composer seat found on the home surface.
+ * @returns the hidden elements with their previous inline display.
+ */
+function hideHeroComposerChrome(composer: HTMLElement): { element: HTMLElement; display: string }[] {
+  const hidden: { element: HTMLElement; display: string }[] = []
+  for (const stack of composer.querySelectorAll<HTMLElement>('[class*="composerStack"]')) {
+    for (const child of [...stack.children]) {
+      if (!(child instanceof HTMLElement)) continue
+      const ownsHero = child.matches('[data-slot^="conversation.hero"]')
+        || child.querySelector('[data-slot^="conversation.hero"]') !== null
+      if (!ownsHero) continue
+      hidden.push({ element: child, display: child.style.display })
+      child.style.display = 'none'
+    }
+  }
+  return hidden
 }
 
 /**
@@ -709,22 +763,25 @@ function measureChatWidth(scroll: HTMLElement): number {
 }
 
 /**
- * Find the real conversation transcript so preview mode can temporarily show
- * demo messages in place of the saved ones. Returns null on the home screen.
- * @returns the scroll container, session slot, composer seat and column width.
+ * Find the conversation surface preview mode can borrow: a started transcript,
+ * the blank home hero, or any composer-bearing conversation column. The blank
+ * home keeps a scroll body and a composer seat too, so preview docks its
+ * composer and shows the demo transcript there instead of doing nothing.
+ * @returns the scroll container, session slot, composer seat, column width and surface kind.
  */
 function findConversationThread(): ConversationThread | null {
   if (typeof document === 'undefined') return null
   const scroll = document.querySelector<HTMLElement>('[data-conversation-scroll]')
   if (scroll === null) return null
-  const tabs = [...document.querySelectorAll('[role="tablist"]')]
-  const isConversation = tabs.some((tab) => (tab.textContent ?? '').includes('对话'))
-  if (!isConversation) return null
+  const composer = scroll.querySelector<HTMLElement>('[data-composer-seat]')
+  if (composer === null) return null
+  const phase = scroll.closest<HTMLElement>('[data-phase]')?.getAttribute('data-phase')
   return {
     scroll,
     session: scroll.querySelector<HTMLElement>('[data-slot="conversation.session"]'),
-    composer: scroll.querySelector<HTMLElement>('[data-composer-seat]'),
+    composer,
     width: measureChatWidth(scroll),
+    hero: phase === 'hero',
   }
 }
 
@@ -848,6 +905,8 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
     let dockHost: HTMLDivElement | null = null
     let dockRoot: Root | null = null
     let hiddenSession: { element: HTMLElement; display: string } | null = null
+    let hiddenHeroChrome: { element: HTMLElement; display: string }[] = []
+    let homeStyle: HTMLStyleElement | null = null
     let scrollTimer: number | null = null
     const syncTimers: number[] = []
     const widthObservers: MutationObserver[] = []
@@ -855,6 +914,17 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
     const thread = findConversationThread()
     let savedScrollTop: number | null = null
     if (thread !== null) {
+      // On the blank home the composer is centered in the hero stack. Give the
+      // scroll body the same floor-docked composer a started conversation has
+      // and drop the hero chrome, so the demo transcript follows the real layout.
+      if (thread.hero) {
+        homeStyle = document.createElement('style')
+        homeStyle.dataset.whaleLeapPreview = ''
+        homeStyle.textContent = HOME_PREVIEW_CSS
+        document.head.append(homeStyle)
+        thread.scroll.setAttribute(HOME_PREVIEW_ATTRIBUTE, '')
+        if (thread.composer !== null) hiddenHeroChrome = hideHeroComposerChrome(thread.composer)
+      }
       savedScrollTop = thread.scroll.scrollTop
       if (thread.session !== null) {
         hiddenSession = { element: thread.session, display: thread.session.style.display }
@@ -979,6 +1049,9 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
       demoRoot?.unmount()
       demoHost?.remove()
       if (hiddenSession !== null) hiddenSession.element.style.display = hiddenSession.display
+      for (const entry of hiddenHeroChrome) entry.element.style.display = entry.display
+      if (homeStyle !== null) homeStyle.remove()
+      if (thread !== null) thread.scroll.removeAttribute(HOME_PREVIEW_ATTRIBUTE)
       if (savedScrollTop !== null && thread !== null) thread.scroll.scrollTop = savedScrollTop
       root.unmount()
       host.remove()
