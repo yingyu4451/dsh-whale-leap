@@ -145,6 +145,7 @@ const zh = {
   upgrade: '升级',
   upgrading: '正在安装…',
   upgradeRestart: '已升级到 v{version}，重启 dsh web 后生效。',
+  upgradeRestartDesktop: '已升级到 v{version}，重启 DSH 后生效。',
   upgradeFailed: '升级失败：{error}',
   upgradeDismiss: '关闭',
 }
@@ -292,6 +293,7 @@ const en: Record<LocaleKey, string> = {
   upgrade: 'Upgrade',
   upgrading: 'Installing…',
   upgradeRestart: 'Upgraded to v{version}. Restart dsh web to activate it.',
+  upgradeRestartDesktop: 'Upgraded to v{version}. Restart DSH to activate it.',
   upgradeFailed: 'Upgrade failed: {error}',
   upgradeDismiss: 'Close',
 }
@@ -436,6 +438,7 @@ const ja: Record<LocaleKey, string> = {
   upgrade: 'アップグレード',
   upgrading: 'インストール中…',
   upgradeRestart: 'v{version} にアップグレードしました。dsh web を再起動すると有効になります。',
+  upgradeRestartDesktop: 'v{version} にアップグレードしました。DSH を再起動すると有効になります。',
   upgradeFailed: 'アップグレードに失敗しました: {error}',
   upgradeDismiss: '閉じる',
 }
@@ -580,6 +583,7 @@ const es: Record<LocaleKey, string> = {
   upgrade: 'Actualizar',
   upgrading: 'Instalando…',
   upgradeRestart: 'Actualizado a v{version}. Reinicia dsh web para activarlo.',
+  upgradeRestartDesktop: 'Actualizado a v{version}. Reinicia DSH para activarlo.',
   upgradeFailed: 'Error al actualizar: {error}',
   upgradeDismiss: 'Cerrar',
 }
@@ -724,6 +728,7 @@ const fr: Record<LocaleKey, string> = {
   upgrade: 'Mettre à jour',
   upgrading: 'Installation…',
   upgradeRestart: 'Mis à jour vers v{version}. Redémarrez dsh web pour l’activer.',
+  upgradeRestartDesktop: 'Mis à jour vers v{version}. Redémarrez DSH pour l’activer.',
   upgradeFailed: 'Échec de la mise à jour : {error}',
   upgradeDismiss: 'Fermer',
 }
@@ -868,6 +873,7 @@ const de: Record<LocaleKey, string> = {
   upgrade: 'Aktualisieren',
   upgrading: 'Wird installiert…',
   upgradeRestart: 'Auf v{version} aktualisiert. dsh web neu starten, um es zu aktivieren.',
+  upgradeRestartDesktop: 'Auf v{version} aktualisiert. DSH neu starten, um es zu aktivieren.',
   upgradeFailed: 'Aktualisierung fehlgeschlagen: {error}',
   upgradeDismiss: 'Schließen',
 }
@@ -1012,6 +1018,7 @@ const ru: Record<LocaleKey, string> = {
   upgrade: 'Обновить',
   upgrading: 'Установка…',
   upgradeRestart: 'Обновлено до v{version}. Перезапустите dsh web, чтобы активировать.',
+  upgradeRestartDesktop: 'Обновлено до v{version}. Перезапустите DSH, чтобы активировать.',
   upgradeFailed: 'Не удалось обновить: {error}',
   upgradeDismiss: 'Закрыть',
 }
@@ -1156,6 +1163,7 @@ const pt: Record<LocaleKey, string> = {
   upgrade: 'Atualizar',
   upgrading: 'Instalando…',
   upgradeRestart: 'Atualizado para v{version}. Reinicie o dsh web para ativar.',
+  upgradeRestartDesktop: 'Atualizado para v{version}. Reinicie o DSH para ativar.',
   upgradeFailed: 'Falha na atualização: {error}',
   upgradeDismiss: 'Fechar',
 }

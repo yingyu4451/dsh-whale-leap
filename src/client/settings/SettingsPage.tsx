@@ -17,6 +17,7 @@ import { FISH_LOGO_PATH, FISH_LOGO_VIEWBOX } from '../whale/fish-paths.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { RunningTail } from '../whale/RunningTail.js'
 import { PLUGIN_VERSION } from '../version.js'
+import { isDesktopShell } from '../platform.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
 import type { UpgradeHandle } from '../upgrade.js'
 import css from './settings.module.css'
@@ -1452,7 +1453,9 @@ export function SettingsPage({ t, state, actions, upgrade }: SettingsPageProps) 
       // outcome in a body-level toast that survives the unmount.
       const runningText = t('upgrading')
       const dismissLabel = t('upgradeDismiss')
-      const restartText = t('upgradeRestart', { version })
+      // The shell decides what must be restarted: `dsh web` in a browser, the
+      // desktop app when this page is hosted by the DSH desktop shell.
+      const restartText = t(isDesktopShell() ? 'upgradeRestartDesktop' : 'upgradeRestart', { version })
       const failedTemplate = t('upgradeFailed', { error: '__WHALE_UPGRADE_ERROR__' })
       const failureText = (message: string): string =>
         failedTemplate.replace('__WHALE_UPGRADE_ERROR__', message)
@@ -1471,7 +1474,7 @@ export function SettingsPage({ t, state, actions, upgrade }: SettingsPageProps) 
       if (outcome.status === 'ok') {
         // The running host keeps serving the modules it resolved at startup, so
         // the refreshed page would still run the previous build: the new version
-        // only loads after `dsh web` restarts.
+        // only loads after the hosting shell restarts.
         setUpgradeState({ phase: 'done', message: 'restart' })
         toast.set(restartText, [dismiss])
         return
@@ -1512,7 +1515,7 @@ export function SettingsPage({ t, state, actions, upgrade }: SettingsPageProps) 
     if (upgradeState.phase === 'running') {
       upgradeNotice = t('upgrading')
     } else if (upgradeState.phase === 'done') {
-      upgradeNotice = t('upgradeRestart', { version: upgradeVersion })
+      upgradeNotice = t(isDesktopShell() ? 'upgradeRestartDesktop' : 'upgradeRestart', { version: upgradeVersion })
     } else if (upgradeState.phase === 'failed') {
       upgradeNotice = t('upgradeFailed', { error: upgradeState.message ?? upgradeState.phase })
     }
