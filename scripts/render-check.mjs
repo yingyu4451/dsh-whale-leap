@@ -38,7 +38,7 @@ const { page, englishPage, peekPage, englishPeekPage, peekMarkPage, englishPeekM
 
 const landmarks = {
   entryPoint: page.includes('data-whale-leap-entry') && page.includes('livePreview'),
-  englishEntry: englishPage.includes('Appearance and playback controls live in the live preview'),
+  englishEntry: englishPage.includes('tune appearance and playback while you watch'),
   noPageStage: !page.includes('stageCanvas') && !page.includes('markSim'),
   noPageTabs: !page.includes('whale-leap-tab-'),
   noPagePlayback: !page.includes('groupPlayback'),

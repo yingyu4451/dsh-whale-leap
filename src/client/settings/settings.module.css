@@ -296,14 +296,14 @@
 }
 
 .stageLive {
-  height: 22px;
-  padding: 0 9px;
+  height: 26px;
+  padding: 0 10px;
   border: 0.5px solid transparent;
   border-radius: var(--dsw-radius-sm);
   background: var(--dsw-alias-state-business-primary);
   color: var(--dsw-alias-label-on-color);
-  font-size: 11px;
-  line-height: 16px;
+  font-size: 12px;
+  line-height: 18px;
   font-family: inherit;
   cursor: pointer;
 }
@@ -312,19 +312,31 @@
   background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
 }
 
+.entryLayout {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: min(52vh, 460px);
+}
+
 .entryCard {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 16px 18px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: 20px 22px;
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-xl);
   background: var(--dsw-alias-bg-layer-2);
 }
 
 .entryHint {
+  flex: 1 1 260px;
   margin: 0;
   color: var(--dsw-alias-label-secondary);
   font-size: 13px;
@@ -332,16 +344,17 @@
 }
 
 .entryCard .stageLive {
-  height: 30px;
-  padding: 0 14px;
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
   font-size: 13px;
   line-height: 20px;
   border-radius: var(--dsw-radius-md);
 }
 
 .randomButton {
-  height: 26px;
-  padding: 0 10px;
+  height: 30px;
+  padding: 0 12px;
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-md);
   background: var(--dsw-alias-bg-layer-1);
@@ -560,7 +573,7 @@
 
 .choiceButton,
 .choiceSelected {
-  height: 28px;
+  height: 30px;
   padding: 0 12px;
   border: 0;
   border-radius: var(--dsw-radius-sm);
@@ -808,7 +821,7 @@
 
 .peekTab,
 .peekTabActive {
-  height: 22px;
+  height: 26px;
   padding: 0 10px;
   border: 0;
   border-radius: calc(var(--dsw-radius-sm) - 2px);
@@ -828,7 +841,7 @@
 
 .peekReplay,
 .peekReturn {
-  height: 26px;
+  height: 28px;
   padding: 0 10px;
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-sm);
@@ -845,9 +858,13 @@
 
 .peekReturn {
   margin-left: auto;
-  background: var(--dsw-alias-state-business-primary);
-  border-color: transparent;
-  color: var(--dsw-alias-label-on-color);
+  background: var(--dsw-alias-bg-module-platform);
+  border-color: var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-primary);
+}
+
+.peekReturn:hover {
+  background: color-mix(in srgb, var(--dsw-alias-bg-module-platform) 86%, var(--dsw-alias-label-primary) 14%);
 }
 
 .peekBody {
@@ -871,21 +888,21 @@
 }
 
 .peekSection + .peekSection {
-  margin-top: 4px;
-  padding-top: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 0.5px solid var(--dsw-alias-border-l2);
 }
 
 .peekSectionTitle {
-  padding: 8px 0 2px;
+  padding: 6px 0 4px;
   color: var(--dsw-alias-label-secondary);
   font-size: 12px;
   line-height: 18px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .peekSection:first-child .peekSectionTitle {
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 .peekGroup .subTitle {
@@ -1296,5 +1313,28 @@
 
   .demoRunningDock {
     display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .entryLayout {
+    align-items: flex-start;
+    min-height: 0;
+    padding-top: 24px;
+  }
+
+  .entryCard {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .entryHint {
+    flex: 0 0 auto;
+  }
+
+  .entryCard .stageLive {
+    width: 100%;
   }
 }

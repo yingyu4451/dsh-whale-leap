@@ -378,6 +378,10 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
   const disabled = !settings.writable
   const markDisabled = disabled || !settings.replaceMark
   const [tab, setTab] = useState<PeekTab>(initialTab)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 })
+  }, [tab])
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')} title={t('peekHint')}>
       <div className={css.peekHead}>
@@ -405,7 +409,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
           {t('peekReturn')}
         </button>
       </div>
-      <div className={css.peekBody}>
+      <div className={css.peekBody} ref={bodyRef}>
         {tab === 'background' ? (
           <>
             <div className={css.peekSection}>
@@ -1084,17 +1088,19 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
       </header>
       </div>
 
-      <div className={css.entryCard} data-whale-leap-entry>
-        <p className={css.entryHint}>{t('openPreviewHint')}</p>
-        <button
-          type="button"
-          className={css.stageLive}
-          onClick={() => {
-            setPeeking(true)
-          }}
-        >
-          {t('livePreview')}
-        </button>
+      <div className={css.entryLayout}>
+        <div className={css.entryCard} data-whale-leap-entry>
+          <p className={css.entryHint}>{t('openPreviewHint')}</p>
+          <button
+            type="button"
+            className={css.stageLive}
+            onClick={() => {
+              setPeeking(true)
+            }}
+          >
+            {t('livePreview')}
+          </button>
+        </div>
       </div>
     </section>
   )
