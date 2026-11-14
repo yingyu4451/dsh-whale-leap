@@ -674,12 +674,27 @@ interface ConversationThread {
   scroll: HTMLElement
   session: HTMLElement | null
   composer: HTMLElement | null
+  width: number
+}
+
+/**
+ * Measure the conversation column width the real messages are laid out in.
+ * @param scroll - the real conversation scroll container.
+ * @returns the resolved chat content width in pixels.
+ */
+function measureChatWidth(scroll: HTMLElement): number {
+  const probe = document.createElement('div')
+  probe.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;width:var(--dsh-chat-content-width);'
+  scroll.append(probe)
+  const width = probe.getBoundingClientRect().width
+  probe.remove()
+  return width
 }
 
 /**
  * Find the real conversation transcript so preview mode can temporarily show
  * demo messages in place of the saved ones. Returns null on the home screen.
- * @returns the scroll container, session slot and composer seat, when present.
+ * @returns the scroll container, session slot, composer seat and column width.
  */
 function findConversationThread(): ConversationThread | null {
   if (typeof document === 'undefined') return null
@@ -692,20 +707,59 @@ function findConversationThread(): ConversationThread | null {
     scroll,
     session: scroll.querySelector<HTMLElement>('[data-slot="conversation.session"]'),
     composer: scroll.querySelector<HTMLElement>('[data-composer-seat]'),
+    width: measureChatWidth(scroll),
   }
 }
 
 /**
- * Demo messages shown inside the real conversation transcript during preview.
+ * Demo messages shown inside the real conversation transcript during preview,
+ * including a running row that follows the live mark settings.
  * @param props.t - locale-bound translator.
+ * @param props.state - live whale settings.
  * @returns the demo thread.
  */
-function DemoTranscript({ t }: { t: Translate }) {
+function DemoTranscript({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
+  const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
+  const exchanges = [
+    { user: t('demoUser1'), reply: t('demoReply1') },
+    { user: t('demoUser2'), reply: t('demoReply2') },
+    { user: t('demoUser3'), reply: t('demoReply3') },
+    { user: t('demoUser4'), reply: t('demoReply4') },
+    { user: t('demoUser5'), reply: t('demoReply5') },
+  ]
   return (
     <div className={css.demoThread}>
       <p className={css.demoMeta}>{t('demoMeta')}</p>
-      <div className={css.demoUser}>{t('demoUser')}</div>
-      <div className={css.demoReply}>{t('demoReply')}</div>
+      {exchanges.map((exchange, index) => (
+        <div key={index} className={css.demoExchange}>
+          <div className={css.demoUser}>{exchange.user}</div>
+          <div className={css.demoReply}>{exchange.reply}</div>
+        </div>
+      ))}
+      <div className={css.demoRunning}>
+        <span
+          className={css.demoMarkSlot}
+          style={{ width: settings.markSize + 8, height: settings.markSize + 8 }}
+        >
+          <WhaleMarkFish
+            size={settings.markSize}
+            motion={settings.markMotion}
+            swing={settings.markSwing}
+            offsetX={settings.markOffsetX}
+            offsetY={settings.markOffsetY}
+            color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
+          />
+        </span>
+        <span
+          className={css.demoRunningLabel}
+          style={{
+            fontSize: settings.markLabelSize,
+            color: settings.labelColorMode === 'custom' ? settings.labelColor : undefined,
+          }}
+        >
+          {t('runningLabel')}
+        </span>
+      </div>
     </div>
   )
 }
@@ -747,10 +801,14 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       }
       demoHost = document.createElement('div')
       demoHost.className = css.demoHost
+      if (thread.width > 0) {
+        demoHost.style.width = `${thread.width}px`
+        demoHost.style.margin = '0 auto'
+      }
       if (thread.composer !== null) thread.scroll.insertBefore(demoHost, thread.composer)
       else thread.scroll.append(demoHost)
       demoRoot = createRoot(demoHost)
-      demoRoot.render(<DemoTranscript t={live.current.t} />)
+      demoRoot.render(<DemoTranscript t={live.current.t} state={live.current.state} />)
       thread.scroll.scrollTop = 0
     }
     const host = document.createElement('div')
