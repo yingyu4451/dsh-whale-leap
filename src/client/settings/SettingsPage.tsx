@@ -585,6 +585,36 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
       <div className={css.peekBody} ref={bodyRef}>
         {tab === 'background' ? (
           <>
+            <PeekSection title={t('tabPlayback')}>
+              <div className={css.peekGroup}>
+                <ToggleRow
+                  label={t('auto')}
+                  hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
+                  checked={settings.autoAppear}
+                  disabled={disabled}
+                  onChange={actions.setAutoAppear}
+                />
+                <ToggleRow
+                  label={t('playOnSwitch')}
+                  hint={t('playOnSwitchHint')}
+                  checked={settings.playOnSwitch}
+                  disabled={disabled || !settings.autoAppear}
+                  onChange={actions.setPlayOnSwitch}
+                />
+                <SliderRow
+                  id="whale-leap-interval"
+                  label={t('interval')}
+                  hint={t('intervalHint')}
+                  value={settings.intervalSeconds}
+                  min={INTERVAL_RANGE.min}
+                  max={INTERVAL_RANGE.max}
+                  step={INTERVAL_RANGE.step}
+                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                  disabled={disabled || !settings.autoAppear}
+                  onChange={actions.setInterval}
+                />
+              </div>
+            </PeekSection>
             <PeekSection title={t('groupLook')}>
               <div className={css.peekGroup}>
             <ColorPickerRow
@@ -724,36 +754,6 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onToggle={actions.setFillStyle}
             />
             <p className={css.note}>{t('fillStyleHint')}</p>
-              </div>
-            </PeekSection>
-            <PeekSection title={t('tabPlayback')}>
-              <div className={css.peekGroup}>
-                <ToggleRow
-                  label={t('auto')}
-                  hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
-                  checked={settings.autoAppear}
-                  disabled={disabled}
-                  onChange={actions.setAutoAppear}
-                />
-                <ToggleRow
-                  label={t('playOnSwitch')}
-                  hint={t('playOnSwitchHint')}
-                  checked={settings.playOnSwitch}
-                  disabled={disabled || !settings.autoAppear}
-                  onChange={actions.setPlayOnSwitch}
-                />
-                <SliderRow
-                  id="whale-leap-interval"
-                  label={t('interval')}
-                  hint={t('intervalHint')}
-                  value={settings.intervalSeconds}
-                  min={INTERVAL_RANGE.min}
-                  max={INTERVAL_RANGE.max}
-                  step={INTERVAL_RANGE.step}
-                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                  disabled={disabled || !settings.autoAppear}
-                  onChange={actions.setInterval}
-                />
               </div>
             </PeekSection>
           </>
