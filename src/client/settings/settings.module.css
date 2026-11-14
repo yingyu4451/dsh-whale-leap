@@ -884,22 +884,21 @@
 .peekSection {
   display: flex;
   flex-direction: column;
-  padding: 0;
-  border: none;
-  border-radius: 0;
+  padding: 2px 12px 8px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
   background: transparent;
 }
 
 .peekSection + .peekSection {
-  margin-top: 4px;
-  border-top: 0.5px solid var(--dsw-alias-border-l2);
+  margin-top: 10px;
 }
 
 .peekSectionTitle {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 14px 0 4px;
+  padding: 8px 0 4px;
   color: var(--dsw-alias-label-primary);
   font-size: 14px;
   line-height: 22px;
@@ -907,7 +906,7 @@
 }
 
 .peekSection:first-child .peekSectionTitle {
-  padding-top: 2px;
+  padding-top: 6px;
 }
 
 .peekGroup .subTitle {
