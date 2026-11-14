@@ -132,6 +132,11 @@ const zh = {
   updateTimeout: '连接 GitHub 超时，请检查网络或代理后重试。',
   noRelease: 'GitHub 上还没有发布版本，暂时无法检查更新。',
   viewVersion: "查看发布页",
+  upgrade: '升级',
+  upgrading: '正在安装…',
+  upgradeRestart: '已升级到 v{version}，重启 dsh web 后生效。',
+  upgradeFailed: '升级失败：{error}',
+  upgradeDismiss: '关闭',
 }
 
 /** Keys shared by every dictionary. */
@@ -264,6 +269,11 @@ const en: Record<LocaleKey, string> = {
   updateTimeout: 'GitHub did not respond in time. Check your network or proxy and try again.',
   noRelease: 'No release on GitHub yet, so updates cannot be checked.',
   viewVersion: "View release",
+  upgrade: 'Upgrade',
+  upgrading: 'Installing…',
+  upgradeRestart: 'Upgraded to v{version}. Restart dsh web to activate it.',
+  upgradeFailed: 'Upgrade failed: {error}',
+  upgradeDismiss: 'Close',
 }
 
 /** Japanese dictionary. */
@@ -393,6 +403,11 @@ const ja: Record<LocaleKey, string> = {
   updateTimeout: 'GitHub への接続がタイムアウトしました。ネットワークまたはプロキシを確認して再試行してください。',
   noRelease: 'GitHub にまだリリースがないため、更新を確認できません。',
   viewVersion: "リリースを見る",
+  upgrade: 'アップグレード',
+  upgrading: 'インストール中…',
+  upgradeRestart: 'v{version} にアップグレードしました。dsh web を再起動すると有効になります。',
+  upgradeFailed: 'アップグレードに失敗しました: {error}',
+  upgradeDismiss: '閉じる',
 }
 
 /** Spanish dictionary. */
@@ -522,6 +537,11 @@ const es: Record<LocaleKey, string> = {
   updateTimeout: 'GitHub no respondió a tiempo. Revisa la red o el proxy e inténtalo de nuevo.',
   noRelease: 'Aún no hay una versión publicada en GitHub, así que no se pueden comprobar actualizaciones.',
   viewVersion: "Ver la versión",
+  upgrade: 'Actualizar',
+  upgrading: 'Instalando…',
+  upgradeRestart: 'Actualizado a v{version}. Reinicia dsh web para activarlo.',
+  upgradeFailed: 'Error al actualizar: {error}',
+  upgradeDismiss: 'Cerrar',
 }
 
 /** French dictionary. */
@@ -651,6 +671,11 @@ const fr: Record<LocaleKey, string> = {
   updateTimeout: "GitHub n'a pas répondu à temps. Vérifiez le réseau ou le proxy puis réessayez.",
   noRelease: "Aucune version publiée sur GitHub pour l'instant ; impossible de vérifier les mises à jour.",
   viewVersion: "Voir la version",
+  upgrade: 'Mettre à jour',
+  upgrading: 'Installation…',
+  upgradeRestart: 'Mis à jour vers v{version}. Redémarrez dsh web pour l’activer.',
+  upgradeFailed: 'Échec de la mise à jour : {error}',
+  upgradeDismiss: 'Fermer',
 }
 
 /** German dictionary. */
@@ -780,6 +805,11 @@ const de: Record<LocaleKey, string> = {
   updateTimeout: 'GitHub hat nicht rechtzeitig geantwortet. Prüfe Netzwerk oder Proxy und versuche es erneut.',
   noRelease: 'Noch keine Veröffentlichung auf GitHub, Updates können nicht geprüft werden.',
   viewVersion: "Version ansehen",
+  upgrade: 'Aktualisieren',
+  upgrading: 'Wird installiert…',
+  upgradeRestart: 'Auf v{version} aktualisiert. dsh web neu starten, um es zu aktivieren.',
+  upgradeFailed: 'Aktualisierung fehlgeschlagen: {error}',
+  upgradeDismiss: 'Schließen',
 }
 
 /** Russian dictionary. */
@@ -909,6 +939,11 @@ const ru: Record<LocaleKey, string> = {
   updateTimeout: 'GitHub не ответил вовремя. Проверьте сеть или прокси и повторите.',
   noRelease: 'На GitHub ещё нет релиза, поэтому обновления проверить нельзя.',
   viewVersion: "Открыть релиз",
+  upgrade: 'Обновить',
+  upgrading: 'Установка…',
+  upgradeRestart: 'Обновлено до v{version}. Перезапустите dsh web, чтобы активировать.',
+  upgradeFailed: 'Не удалось обновить: {error}',
+  upgradeDismiss: 'Закрыть',
 }
 
 /** Portuguese dictionary. */
@@ -1038,6 +1073,11 @@ const pt: Record<LocaleKey, string> = {
   updateTimeout: 'O GitHub não respondeu a tempo. Verifique a rede ou o proxy e tente novamente.',
   noRelease: 'Ainda não há uma versão publicada no GitHub; não é possível verificar atualizações.',
   viewVersion: "Ver a versão",
+  upgrade: 'Atualizar',
+  upgrading: 'Instalando…',
+  upgradeRestart: 'Atualizado para v{version}. Reinicie o dsh web para ativar.',
+  upgradeFailed: 'Falha na atualização: {error}',
+  upgradeDismiss: 'Fechar',
 }
 
 /** All dictionaries registered with the client locale service. */

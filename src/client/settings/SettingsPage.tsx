@@ -17,6 +17,7 @@ import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { RunningTail } from '../whale/RunningTail.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
+import type { UpgradeHandle } from '../upgrade.js'
 import css from './settings.module.css'
 
 /** Translation function handed in by the slot locale binding. */
@@ -95,6 +96,8 @@ export interface SettingsPageProps {
   state: Store<WhaleSettingsState>
   /** Write callbacks. */
   actions: SettingsPageActions
+  /** In-place upgrade path; absent when the plugin manager is unavailable. */
+  upgrade?: UpgradeHandle
 }
 
 /** Tabs of the floating live preview panel. */
@@ -134,6 +137,62 @@ const POD_TIMING_LABELS: Record<WhalePodTiming, LocaleKey> = {
 function formatOffsetPx(px: number): string {
   const rounded = Number.isInteger(px) ? String(px) : px.toFixed(1)
   return `${px > 0 ? '+' : ''}${rounded}px`
+}
+
+/** One action rendered inside the floating upgrade status toast. */
+interface UpgradeToastAction {
+  label: string
+  primary?: boolean
+  onClick: () => void
+}
+
+/** Handle returned by `showUpgradeToast`. */
+interface UpgradeToast {
+  set(message: string, actions?: UpgradeToastAction[]): void
+  close(): void
+}
+
+/**
+ * A status toast that lives outside this component's tree.
+ *
+ * The plugin manager removes and reinstalls the profile package while the
+ * upgrade runs, so the settings section may unmount before the result arrives.
+ * A plain body-level element keeps the progress and the outcome visible.
+ * @param message - initial message.
+ * @returns toast handle.
+ */
+function showUpgradeToast(message: string): UpgradeToast {
+  const host = document.createElement('div')
+  host.dataset.whaleLeapUpgradeToast = ''
+  host.setAttribute('role', 'status')
+  host.style.cssText =
+    'position:fixed;right:20px;bottom:24px;z-index:2147483000;display:flex;flex-direction:column;gap:10px;max-width:420px;padding:14px 16px;border-radius:12px;background:var(--dsw-alias-bg-elevated,#fff);color:var(--dsw-alias-label-primary,#111);border:1px solid var(--dsw-alias-border-secondary,rgba(0,0,0,.12));box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13px;line-height:1.5'
+  const text = document.createElement('span')
+  text.textContent = message
+  const actions = document.createElement('div')
+  actions.style.cssText = 'display:flex;gap:8px;justify-content:flex-end'
+  host.append(text, actions)
+  document.body.append(host)
+  return {
+    set(nextMessage: string, nextActions: UpgradeToastAction[] = []): void {
+      text.textContent = nextMessage
+      actions.replaceChildren(
+        ...nextActions.map(action => {
+          const button = document.createElement('button')
+          button.type = 'button'
+          button.textContent = action.label
+          button.style.cssText = action.primary === true
+            ? 'padding:5px 12px;border-radius:8px;border:none;background:var(--dsw-alias-bg-accent,#345ebe);color:var(--dsw-alias-label-inverse,#fff);font-size:12px;cursor:pointer'
+            : 'padding:5px 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-secondary,rgba(0,0,0,.16));background:transparent;color:inherit;font-size:12px;cursor:pointer'
+          button.addEventListener('click', action.onClick)
+          return button
+        }),
+      )
+    },
+    close(): void {
+      host.remove()
+    },
+  }
 }
 
 /** One labelled settings row. */
@@ -1008,8 +1067,12 @@ function DemoTranscript({ t }: { t: Translate }) {
  * @param props.actions - write callbacks.
  * @returns the page.
  */
-export function SettingsPage({ t, state, actions }: SettingsPageProps) {
+export function SettingsPage({ t, state, actions, upgrade }: SettingsPageProps) {
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
+  const [upgradeState, setUpgradeState] = useState<{
+    phase: 'idle' | 'running' | 'done' | 'failed'
+    message?: string
+  }>({ phase: 'idle' })
   const rootRef = useRef<HTMLElement | null>(null)
   const [peeking, setPeeking] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
@@ -1193,9 +1256,55 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
   }, [peeking])
 
   const checkForUpdates = useCallback(async (): Promise<void> => {
+    setUpgradeState({ phase: 'idle' })
     setUpdate({ status: 'checking' })
     setUpdate(await checkForUpdate())
   }, [])
+
+  // Installing replaces this very bundle: the manager removes the profile
+  // package, installs the pinned release and lets HMR pick up the new build. The
+  // settings section may unmount before the reply lands, so progress and the
+  // outcome go into a body-level toast that survives the unmount.
+  const installUpdate = useCallback(
+    async (version: string): Promise<void> => {
+      if (upgrade === undefined) return
+      // Installing replaces this very bundle: the manager removes the profile
+      // package, installs the pinned release and lets HMR pick up the new build.
+      // The settings section (and its locale bindings) may be disposed before the
+      // reply lands, so translate every label before the request and show the
+      // outcome in a body-level toast that survives the unmount.
+      const runningText = t('upgrading')
+      const dismissLabel = t('upgradeDismiss')
+      const restartText = t('upgradeRestart', { version })
+      const failedTemplate = t('upgradeFailed', { error: '__WHALE_UPGRADE_ERROR__' })
+      const failureText = (message: string): string =>
+        failedTemplate.replace('__WHALE_UPGRADE_ERROR__', message)
+      const toast = showUpgradeToast(runningText)
+      const dismiss = { label: dismissLabel, onClick: () => toast.close() }
+      setUpgradeState({ phase: 'running' })
+      let outcome
+      try {
+        outcome = await upgrade.install(version)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        toast.set(failureText(message), [dismiss])
+        setUpgradeState({ phase: 'failed', message })
+        return
+      }
+      if (outcome.status === 'ok') {
+        // The running host keeps serving the modules it resolved at startup, so
+        // the refreshed page would still run the previous build: the new version
+        // only loads after `dsh web` restarts.
+        setUpgradeState({ phase: 'done', message: 'restart' })
+        toast.set(restartText, [dismiss])
+        return
+      }
+      const message = outcome.message ?? outcome.status
+      toast.set(failureText(message), [dismiss])
+      setUpgradeState({ phase: 'failed', message })
+    },
+    [t, upgrade],
+  )
 
   let updateNotice = ''
   if (update.status === 'latest' && update.latest !== undefined) {
@@ -1219,6 +1328,18 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
     update.status === 'rate-limited' ||
     update.status === 'network' ||
     update.status === 'timeout'
+  const upgradeVersion = update.status === 'available' ? update.latest : undefined
+  const canUpgrade = upgradeVersion !== undefined && upgrade !== undefined
+  let upgradeNotice = updateNotice
+  if (canUpgrade) {
+    if (upgradeState.phase === 'running') {
+      upgradeNotice = t('upgrading')
+    } else if (upgradeState.phase === 'done') {
+      upgradeNotice = t('upgradeRestart', { version: upgradeVersion })
+    } else if (upgradeState.phase === 'failed') {
+      upgradeNotice = t('upgradeFailed', { error: upgradeState.message ?? upgradeState.phase })
+    }
+  }
 
   return (
     <section className={css.section} ref={rootRef} data-whale-leap-settings>
@@ -1230,7 +1351,7 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
           <button
             type="button"
             className={css.updateButton}
-            disabled={update.status === 'checking'}
+            disabled={update.status === 'checking' || upgradeState.phase === 'running'}
             onClick={() => {
               void checkForUpdates()
             }}
@@ -1246,22 +1367,53 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
           </button>
         </div>
         <p className={css.intro}>{t('intro')}</p>
-        {(updateNotice !== '' || canOpenReleases) && (
+        {canUpgrade ? (
           <div className={css.updateRow}>
-            <span className={css.updateNotice} role="status" data-status={update.status}>
-              {updateNotice}
+            <span
+              className={css.updateNotice}
+              role="status"
+              data-status={
+                upgradeState.phase === 'running'
+                  ? 'upgrading'
+                  : upgradeState.phase === 'done'
+                    ? 'upgraded'
+                    : upgradeState.phase === 'failed'
+                      ? 'failed'
+                      : update.status
+              }
+            >
+              {upgradeNotice}
             </span>
-            {canOpenReleases && (
-              <a
-                className={css.updateLink}
-                href={update.url ?? RELEASES_URL}
-                target="_blank"
-                rel="noreferrer"
+            {(upgradeState.phase === 'idle' || upgradeState.phase === 'failed') && (
+              <button
+                type="button"
+                className={css.updateButton}
+                onClick={() => {
+                  void installUpdate(upgradeVersion ?? '')
+                }}
               >
-                {t('viewVersion')}
-              </a>
+                {t('upgrade')}
+              </button>
             )}
           </div>
+        ) : (
+          (updateNotice !== '' || canOpenReleases) && (
+            <div className={css.updateRow}>
+              <span className={css.updateNotice} role="status" data-status={update.status}>
+                {updateNotice}
+              </span>
+              {canOpenReleases && (
+                <a
+                  className={css.updateLink}
+                  href={update.url ?? RELEASES_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {t('viewVersion')}
+                </a>
+              )}
+            </div>
+          )
         )}
       </header>
       </div>

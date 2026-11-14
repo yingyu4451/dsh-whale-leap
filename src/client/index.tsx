@@ -8,6 +8,7 @@
  */
 import { DICTIONARIES } from './i18n.js'
 import { SettingsPage, type SettingsPageActions } from './settings/SettingsPage.js'
+import { createUpgradeController, type UpgradeManager } from './upgrade.js'
 import { installDomMark } from './whale/dom-mark.js'
 import { RunningMark } from './whale/RunningMark.js'
 import { applyRunningLabelStyle } from './whale/running-label.js'
@@ -39,6 +40,11 @@ interface ClientContext extends RuntimeContextLike {
   configForms: { get(id: string): SettingsFormLike }
   locale: ClientLocale
   slots: ClientSlots
+  get(name: string): unknown
+  /** Declare service dependencies; the callback runs once they are available. */
+  inject(deps: readonly string[], callback: (ctx: ClientContext) => (() => void) | void): void
+  /** Remote gateway, present when the app exposes it. */
+  remote?: { pluginManager?: UpgradeManager }
 }
 
 /** Bridge the runtime setters to the settings page actions. */
@@ -139,6 +145,18 @@ export function apply(ctx: ClientContext): void {
   const runtime = new WhaleSettingsRuntime(ctx, ctx.configForms.get(SETTINGS_NAMESPACE))
   const state = (): { state: WhaleSettingsRuntime['store'] } => ({ state: runtime.store })
   const actions = pageActions(runtime)
+  // The plugin manager is optional: attach to it when the running build exposes
+  // it and leave the settings page without an upgrade button otherwise. The
+  // dependency is declared lazily (inside an inject scope) instead of in the
+  // plugin's static inject list so builds without the manager still load.
+  let manager: UpgradeManager | undefined
+  ctx.inject(['remote', 'remote.pluginManager'], child => {
+    manager = child.remote?.pluginManager
+    return () => {
+      manager = undefined
+    }
+  })
+  const upgrade = createUpgradeController(() => manager)
 
   ctx.effect(() => ctx.locale.register(LOCALE_NS, DICTIONARIES), 'whale-leap: dictionaries')
 
@@ -219,7 +237,7 @@ export function apply(ctx: ClientContext): void {
         order: 30,
         label: () => ctx.locale.bind(LOCALE_NS)('nav'),
         locale: LOCALE_NS,
-        inject: () => ({ state: runtime.store, actions }),
+        inject: () => ({ state: runtime.store, actions, upgrade }),
       },
       SettingsPage,
     ),

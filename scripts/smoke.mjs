@@ -73,6 +73,15 @@ const ctx = {
       return key => key
     },
   },
+  // Optional services (the plugin manager remote) are adopted through a dynamic
+  // inject scope; the smoke harness has no remote, so the child sees none.
+  inject(_deps, callback) {
+    const cleanup = callback({ get: () => undefined, remote: undefined })
+    if (typeof cleanup === 'function') effects.push(cleanup)
+  },
+  get() {
+    return undefined
+  },
   slots: {
     inject(_name, factory) {
       factory()

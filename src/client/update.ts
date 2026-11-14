@@ -201,6 +201,28 @@ async function mirrorRelease(): Promise<{ version?: string; url?: string }> {
 }
 
 /**
+ * Resolve a released version tag to the commit a pinned install can target.
+ *
+ * The plugin manager installs Git bundles only from a spec pinned to a full
+ * commit, so an upgrade needs the commit behind the release tag rather than the
+ * movable tag name. GitHub resolves refs through the commits API.
+ * @param version - release version such as `0.9.3`.
+ * @returns the full commit SHA, or `undefined` when the tag is unknown.
+ */
+export async function resolveTagCommit(version: string): Promise<string | undefined> {
+  if (!VERSION_PATTERN.test(version)) return undefined
+  for (const ref of [`v${version}`, version]) {
+    const commit = await probe(`${API}/commits/${encodeURIComponent(ref)}`)
+    if (commit.missing === true) continue
+    if (commit.error !== undefined) throw new Error(commit.error)
+    const document = commit.body
+    const sha = typeof document === 'object' && document !== null ? (document as { sha?: unknown }).sha : undefined
+    if (typeof sha === 'string' && /^[0-9a-f]{40}$/iu.test(sha)) return sha
+  }
+  return undefined
+}
+
+/**
  * Ask GitHub whether a newer build exists.
  *
  * Both sources are queried in parallel. The release API wins when it answers so
