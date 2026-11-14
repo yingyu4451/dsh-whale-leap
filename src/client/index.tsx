@@ -74,6 +74,9 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setInterval: seconds => {
       runtime.setInterval(seconds)
     },
+    setRandomInterval: enabled => {
+      runtime.setRandomInterval(enabled)
+    },
     setReplaceMark: enabled => {
       runtime.setReplaceMark(enabled)
     },

@@ -127,10 +127,14 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     whale.current?.setRandomPosition(randomPosition && (!hero || peek))
   }, [randomPosition, hero, peek])
 
-  const { autoAppear, intervalSeconds, playOnSwitch } = settings
+  const { autoAppear, intervalSeconds, playOnSwitch, randomInterval } = settings
   useEffect(() => {
-    whale.current?.setAutoPlay(autoAppear && !hero ? intervalSeconds * 1000 : undefined, playOnSwitch)
-  }, [autoAppear, intervalSeconds, playOnSwitch, hero])
+    whale.current?.setAutoPlay(
+      autoAppear && !hero ? intervalSeconds * 1000 : undefined,
+      playOnSwitch,
+      randomInterval,
+    )
+  }, [autoAppear, intervalSeconds, playOnSwitch, randomInterval, hero])
 
   const onClick = (event: MouseEvent<HTMLDivElement>) => {
     if (isBlankClick(event)) whale.current?.play()

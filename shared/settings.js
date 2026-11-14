@@ -29,6 +29,9 @@ export const AUTO_APPEAR_FIELD = 'autoAppear'
 /** Field holding whether entering a conversation replays the whale at once. */
 export const PLAY_ON_SWITCH_FIELD = 'playOnSwitch'
 
+/** Field holding whether automatic replays use a randomized wait around the interval. */
+export const RANDOM_INTERVAL_FIELD = 'randomInterval'
+
 /** Field holding seconds between automatic replays. */
 export const INTERVAL_FIELD = 'intervalSeconds'
 
@@ -104,8 +107,8 @@ export const SIZE_RANGE = { min: 0.5, max: 1.5, step: 0.05 }
 /** Ink strength bounds; the renderer squares the value against a design gain. */
 export const OPACITY_RANGE = { min: 0.1, max: 1, step: 0.05 }
 
-/** Auto-replay interval bounds in seconds. */
-export const INTERVAL_RANGE = { min: 5, max: 300, step: 5 }
+/** Auto-replay interval bounds in seconds (the picker shows minutes and seconds). */
+export const INTERVAL_RANGE = { min: 5, max: 3599, step: 1 }
 
 /** Running mark size bounds in pixels. */
 export const MARK_SIZE_RANGE = { min: 8, max: 28, step: 1 }
@@ -142,13 +145,14 @@ export const DEFAULT_SETTINGS = {
   opacity: 0.6,
   fillStyles: [...DEFAULT_FILL_STYLES],
   autoAppear: false,
-  playOnSwitch: true,
+  playOnSwitch: false,
   intervalSeconds: 30,
-  replaceMark: true,
+  randomInterval: true,
+  replaceMark: false,
   bgOffsetX: 0,
   bgOffsetY: 0,
   randomPosition: false,
-  podEnabled: true,
+  podEnabled: false,
   depthInk: true,
   podTiming: 'random',
   podSizeMin: 0.34,

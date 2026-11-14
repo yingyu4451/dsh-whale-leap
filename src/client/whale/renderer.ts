@@ -1,5 +1,6 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
 import type { WhaleFillStyle, WhalePodTiming } from '../settings.ts'
+import { nextAutoDelay } from './auto-interval.ts'
 import type { WhaleArtwork } from './artwork.ts'
 import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
 
@@ -147,8 +148,9 @@ export interface PixelWhaleHandle {
    * Enable or disable time-driven replays.
    * @param intervalMs - delay between replays, or undefined to stop them.
    * @param playNow - whether enabling also replays once immediately.
+   * @param random - whether each wait varies between half and one-and-a-half intervals.
    */
-  setAutoPlay: (intervalMs: number | undefined, playNow?: boolean) => void
+  setAutoPlay: (intervalMs: number | undefined, playNow?: boolean, random?: boolean) => void
   /**
    * Cap the render resolution while the settings preview loops the whale.
    * @param active - whether preview rendering is active.
@@ -229,7 +231,8 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let code: ReturnType<typeof createCodeFill> | undefined
   let codeMode: WhaleTextureMode | undefined
   let autoInterval: number | undefined
-  let autoTimer: ReturnType<typeof setInterval> | undefined
+  let autoRandom = false
+  let autoTimer: ReturnType<typeof setTimeout> | undefined
   let randomMode = false
   let podEnabled = true
   let depthInkOn = true
@@ -770,18 +773,39 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     }
   }
 
-  function setAutoPlay(intervalMs: number | undefined, playNow = true): void {
-    if (disposed) return
-    const next = intervalMs === undefined || intervalMs <= 0 ? undefined : intervalMs
+  function clearAutoTimer(): void {
     if (autoTimer !== undefined) {
-      clearInterval(autoTimer)
+      clearTimeout(autoTimer)
       autoTimer = undefined
     }
+  }
+
+  function scheduleAutoPlay(): void {
+    clearAutoTimer()
+    const base = autoInterval
+    if (base === undefined) return
+    // Random mode keeps the configured interval as the average and varies each
+    // wait between half and one-and-a-half intervals, so replays never feel
+    // metronomic. The helper enforces a short floor against burst firing.
+    const wait = nextAutoDelay(base, autoRandom)
+    autoTimer = setTimeout(() => {
+      autoTimer = undefined
+      if (disposed || autoInterval === undefined) return
+      play()
+      scheduleAutoPlay()
+    }, wait)
+  }
+
+  function setAutoPlay(intervalMs: number | undefined, playNow = true, random = false): void {
+    if (disposed) return
+    const next = intervalMs === undefined || intervalMs <= 0 ? undefined : intervalMs
+    clearAutoTimer()
     const enabling = next !== undefined && autoInterval === undefined
     autoInterval = next
+    autoRandom = random
     if (next === undefined) return
     if (enabling && playNow) play()
-    autoTimer = setInterval(play, next)
+    scheduleAutoPlay()
   }
 
   function setPreview(active: boolean): void {
@@ -847,10 +871,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     disposed = true
     stop()
     scenes = []
-    if (autoTimer !== undefined) {
-      clearInterval(autoTimer)
-      autoTimer = undefined
-    }
+    clearAutoTimer()
     autoInterval = undefined
     cancelAnimationFrame(layoutFrame)
     layoutFrame = 0

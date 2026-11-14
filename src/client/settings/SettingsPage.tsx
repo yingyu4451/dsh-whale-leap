@@ -45,6 +45,8 @@ export interface SettingsPageActions {
   setPlayOnSwitch: (enabled: boolean) => void
   /** Set the replay interval. */
   setInterval: (seconds: number) => void
+  /** Randomize each wait around the replay interval. */
+  setRandomInterval: (enabled: boolean) => void
   /** Replace the shipped running icon with the fish mark. */
   setReplaceMark: (enabled: boolean) => void
   /** Switch the running mark color source. */
@@ -249,6 +251,74 @@ function SliderRow(props: {
             }}
           />
           <span className={css.sliderValue}>{props.display}</span>
+        </span>
+      }
+    />
+  )
+}
+
+/**
+ * One row with minute and second dropdowns for the automatic replay interval.
+ *
+ * A dropdown of minutes plus seconds reads the interval directly instead of
+ * squeezing a range into a slider, so long waits stay precise. With zero
+ * minutes the seconds list starts at the minimum interval, keeping the stored
+ * value valid.
+ */
+function IntervalRow(props: {
+  id: string
+  label: string
+  hint?: string
+  seconds: number
+  disabled: boolean
+  minuteUnit: string
+  secondUnit: string
+  onChange: (seconds: number) => void
+}) {
+  const total = Math.max(INTERVAL_RANGE.min, Math.min(INTERVAL_RANGE.max, Math.round(props.seconds)))
+  const minutes = Math.floor(total / 60)
+  const rest = total % 60
+  const minuteOptions = Array.from({ length: Math.floor(INTERVAL_RANGE.max / 60) + 1 }, (_, index) => index)
+  const secondOptions = Array.from({ length: 60 }, (_, index) => index)
+    .filter(second => minutes > 0 || second >= INTERVAL_RANGE.min)
+  return (
+    <Row
+      stack
+      label={props.label}
+      hint={props.hint}
+      control={
+        <span className={css.intervalFields}>
+          <select
+            id={props.id}
+            className={css.intervalSelect}
+            aria-label={`${props.label} ${props.minuteUnit}`}
+            value={minutes}
+            disabled={props.disabled}
+            onChange={event => {
+              const nextMinutes = Number(event.target.value)
+              const nextRest = nextMinutes === 0 ? Math.max(INTERVAL_RANGE.min, rest) : rest
+              props.onChange(nextMinutes * 60 + nextRest)
+            }}
+          >
+            {minuteOptions.map(minute => (
+              <option key={minute} value={minute}>{minute}</option>
+            ))}
+          </select>
+          <span className={css.intervalUnit}>{props.minuteUnit}</span>
+          <select
+            className={css.intervalSelect}
+            aria-label={`${props.label} ${props.secondUnit}`}
+            value={rest}
+            disabled={props.disabled}
+            onChange={event => {
+              props.onChange(minutes * 60 + Number(event.target.value))
+            }}
+          >
+            {secondOptions.map(second => (
+              <option key={second} value={second}>{second}</option>
+            ))}
+          </select>
+          <span className={css.intervalUnit}>{props.secondUnit}</span>
         </span>
       }
     />
@@ -639,17 +709,22 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   disabled={disabled || !settings.autoAppear}
                   onChange={actions.setPlayOnSwitch}
                 />
-                <SliderRow
+                <IntervalRow
                   id="whale-leap-interval"
                   label={t('interval')}
                   hint={t('intervalHint')}
-                  value={settings.intervalSeconds}
-                  min={INTERVAL_RANGE.min}
-                  max={INTERVAL_RANGE.max}
-                  step={INTERVAL_RANGE.step}
-                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                  seconds={settings.intervalSeconds}
+                  minuteUnit={t('minutesUnit')}
+                  secondUnit={t('secondsUnit')}
                   disabled={disabled || !settings.autoAppear}
                   onChange={actions.setInterval}
+                />
+                <ToggleRow
+                  label={t('randomInterval')}
+                  hint={t('randomIntervalHint')}
+                  checked={settings.randomInterval}
+                  disabled={disabled || !settings.autoAppear}
+                  onChange={actions.setRandomInterval}
                 />
               </div>
             </PeekSection>

@@ -37,6 +37,8 @@ export interface WhaleSettings {
   playOnSwitch: boolean
   /** Seconds between automatic replays. */
   intervalSeconds: number
+  /** Whether each automatic replay waits a randomized multiple of the interval. */
+  randomInterval: boolean
   /** Whether the plugin's fish replaces the shipped running mark. */
   replaceMark: boolean
   /** Background scene horizontal start offset in pixels. */

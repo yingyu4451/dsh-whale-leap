@@ -46,6 +46,8 @@ export const Config = z.object({
   playOnSwitch: z.boolean().default(DEFAULT_SETTINGS.playOnSwitch).volatile(),
   /** Seconds between automatic replays. */
   intervalSeconds: z.number().step(INTERVAL_RANGE.step).min(INTERVAL_RANGE.min).max(INTERVAL_RANGE.max).default(DEFAULT_SETTINGS.intervalSeconds).volatile(),
+  /** Whether each automatic replay waits a randomized multiple of the interval. */
+  randomInterval: z.boolean().default(DEFAULT_SETTINGS.randomInterval).volatile(),
   /** Whether the plugin's fish replaces the shipped running mark. */
   replaceMark: z.boolean().default(DEFAULT_SETTINGS.replaceMark).volatile(),
   /** Background scene horizontal start offset in pixels. */

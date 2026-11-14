@@ -212,6 +212,15 @@ export class WhaleSettingsRuntime {
   }
 
   /**
+   * Enable or disable a randomized wait around the replay interval.
+   * @param enabled - whether each wait varies around the interval.
+   */
+  setRandomInterval(enabled: boolean): void {
+    this.patch({ randomInterval: enabled })
+    this.commit('randomInterval', enabled)
+  }
+
+  /**
    * Enable or disable replacing the shipped running mark.
    * @param enabled - whether the plugin's fish takes the mark's place.
    */
