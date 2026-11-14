@@ -15,7 +15,7 @@ import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { WHALE_ARTWORK } from '../whale/artwork.js'
 import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
-import { PEEK_INTERVAL_MS, PEEK_PLAY_EVENT, replayPeek, setPeekMode } from '../whale/peek.js'
+import { PEEK_INTERVAL_MS, replayPeek, setPeekMode } from '../whale/peek.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
@@ -358,94 +358,6 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
 }
 
 /**
- * Simulated conversation shown while the live preview is open. It draws a mock
- * chat window over the current page so appearance changes can be judged in a
- * conversation-like context; no real conversation data is read or modified.
- * @param props.t - locale-bound translator.
- * @param props.state - live whale settings.
- * @returns the simulated scene.
- */
-function SimConversation({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
-  const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
-  const whale = useRef<PixelWhaleHandle | undefined>(undefined)
-  const node = useRef<HTMLCanvasElement | null>(null)
-  const latest = useRef(settings)
-  latest.current = settings
-
-  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
-    whale.current?.dispose()
-    node.current = canvas
-    if (canvas === null) {
-      whale.current = undefined
-      return
-    }
-    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL, 'local')
-    whale.current = handle
-    handle.prefetch()
-    const current = latest.current
-    handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size, offsetX: current.bgOffsetX, offsetY: current.bgOffsetY })
-    handle.setFillStyles(current.fillStyles)
-    handle.setAutoPlay(PREVIEW_INTERVAL_MS)
-  }, [])
-
-  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY } = settings
-  useEffect(() => {
-    whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
-  }, [opacity, size, bgOffsetX, bgOffsetY])
-
-  const fillStyleKey = fillStyles.join(',')
-  useEffect(() => {
-    whale.current?.setFillStyles(fillStyles)
-  }, [fillStyleKey])
-
-  useEffect(() => {
-    const canvas = node.current
-    if (canvas === null) return
-    const custom = colorMode === 'custom'
-    canvas.style.color = custom ? customColor : ''
-    canvas.style.setProperty('--home-whale-code-ink', custom ? customColor : '')
-  }, [colorMode, customColor])
-
-  useEffect(() => {
-    const replay = (): void => {
-      whale.current?.play()
-    }
-    window.addEventListener(PEEK_PLAY_EVENT, replay)
-    return () => {
-      window.removeEventListener(PEEK_PLAY_EVENT, replay)
-    }
-  }, [])
-
-  return (
-    <div className={css.simScene} aria-hidden="true">
-      <div className={css.simWindow}>
-        <canvas ref={canvasRef} className={css.simCanvas} />
-        <div className={css.simChrome}>
-          <span className={css.simDots} aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className={css.simTitle}>{t('simTitle')}</span>
-        </div>
-        <div className={css.simChat}>
-          <div className={css.simUser}>{t('simUser')}</div>
-          <div className={css.simReply}>{t('simReply')}</div>
-          <div className={css.simRunning}>
-            <span className={css.simRunningIcon} aria-hidden="true" />
-            {t('runningLabel')}
-          </div>
-          <div className={css.simComposer}>
-            <span className={css.simComposerText}>{t('simPlaceholder')}</span>
-            <span className={css.simComposerSend} aria-hidden="true" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/**
  * Multi-select fill-style buttons. Every enabled style takes part in the
  * playback rotation, and the last enabled style cannot be switched off.
  * @param props.t - locale-bound translator.
@@ -785,17 +697,14 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     document.body.append(host)
     const root = createRoot(host)
     root.render(
-      <>
-        <SimConversation t={live.current.t} state={live.current.state} />
-        <PeekBar
-          t={live.current.t}
-          state={live.current.state}
-          actions={live.current.actions}
-          onReturn={() => {
-            setPeeking(false)
-          }}
-        />
-      </>,
+      <PeekBar
+        t={live.current.t}
+        state={live.current.state}
+        actions={live.current.actions}
+        onReturn={() => {
+          setPeeking(false)
+        }}
+      />,
     )
     setPeekMode(true)
     const onKey = (event: KeyboardEvent): void => {
