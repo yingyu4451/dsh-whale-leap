@@ -312,6 +312,56 @@
   background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
 }
 
+.entryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-xl);
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+.entryHint {
+  margin: 0;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.entryCard .stageLive {
+  height: 30px;
+  padding: 0 14px;
+  font-size: 13px;
+  line-height: 20px;
+  border-radius: var(--dsw-radius-md);
+}
+
+.randomButton {
+  height: 26px;
+  padding: 0 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  line-height: 18px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.randomButton:hover {
+  border-color: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-state-business-primary);
+}
+
+.randomButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .stageHint {
   position: absolute;
   right: 10px;

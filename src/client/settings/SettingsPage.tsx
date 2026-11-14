@@ -1,11 +1,10 @@
 /**
  * Settings page of the whale-leap plugin.
  *
- * The page keeps only playback controls plus a preview stage per tab; every
- * appearance control lives in the floating {@link PeekBar}, which is opened by
- * the 实时预览 button and lets the background and running icon be tuned against
- * the real conversation. Controls are disabled when the Host reports the
- * section as read-only.
+ * The page is only an entry point: every appearance and playback control lives
+ * in the floating {@link PeekBar}, which is opened by the 实时预览 button and
+ * lets the background and running icon be tuned against the real conversation.
+ * Controls are disabled when the Host reports the section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -13,20 +12,17 @@ import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_S
 import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
-import { WHALE_ARTWORK } from '../whale/artwork.js'
-import { attachPixelWhale, type PixelWhaleHandle } from '../whale/renderer.js'
-import { PEEK_INTERVAL_MS, replayPeek, setPeekMode } from '../whale/peek.js'
+import { replayPeek, setPeekMode } from '../whale/peek.js'
 import { WhaleMarkFish } from '../whale/WhaleMarkFish.js'
 import { PLUGIN_VERSION } from '../version.js'
 import { RELEASES_URL, checkForUpdate, type UpdateResult } from '../update.js'
-import { ATLAS_URL } from '../atlas.js'
 import css from './settings.module.css'
 
 /** Translation function handed in by the slot locale binding. */
 type Translate = (key: LocaleKey, params?: Record<string, unknown>) => string
 
-/** Settings tab identifiers. */
-export type Tab = 'background' | 'mark'
+/** Tab identifiers of the live preview panel. */
+type PeekTab = 'background' | 'mark' | 'playback'
 
 /** Write callbacks the page calls on user input. */
 export interface SettingsPageActions {
@@ -84,14 +80,13 @@ export interface SettingsPageProps {
   state: Store<WhaleSettingsState>
   /** Write callbacks. */
   actions: SettingsPageActions
-  /** Tab shown first; the settings host always opens the background tab. */
-  initialTab?: Tab
 }
 
-/** Settings tabs. */
-const TABS: readonly { value: Tab; label: LocaleKey }[] = [
+/** Tabs of the floating live preview panel. */
+const PEEK_TABS: readonly { value: PeekTab; label: LocaleKey }[] = [
   { value: 'background', label: 'tabBackground' },
   { value: 'mark', label: 'tabMark' },
+  { value: 'playback', label: 'tabPlayback' },
 ]
 
 /** Labels for the motion presets. */
@@ -111,11 +106,12 @@ const FRAME_LABELS: Record<WhaleFillStyle, LocaleKey> = {
   lines: 'frameLines',
 }
 
-/** Replay cadence of the background preview stage. */
-const PREVIEW_INTERVAL_MS = 4200
-
-/** The preview stage draws a smaller scene than the real conversation background. */
-const PREVIEW_SCALE = 0.8
+/**
+ * Edge fraction of the rendered scene that the atlas frames keep sparse
+ * particles in. Random placement targets the inner part so the whale itself
+ * stays visible while the canvas edges only clip stray particles.
+ */
+const WHALE_INSET = 0.2
 
 /**
  * Format a start offset for the slider value label.
@@ -143,16 +139,6 @@ function Row({ label, hint, control, stack = false }: {
       </div>
       <div className={css.control}>{control}</div>
     </div>
-  )
-}
-
-/** One titled group of related settings. */
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className={css.group} aria-label={title}>
-      <h3 className={css.groupTitle}>{title}</h3>
-      <div className={css.card}>{children}</div>
-    </section>
   )
 }
 
@@ -299,65 +285,6 @@ function ToggleRow(props: { label: string; hint: string; checked: boolean; disab
 }
 
 /**
- * Live background preview: a real whale canvas that replays on a fixed cadence.
- * @param props.settings - live settings.
- * @returns the preview canvas.
- */
-function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState; replayToken: number }) {
-  const whale = useRef<PixelWhaleHandle | undefined>(undefined)
-  const node = useRef<HTMLCanvasElement | null>(null)
-  const latest = useRef(settings)
-  latest.current = settings
-
-  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
-    whale.current?.dispose()
-    node.current = canvas
-    if (canvas === null) {
-      whale.current = undefined
-      return
-    }
-    const handle = attachPixelWhale(canvas, WHALE_ARTWORK, ATLAS_URL, 'local')
-    whale.current = handle
-    handle.prefetch()
-    const current = latest.current
-    handle.update({ ...WHALE_ARTWORK, activeOpacity: current.opacity, scale: current.size * PREVIEW_SCALE, offsetX: current.bgOffsetX, offsetY: current.bgOffsetY })
-    handle.setFillStyles(current.fillStyles)
-    handle.setAutoPlay(PREVIEW_INTERVAL_MS)
-  }, [])
-
-  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY } = settings
-  useEffect(() => {
-    const handle = whale.current
-    if (handle === undefined) return
-    handle.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size * PREVIEW_SCALE, offsetX: bgOffsetX, offsetY: bgOffsetY })
-    handle.play()
-  }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
-
-  const fillStyleKey = fillStyles.join(',')
-  useEffect(() => {
-    const handle = whale.current
-    if (handle === undefined) return
-    handle.setFillStyles(fillStyles)
-    handle.play()
-  }, [fillStyleKey])
-
-  useEffect(() => {
-    if (replayToken === 0) return
-    whale.current?.play()
-  }, [replayToken])
-
-  useEffect(() => {
-    const canvas = node.current
-    if (canvas === null) return
-    const custom = colorMode === 'custom'
-    canvas.style.color = custom ? customColor : ''
-    canvas.style.setProperty('--home-whale-code-ink', custom ? customColor : '')
-  }, [colorMode, customColor])
-
-  return <canvas ref={canvasRef} className={css.stageCanvas} aria-hidden="true" />
-}
-
-/**
  * Multi-select fill-style buttons. Every enabled style takes part in the
  * playback rotation, and the last enabled style cannot be switched off.
  * @param props.t - locale-bound translator.
@@ -396,6 +323,42 @@ function FillStyleButtons({ t, styles, disabled, onToggle }: {
 }
 
 /**
+ * Pick a random background offset that keeps the whole whale scene visible.
+ *
+ * The range mirrors the renderer's fit math (`scene = clamp(...) * size` and the
+ * offset unit `width / 1000`), so any pick keeps the whale's core inside the
+ * canvas instead of letting the animation clip at an edge. The atlas frames
+ * carry sparse edge particles, so the fit targets the inner `WHALE_INSET` of the
+ * scene rather than its exact bounding box (which is always canvas-sized).
+ * @param settings - live whale settings.
+ * @returns offsets in settings units, or null when no conversation canvas is mounted.
+ */
+function randomBackgroundOffset(settings: WhaleSettingsState): { x: number; y: number } | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-whale-layer] canvas')
+  if (canvas === null) return null
+  const width = canvas.clientWidth
+  const height = canvas.clientHeight
+  if (width <= 0 || height <= 0) return null
+  const sceneWidth = Math.min(Math.max(width * 0.94, 720), height * 1.6, 1120) * 1.12 * settings.size
+  const sceneHeight = sceneWidth * 0.5625
+  const baseLeft = (width - sceneWidth) / 2
+  const baseTop = height * 0.43 - sceneHeight / 2
+  const unit = width / 1000
+  const inset = WHALE_INSET
+  const coreWidth = sceneWidth * (1 - inset * 2)
+  const coreHeight = sceneHeight * (1 - inset * 2)
+  const fit = (min: number, max: number): number => {
+    if (max < min) return Math.round((min + max) / 2)
+    return Math.round(min + Math.random() * (max - min))
+  }
+  const x = fit((-baseLeft - inset * sceneWidth) / unit, (width - baseLeft - inset * sceneWidth - coreWidth) / unit)
+  const y = fit((-baseTop - inset * sceneHeight) / unit, (height - baseTop - inset * sceneHeight - coreHeight) / unit)
+  const clamp = (value: number): number => Math.max(BG_OFFSET_RANGE.min, Math.min(BG_OFFSET_RANGE.max, value))
+  return { x: clamp(x), y: clamp(y) }
+}
+
+/**
  * Floating appearance panel shown while the settings dialog is hidden, so the
  * background and running icon can be tuned against the real conversation.
  * @param props.t - locale-bound translator.
@@ -410,39 +373,31 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
   state: Store<WhaleSettingsState>
   actions: SettingsPageActions
   onReturn: () => void
-  initialTab?: 'background' | 'mark'
+  initialTab?: PeekTab
 }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const disabled = !settings.writable
   const markDisabled = disabled || !settings.replaceMark
-  const [tab, setTab] = useState<'background' | 'mark'>(initialTab)
+  const [tab, setTab] = useState<PeekTab>(initialTab)
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')} title={t('peekHint')}>
       <div className={css.peekHead}>
         <span className={css.peekTitle}>{t('peekTitle')}</span>
         <div className={css.peekTabs} role="tablist" aria-label={t('nav')}>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'background'}
-            className={tab === 'background' ? css.peekTabActive : css.peekTab}
-            onClick={() => {
-              setTab('background')
-            }}
-          >
-            {t('tabBackground')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'mark'}
-            className={tab === 'mark' ? css.peekTabActive : css.peekTab}
-            onClick={() => {
-              setTab('mark')
-            }}
-          >
-            {t('tabMark')}
-          </button>
+          {PEEK_TABS.map(item => (
+            <button
+              key={item.value}
+              type="button"
+              role="tab"
+              aria-selected={tab === item.value}
+              className={tab === item.value ? css.peekTabActive : css.peekTab}
+              onClick={() => {
+                setTab(item.value)
+              }}
+            >
+              {t(item.label)}
+            </button>
+          ))}
         </div>
         <button type="button" className={css.peekReplay} onClick={replayPeek}>
           {t('replay')}
@@ -514,6 +469,25 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               disabled={disabled}
               onChange={actions.setBgOffsetY}
             />
+            <Row
+              label={t('bgPosition')}
+              hint={t('bgPositionHint')}
+              control={
+                <button
+                  type="button"
+                  className={css.randomButton}
+                  disabled={disabled}
+                  onClick={() => {
+                    const next = randomBackgroundOffset(settings)
+                    if (next === null) return
+                    actions.setBgOffsetX(next.x)
+                    actions.setBgOffsetY(next.y)
+                  }}
+                >
+                  {t('randomPosition')}
+                </button>
+              }
+            />
             <div className={css.subTitle}>{t('fillStyle')}</div>
             <FillStyleButtons
               t={t}
@@ -523,7 +497,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
             <p className={css.note}>{t('fillStyleHint')}</p>
           </div>
-        ) : (
+        ) : tab === 'mark' ? (
           <div className={css.peekGroup}>
             <ToggleRow
               label={t('replaceMark')}
@@ -638,6 +612,39 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
             <p className={css.note}>{t('motionHint')}</p>
           </div>
+        ) : (
+          <div className={css.peekGroup}>
+            <ToggleRow
+              label={t('auto')}
+              hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
+              checked={settings.autoAppear}
+              disabled={disabled}
+              onChange={actions.setAutoAppear}
+            />
+            {settings.autoAppear && (
+              <>
+                <ToggleRow
+                  label={t('playOnSwitch')}
+                  hint={t('playOnSwitchHint')}
+                  checked={settings.playOnSwitch}
+                  disabled={disabled}
+                  onChange={actions.setPlayOnSwitch}
+                />
+                <SliderRow
+                  id="whale-leap-interval"
+                  label={t('interval')}
+                  hint={t('intervalHint')}
+                  value={settings.intervalSeconds}
+                  min={INTERVAL_RANGE.min}
+                  max={INTERVAL_RANGE.max}
+                  step={INTERVAL_RANGE.step}
+                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                  disabled={disabled}
+                  onChange={actions.setInterval}
+                />
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -747,13 +754,6 @@ function DemoRunningLabel({ t, settings, seconds }: { t: Translate; settings: Wh
   )
 }
 
-const DEMO_FILES = [
-  { path: '~/Desktop/dsh project/whale-leap/.tmp/i18n-demo2.mjs', add: '+89', remove: '-0' },
-  { path: '~/Desktop/dsh project/whale-leap/.tmp/i18n-demo3.mjs', add: '+68', remove: '-0' },
-  { path: '~/Desktop/dsh project/whale-leap/.tmp/probe-column.mjs', add: '+45', remove: '-0' },
-  { path: '~/Desktop/dsh project/whale-leap/.tmp/probe-content.mjs', add: '+47', remove: '-0' },
-] as const
-
 function DemoRunningRow({ t, state }: { t: Translate; state: Store<WhaleSettingsState> }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const seconds = useElapsedSeconds()
@@ -800,51 +800,27 @@ function DemoTranscript({ t }: { t: Translate }) {
           <div className={css.demoUser}>{exchange.user}</div>
           <div className={css.demoReply}>{exchange.reply}</div>
           {index === exchanges.length - 1 && (
-            <>
-              <div className={css.demoFiles} data-demo-files>
-                <div className={css.demoFilesHead}>
-                  <span className={css.demoFilesGlyph} aria-hidden="true">{'{ }'}</span>
-                  <span className={css.demoFilesTitle}>{t('demoFilesTitle')}</span>
-                  <span className={css.demoFilesStat}>
-                    <span className={css.demoAdd}>+472</span>
-                    <span className={css.demoRemove}>{'−11'}</span>
+            <div className={css.demoCards}>
+              {cards.map((card) => (
+                <div key={card.title} className={css.demoCard} data-demo-card>
+                  <span className={css.demoCardThumb} aria-hidden="true">
+                    <svg viewBox="0 0 20 20" className={css.demoCardThumbIcon}>
+                      <path d="M3 4.5h14v11H3z" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                      <path d="M3 13l4.2-4 3.4 3 2.6-2.4L17 13" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                      <circle cx="13.4" cy="7.4" r="1.3" fill="currentColor" />
+                    </svg>
+                  </span>
+                  <span className={css.demoCardBody}>
+                    <span className={css.demoCardTitle}>{card.title}</span>
+                    <span className={css.demoCardDesc}>{card.desc}</span>
+                  </span>
+                  <span className={css.demoCardActions} aria-hidden="true">
+                    <span className={css.demoCardAction}>{'↧'}</span>
+                    <span className={css.demoCardAction}>{'⋮'}</span>
                   </span>
                 </div>
-                <div className={css.demoFileList}>
-                  {DEMO_FILES.map((file) => (
-                    <div key={file.path} className={css.demoFileRow}>
-                      <span className={css.demoFilePath}>{file.path}</span>
-                      <span className={css.demoFileDiff}>
-                        <span className={css.demoAdd}>{file.add}</span>
-                        <span className={css.demoRemove}>{file.remove}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className={css.demoFilesMore}>{t('demoFilesMore')}<span aria-hidden="true">{' ⌄'}</span></div>
-              </div>
-              <div className={css.demoCards}>
-                {cards.map((card) => (
-                  <div key={card.title} className={css.demoCard} data-demo-card>
-                    <span className={css.demoCardThumb} aria-hidden="true">
-                      <svg viewBox="0 0 20 20" className={css.demoCardThumbIcon}>
-                        <path d="M3 4.5h14v11H3z" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                        <path d="M3 13l4.2-4 3.4 3 2.6-2.4L17 13" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                        <circle cx="13.4" cy="7.4" r="1.3" fill="currentColor" />
-                      </svg>
-                    </span>
-                    <span className={css.demoCardBody}>
-                      <span className={css.demoCardTitle}>{card.title}</span>
-                      <span className={css.demoCardDesc}>{card.desc}</span>
-                    </span>
-                    <span className={css.demoCardActions} aria-hidden="true">
-                      <span className={css.demoCardAction}>{'↧'}</span>
-                      <span className={css.demoCardAction}>{'⋮'}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
+              ))}
+            </div>
           )}
         </div>
       ))}
@@ -859,18 +835,13 @@ function DemoTranscript({ t }: { t: Translate }) {
  * @param props.actions - write callbacks.
  * @returns the page.
  */
-export function SettingsPage({ t, state, actions, initialTab = 'background' }: SettingsPageProps) {
-  const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
-  const [tab, setTab] = useState<Tab>(initialTab)
+export function SettingsPage({ t, state, actions }: SettingsPageProps) {
   const [update, setUpdate] = useState<UpdateResult>({ status: 'idle' })
-  const [replayToken, setReplayToken] = useState(0)
-  const seconds = useElapsedSeconds()
   const rootRef = useRef<HTMLElement | null>(null)
   const [peeking, setPeeking] = useState(false)
   const overlayRef = useRef<{ element: HTMLElement; display: string } | null>(null)
   const live = useRef({ t, state, actions })
   live.current = { t, state, actions }
-  const disabled = !settings.writable
 
   useEffect(() => {
     if (!peeking) return
@@ -1077,123 +1048,19 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
           </div>
         )}
       </header>
-
-      <div className={css.tabs} role="tablist" aria-label={t('nav')}>
-        {TABS.map(item => (
-          <button
-            key={item.value}
-            type="button"
-            role="tab"
-            id={`whale-leap-tab-${item.value}`}
-            aria-selected={tab === item.value}
-            aria-controls={`whale-leap-panel-${item.value}`}
-            className={tab === item.value ? css.tabSelected : css.tab}
-            onClick={() => {
-              setTab(item.value)
-            }}
-          >
-            {t(item.label)}
-          </button>
-        ))}
       </div>
 
-      {tab === 'background' ? (
-        <div className={css.stage}>
-          <PreviewWhale settings={settings} replayToken={replayToken} />
-          <div className={css.stageActions}>
-            <button
-              type="button"
-              className={css.stageReplay}
-              onClick={() => {
-                setReplayToken(token => token + 1)
-              }}
-            >
-              {t('replay')}
-            </button>
-            <button
-              type="button"
-              className={css.stageLive}
-              onClick={() => {
-                setPeeking(true)
-              }}
-            >
-              {t('livePreview')}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className={css.markStage}>
-          {settings.replaceMark ? (
-            <div className={css.markSim}>
-              <span className={css.markSimDivider} aria-hidden="true" />
-              <span className={css.markSimContent}>
-                <span className={css.markIcon}>
-                  <WhaleMarkFish
-                    size={settings.markSize}
-                    motion={settings.markMotion}
-                    swing={settings.markSwing}
-                    offsetX={settings.markOffsetX}
-                    offsetY={settings.markOffsetY}
-                    color={settings.markColorMode === 'custom' ? settings.markColor : undefined}
-                  />
-                </span>
-                <DemoRunningLabel t={t} settings={settings} seconds={seconds} />
-              </span>
-            </div>
-          ) : (
-            <span className={css.markStageOff}>{t('markStageOff')}</span>
-          )}
-          <div className={css.stageActions}>
-            <button
-              type="button"
-              className={css.stageLive}
-              onClick={() => {
-                setPeeking(true)
-              }}
-            >
-              {t('livePreview')}
-            </button>
-          </div>
-          {settings.replaceMark && <span className={css.stageHint}>{t('markPreviewHint')}</span>}
-        </div>
-      )}
-      </div>
-
-      <div className={css.panel}>
-        <Group title={t('groupPlayback')}>
-          <ToggleRow
-            label={t('auto')}
-            hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
-            checked={settings.autoAppear}
-            disabled={disabled}
-            onChange={actions.setAutoAppear}
-          />
-
-          {settings.autoAppear && (
-            <>
-              <ToggleRow
-                label={t('playOnSwitch')}
-                hint={t('playOnSwitchHint')}
-                checked={settings.playOnSwitch}
-                disabled={disabled}
-                onChange={actions.setPlayOnSwitch}
-              />
-
-              <SliderRow
-                id="whale-leap-interval"
-                label={t('interval')}
-                hint={t('intervalHint')}
-                value={settings.intervalSeconds}
-                min={INTERVAL_RANGE.min}
-                max={INTERVAL_RANGE.max}
-                step={INTERVAL_RANGE.step}
-                display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                disabled={disabled}
-                onChange={actions.setInterval}
-              />
-            </>
-          )}
-        </Group>
+      <div className={css.entryCard} data-whale-leap-entry>
+        <p className={css.entryHint}>{t('openPreviewHint')}</p>
+        <button
+          type="button"
+          className={css.stageLive}
+          onClick={() => {
+            setPeeking(true)
+          }}
+        >
+          {t('livePreview')}
+        </button>
       </div>
     </section>
   )
