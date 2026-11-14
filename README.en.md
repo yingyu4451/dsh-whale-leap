@@ -4,9 +4,9 @@
 
 Whale leap adds a swimming whale to the DeepSeek Harness web client:
 
-- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate between the dotted and code-lettered frames. Clicking blank conversation space replays it. The frame atlas ships inside the plugin bundle and works offline.
-- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its icon color and status-label color can follow the theme or be picked. Its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets have a live preview that mirrors the real status row (hairline divider, 28 px row) and shows the status label.
-- **Settings page** — everything above lives under Settings › Whale leap. The top tab bar switches between Background and Running icon; the interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
+- **Background whale** — a dotted (or code-lettered) whale drifts behind the blank home; in started conversations it can appear on switch only, on the interval only, both, or not at all. Consecutive appearances alternate through the enabled fill styles (dots and code fill by default). Clicking blank conversation space replays it. The frame atlas ships inside the plugin bundle and works offline.
+- **Running-status mark** — the fish left of “Deep diving” can replace the shipped icon with a switch; it keeps swimming, offers four motion presets, and its icon color and status-label color can follow the theme or be picked. Its size (8–28 px), label text size (11–20 px), swing amplitude (50 %–200 %) and independent horizontal/vertical start offsets are adjusted in the Live preview panel, while the preview mirrors the real status row (hairline divider, 28 px row) and shows the status label.
+- **Settings page** — the page keeps only the playback group, a preview canvas per tab, and one Live preview entry; every appearance control lives in the floating preview panel, grouped into Background and Running icon tabs. The interface follows the DeepSeek Harness language, and strings ship in Chinese, English, Japanese, Spanish, French, German, Russian, and Portuguese.
 
 ## Install
 
@@ -21,40 +21,34 @@ The settings header shows the running version and a **Check for updates** button
 
 ## Settings
 
-Tabs sit in a full-width bar above the panel; the selected tab is a filled segment. Each tab groups its controls by topic: a small group title sits above the card that holds the rows.
+The settings page keeps only the playback controls, a preview canvas above each tab, and one Live preview entry. Every appearance control lives in the floating preview panel, so the page does not duplicate them. The header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them.
 
-### Background tab
+### Background
 
-**Appearance**
+The page shows only the Playback group:
 
-| Control | Meaning |
+| Option | Meaning |
 | --- | --- |
-| Color | Follow the theme's text tone, or pick a custom ink color. |
-| Background size | Scale of the painted scene (50 %–150 %). |
-| Horizontal position | Start X of the background whale, −200 to +200 px; negative moves left, positive right. |
-| Vertical position | Start Y of the background whale, −200 to +200 px; negative moves up, positive down. |
-| Ink strength | 10 %–100 % response. The atlas keeps most dots faint; 60 % preserves the authored look and 100 % saturates them into solid black. |
-| Fill style | Dots, code fill, glyphs, binary tokens, and hatching each have their own switch; enabled styles alternate in order and at least one stays on. |
-
-**Playback**
-
-| Control | Meaning |
-| --- | --- |
-| Show in conversations | Whether the whale reappears by itself in started conversations. |
+| Show in conversations | Whether the whale appears on its own after a conversation starts. |
 | Appear when switching conversations | When off, entering a conversation waits for the next interval instead of playing at once. |
 | Appearance interval | 5–300 s between automatic replays. |
 
-A live preview canvas sits above the controls and replays with the current settings; a Replay button at its bottom-right restarts it, and appearance changes replay it automatically. While you scroll, the header, tabs, and preview stay pinned as one block with spacing between them and a blank gap under the preview, so scrolled content never squeezes between them. The Live preview button hides the settings dialog and keeps the whale playing on a loop in the real conversation; the floating bar switches between Background and Running icon to adjust background size and horizontal/vertical offsets, or icon size, label size, and icon offsets. Press Esc or Back to settings to return.
+The preview canvas replays with the current settings; Replay restarts it, and Live preview hides the settings dialog and keeps the whale playing on a loop in the real conversation. The panel's Background tab holds every background appearance control:
+
+| Option | Meaning |
+| --- | --- |
+| Color | Follow the theme or pick an ink color. |
+| Background size | Scale of the painted scene, 50 %–150 %. |
+| Horizontal position | Start offset −200 to +200 px; negative moves left. |
+| Vertical position | Start offset −200 to +200 px; negative moves up. |
+| Ink strength | 10 %–100 %; 60 % keeps the authored look, 100 % pushes faint dots to solid black. |
+| Fill style | Side-by-side buttons for dots, code fill, glyphs, binary tokens, and hatching; multiple can be enabled, enabled styles alternate in order, and at least one stays on. |
 
 ### Running icon tab
 
-**Running icon**
+The page keeps only the preview that mirrors the real status row (hairline divider, 28 px row, blue-tinted label) and the Live preview entry. The panel's Running icon tab holds: replace the running icon, icon color, text color, icon size (8–28 px), text size (11–20 px, glyphs only), horizontal/vertical position (−12 to +12 px each), motion (Swimming, Explore, Home swim, Gentle sway), and swing amplitude (50 %–200 %; Home swim ignores it). A custom text color also re-mixes the shimmer highlight.
 
-**Replace the running icon** switches the fish in place of the shipped whale tail; when off, the default icon returns. The stage above the choices mirrors the real conversation status row — a hairline divider above a 28 px row with the blue-tinted label (the same deep-diving blue as the real row when following the theme) — stays pinned while the settings list scrolls, and shows the selected motion at the exact configured size, so the label follows the interface language. Both the icon color and the status-label color can follow the theme or use a custom picker; a custom label color also re-mixes the shimmer highlight token, so the moving sweep follows it. The size slider sets the mark's box, 8–28 px; text size sets the status label, 11–20 px, changing only the glyph size while the row keeps its height and padding; horizontal and vertical position shift the mark's start point by −12 to +12 px each.
-
-**Motion**
-
-The motion cards each preview their own preset, and the selected card carries a text badge, not just a highlight. The swing amplitude slider scales the horizontal travel of Swimming, Explore, and Gentle sway from 50 % to 200 %; Home swim keeps the exact home-page amplitude.
+Press Esc or Back to settings to restore the dialog.
 
 ## Behavior and limits
 

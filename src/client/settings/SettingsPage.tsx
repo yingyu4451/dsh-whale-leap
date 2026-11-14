@@ -1,10 +1,11 @@
 /**
  * Settings page of the whale-leap plugin.
  *
- * Two tabs keep the page short: the background tab pairs a live whale preview
- * with its appearance controls, the running-icon tab pairs animated motion cards
- * with the mark size. Every control applies live and is disabled when the Host
- * reports the section as read-only.
+ * The page keeps only playback controls plus a preview stage per tab; every
+ * appearance control lives in the floating {@link PeekBar}, which is opened by
+ * the 实时预览 button and lets the background and running icon be tuned against
+ * the real conversation. Controls are disabled when the Host reports the
+ * section as read-only.
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -115,9 +116,6 @@ const PREVIEW_INTERVAL_MS = 4200
 
 /** The preview stage draws a smaller scene than the real conversation background. */
 const PREVIEW_SCALE = 0.8
-
-/** Mark size rendered inside each motion card. */
-const OPTION_FISH_SIZE = 34
 
 /**
  * Format a start offset for the slider value label.
@@ -359,55 +357,65 @@ function PreviewWhale({ settings, replayToken }: { settings: WhaleSettingsState;
   return <canvas ref={canvasRef} className={css.stageCanvas} aria-hidden="true" />
 }
 
-/** One compact slider inside the floating preview bar. */
-function PeekSlider(props: {
-  label: string
-  value: number
-  min: number
-  max: number
-  step: number
-  display: string
+/**
+ * Multi-select fill-style buttons. Every enabled style takes part in the
+ * playback rotation, and the last enabled style cannot be switched off.
+ * @param props.t - locale-bound translator.
+ * @param props.styles - enabled fill styles.
+ * @param props.disabled - whether the whole control is read-only.
+ * @param props.onToggle - enable or disable one style.
+ * @returns the button row.
+ */
+function FillStyleButtons({ t, styles, disabled, onToggle }: {
+  t: Translate
+  styles: WhaleFillStyle[]
   disabled: boolean
-  onChange: (value: number) => void
+  onToggle: (style: WhaleFillStyle, enabled: boolean) => void
 }) {
   return (
-    <label className={css.peekSlider}>
-      <span className={css.peekSliderLabel}>{props.label}</span>
-      <input
-        type="range"
-        min={props.min}
-        max={props.max}
-        step={props.step}
-        value={props.value}
-        disabled={props.disabled}
-        onChange={event => {
-          props.onChange(Number(event.currentTarget.value))
-        }}
-      />
-      <span className={css.peekValue}>{props.display}</span>
-    </label>
+    <div className={css.choice} role="group" aria-label={t('fillStyle')}>
+      {FRAME_MODES.map(style => {
+        const selected = styles.includes(style)
+        return (
+          <button
+            key={style}
+            type="button"
+            className={selected ? css.choiceButtonSelected : css.choiceButton}
+            aria-pressed={selected}
+            disabled={disabled || (selected && styles.length === 1)}
+            onClick={() => {
+              onToggle(style, !selected)
+            }}
+          >
+            {t(FRAME_LABELS[style])}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
 /**
- * Floating controls shown while the settings dialog is hidden, so the
+ * Floating appearance panel shown while the settings dialog is hidden, so the
  * background and running icon can be tuned against the real conversation.
  * @param props.t - locale-bound translator.
  * @param props.state - live whale settings.
  * @param props.actions - write callbacks.
  * @param props.onReturn - restore the settings dialog.
+ * @param props.initialTab - tab rendered first (used by the render smoke check).
  * @returns the floating bar.
  */
-function PeekBar({ t, state, actions, onReturn }: {
+export function PeekBar({ t, state, actions, onReturn, initialTab = 'background' }: {
   t: Translate
   state: Store<WhaleSettingsState>
   actions: SettingsPageActions
   onReturn: () => void
+  initialTab?: 'background' | 'mark'
 }) {
   const settings = useSyncExternalStore(state.subscribe, state.getSnapshot, state.getSnapshot)
   const disabled = !settings.writable
   const markDisabled = disabled || !settings.replaceMark
-  const [tab, setTab] = useState<'background' | 'mark'>('background')
+  const [tab, setTab] = useState<'background' | 'mark'>(initialTab)
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')}>
       <div className={css.peekHead}>
@@ -444,11 +452,25 @@ function PeekBar({ t, state, actions, onReturn }: {
           {t('peekReturn')}
         </button>
       </div>
-      <div className={css.peekControls}>
+      <div className={css.peekBody}>
         {tab === 'background' ? (
-          <>
-            <PeekSlider
+          <div className={css.peekGroup}>
+            <ColorPickerRow
+              id="whale-leap-custom-color"
+              label={t('color')}
+              hint={t('colorHint')}
+              themeLabel={t('colorTheme')}
+              customLabel={t('colorCustom')}
+              mode={settings.colorMode}
+              color={settings.customColor}
+              disabled={disabled}
+              onMode={actions.setColorMode}
+              onColor={actions.setCustomColor}
+            />
+            <SliderRow
+              id="whale-leap-size"
               label={t('size')}
+              hint={t('sizeHint')}
               value={settings.size}
               min={SIZE_RANGE.min}
               max={SIZE_RANGE.max}
@@ -457,8 +479,22 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={disabled}
               onChange={actions.setSize}
             />
-            <PeekSlider
+            <SliderRow
+              id="whale-leap-strength"
+              label={t('strength')}
+              hint={t('strengthHint')}
+              value={settings.opacity}
+              min={OPACITY_RANGE.min}
+              max={OPACITY_RANGE.max}
+              step={OPACITY_RANGE.step}
+              display={`${Math.round(settings.opacity * 100)}%`}
+              disabled={disabled}
+              onChange={actions.setOpacity}
+            />
+            <SliderRow
+              id="whale-leap-bg-offset-x"
               label={t('bgOffsetX')}
+              hint={t('bgOffsetXHint')}
               value={settings.bgOffsetX}
               min={BG_OFFSET_RANGE.min}
               max={BG_OFFSET_RANGE.max}
@@ -467,8 +503,10 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={disabled}
               onChange={actions.setBgOffsetX}
             />
-            <PeekSlider
+            <SliderRow
+              id="whale-leap-bg-offset-y"
               label={t('bgOffsetY')}
+              hint={t('bgOffsetYHint')}
               value={settings.bgOffsetY}
               min={BG_OFFSET_RANGE.min}
               max={BG_OFFSET_RANGE.max}
@@ -477,11 +515,52 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={disabled}
               onChange={actions.setBgOffsetY}
             />
-          </>
+            <div className={css.subTitle}>{t('fillStyle')}</div>
+            <FillStyleButtons
+              t={t}
+              styles={settings.fillStyles}
+              disabled={disabled}
+              onToggle={actions.setFillStyle}
+            />
+            <p className={css.note}>{t('fillStyleHint')}</p>
+          </div>
         ) : (
-          <>
-            <PeekSlider
+          <div className={css.peekGroup}>
+            <ToggleRow
+              label={t('replaceMark')}
+              hint={t('replaceMarkHint')}
+              checked={settings.replaceMark}
+              disabled={disabled}
+              onChange={actions.setReplaceMark}
+            />
+            <ColorPickerRow
+              id="whale-leap-mark-color"
+              label={t('markColor')}
+              hint={t('markColorHint')}
+              themeLabel={t('colorTheme')}
+              customLabel={t('colorCustom')}
+              mode={settings.markColorMode}
+              color={settings.markColor}
+              disabled={markDisabled}
+              onMode={actions.setMarkColorMode}
+              onColor={actions.setMarkColor}
+            />
+            <ColorPickerRow
+              id="whale-leap-label-color"
+              label={t('labelColor')}
+              hint={t('labelColorHint')}
+              themeLabel={t('colorTheme')}
+              customLabel={t('colorCustom')}
+              mode={settings.labelColorMode}
+              color={settings.labelColor}
+              disabled={markDisabled}
+              onMode={actions.setLabelColorMode}
+              onColor={actions.setLabelColor}
+            />
+            <SliderRow
+              id="whale-leap-mark-size"
               label={t('markSize')}
+              hint={t('markSizeHint')}
               value={settings.markSize}
               min={MARK_SIZE_RANGE.min}
               max={MARK_SIZE_RANGE.max}
@@ -490,8 +569,10 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={markDisabled}
               onChange={actions.setMarkSize}
             />
-            <PeekSlider
+            <SliderRow
+              id="whale-leap-mark-label-size"
               label={t('labelSize')}
+              hint={t('labelSizeHint')}
               value={settings.markLabelSize}
               min={MARK_LABEL_SIZE_RANGE.min}
               max={MARK_LABEL_SIZE_RANGE.max}
@@ -500,8 +581,10 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={markDisabled}
               onChange={actions.setMarkLabelSize}
             />
-            <PeekSlider
+            <SliderRow
+              id="whale-leap-mark-offset-x"
               label={t('offsetX')}
+              hint={t('offsetXHint')}
               value={settings.markOffsetX}
               min={MARK_OFFSET_RANGE.min}
               max={MARK_OFFSET_RANGE.max}
@@ -510,8 +593,10 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={markDisabled}
               onChange={actions.setMarkOffsetX}
             />
-            <PeekSlider
+            <SliderRow
+              id="whale-leap-mark-offset-y"
               label={t('offsetY')}
+              hint={t('offsetYHint')}
               value={settings.markOffsetY}
               min={MARK_OFFSET_RANGE.min}
               max={MARK_OFFSET_RANGE.max}
@@ -520,12 +605,46 @@ function PeekBar({ t, state, actions, onReturn }: {
               disabled={markDisabled}
               onChange={actions.setMarkOffsetY}
             />
-          </>
+            <div className={css.subTitle}>{t('motion')}</div>
+            <div className={css.choice} role="group" aria-label={t('motion')}>
+              {MARK_MOTIONS.map(motion => {
+                const selected = settings.markMotion === motion
+                return (
+                  <button
+                    key={motion}
+                    type="button"
+                    className={selected ? css.choiceButtonSelected : css.choiceButton}
+                    aria-pressed={selected}
+                    disabled={markDisabled}
+                    onClick={() => {
+                      actions.setMarkMotion(motion)
+                    }}
+                  >
+                    {t(MOTION_LABELS[motion])}
+                  </button>
+                )
+              })}
+            </div>
+            <SliderRow
+              id="whale-leap-mark-swing"
+              label={t('swing')}
+              hint={t('swingHint')}
+              value={settings.markSwing}
+              min={MARK_SWING_RANGE.min}
+              max={MARK_SWING_RANGE.max}
+              step={MARK_SWING_RANGE.step}
+              display={`${Math.round(settings.markSwing * 100)}%`}
+              disabled={markDisabled || settings.markMotion === 'hero'}
+              onChange={actions.setMarkSwing}
+            />
+            <p className={css.note}>{t('motionHint')}</p>
+          </div>
         )}
       </div>
     </div>
   )
 }
+
 /**
  * Find the fixed overlay that hosts the settings dialog, so preview mode can
  * hide it without hiding the conversation behind it.
@@ -774,273 +893,40 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       </div>
 
       <div className={css.panel}>
-        {tab === 'background' ? (
-          <div
-            id="whale-leap-panel-background"
-            role="tabpanel"
-            aria-labelledby="whale-leap-tab-background"
-            className={css.tabPanel}
-          >
-            <Group title={t('groupAppearance')}>
-              <ColorPickerRow
-                id="whale-leap-custom-color"
-                label={t('color')}
-                hint={t('colorHint')}
-                themeLabel={t('colorTheme')}
-                customLabel={t('colorCustom')}
-                mode={settings.colorMode}
-                color={settings.customColor}
-                disabled={disabled}
-                onMode={actions.setColorMode}
-                onColor={actions.setCustomColor}
-              />
+        <Group title={t('groupPlayback')}>
+          <ToggleRow
+            label={t('auto')}
+            hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
+            checked={settings.autoAppear}
+            disabled={disabled}
+            onChange={actions.setAutoAppear}
+          />
 
-              <SliderRow
-                id="whale-leap-size"
-                label={t('size')}
-                hint={t('sizeHint')}
-                value={settings.size}
-                min={SIZE_RANGE.min}
-                max={SIZE_RANGE.max}
-                step={SIZE_RANGE.step}
-                display={`${Math.round(settings.size * 100)}%`}
-                disabled={disabled}
-                onChange={actions.setSize}
-              />
-
-              <SliderRow
-                id="whale-leap-bg-offset-x"
-                label={t('bgOffsetX')}
-                hint={t('bgOffsetXHint')}
-                value={settings.bgOffsetX}
-                min={BG_OFFSET_RANGE.min}
-                max={BG_OFFSET_RANGE.max}
-                step={BG_OFFSET_RANGE.step}
-                display={formatOffsetPx(settings.bgOffsetX)}
-                disabled={disabled}
-                onChange={actions.setBgOffsetX}
-              />
-
-              <SliderRow
-                id="whale-leap-bg-offset-y"
-                label={t('bgOffsetY')}
-                hint={t('bgOffsetYHint')}
-                value={settings.bgOffsetY}
-                min={BG_OFFSET_RANGE.min}
-                max={BG_OFFSET_RANGE.max}
-                step={BG_OFFSET_RANGE.step}
-                display={formatOffsetPx(settings.bgOffsetY)}
-                disabled={disabled}
-                onChange={actions.setBgOffsetY}
-              />
-
-
-              <SliderRow
-                id="whale-leap-strength"
-                label={t('strength')}
-                hint={t('strengthHint')}
-                value={settings.opacity}
-                min={OPACITY_RANGE.min}
-                max={OPACITY_RANGE.max}
-                step={OPACITY_RANGE.step}
-                display={`${Math.round(settings.opacity * 100)}%`}
-                disabled={disabled}
-                onChange={actions.setOpacity}
-              />
-
-              <div className={css.subTitle}>{t('fillStyle')}</div>
-
-              {FRAME_MODES.map(style => {
-                const enabled = settings.fillStyles.includes(style)
-                return (
-                  <ToggleRow
-                    key={style}
-                    label={t(FRAME_LABELS[style])}
-                    checked={enabled}
-                    disabled={disabled || (enabled && settings.fillStyles.length === 1)}
-                    onChange={(next) => {
-                      actions.setFillStyle(style, next)
-                    }}
-                  />
-                )
-              })}
-
-              <p className={css.note}>{t('fillStyleHint')}</p>
-            </Group>
-
-            <Group title={t('groupPlayback')}>
+          {settings.autoAppear && (
+            <>
               <ToggleRow
-                label={t('auto')}
-                hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
-                checked={settings.autoAppear}
+                label={t('playOnSwitch')}
+                hint={t('playOnSwitchHint')}
+                checked={settings.playOnSwitch}
                 disabled={disabled}
-                onChange={actions.setAutoAppear}
+                onChange={actions.setPlayOnSwitch}
               />
 
-              {settings.autoAppear && (
-                <>
-                  <ToggleRow
-                    label={t('playOnSwitch')}
-                    hint={t('playOnSwitchHint')}
-                    checked={settings.playOnSwitch}
-                    disabled={disabled}
-                    onChange={actions.setPlayOnSwitch}
-                  />
-
-                  <SliderRow
-                    id="whale-leap-interval"
-                    label={t('interval')}
-                    hint={t('intervalHint')}
-                    value={settings.intervalSeconds}
-                    min={INTERVAL_RANGE.min}
-                    max={INTERVAL_RANGE.max}
-                    step={INTERVAL_RANGE.step}
-                    display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                    disabled={disabled}
-                    onChange={actions.setInterval}
-                  />
-                </>
-              )}
-            </Group>
-          </div>
-        ) : (
-          <div
-            id="whale-leap-panel-mark"
-            role="tabpanel"
-            aria-labelledby="whale-leap-tab-mark"
-            className={css.tabPanel}
-          >
-            <Group title={t('groupIcon')}>
-              <ToggleRow
-                label={t('replaceMark')}
-                hint={t('replaceMarkHint')}
-                checked={settings.replaceMark}
+              <SliderRow
+                id="whale-leap-interval"
+                label={t('interval')}
+                hint={t('intervalHint')}
+                value={settings.intervalSeconds}
+                min={INTERVAL_RANGE.min}
+                max={INTERVAL_RANGE.max}
+                step={INTERVAL_RANGE.step}
+                display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
                 disabled={disabled}
-                onChange={actions.setReplaceMark}
+                onChange={actions.setInterval}
               />
-
-              <ColorPickerRow
-                id="whale-leap-mark-color"
-                label={t('markColor')}
-                hint={t('markColorHint')}
-                themeLabel={t('colorTheme')}
-                customLabel={t('colorCustom')}
-                mode={settings.markColorMode}
-                color={settings.markColor}
-                disabled={disabled || !settings.replaceMark}
-                onMode={actions.setMarkColorMode}
-                onColor={actions.setMarkColor}
-              />
-
-              <ColorPickerRow
-                id="whale-leap-label-color"
-                label={t('labelColor')}
-                hint={t('labelColorHint')}
-                themeLabel={t('colorTheme')}
-                customLabel={t('colorCustom')}
-                mode={settings.labelColorMode}
-                color={settings.labelColor}
-                disabled={disabled || !settings.replaceMark}
-                onMode={actions.setLabelColorMode}
-                onColor={actions.setLabelColor}
-              />
-
-              <SliderRow
-                id="whale-leap-mark-size"
-                label={t('markSize')}
-                hint={t('markSizeHint')}
-                value={settings.markSize}
-                min={MARK_SIZE_RANGE.min}
-                max={MARK_SIZE_RANGE.max}
-                step={MARK_SIZE_RANGE.step}
-                display={`${settings.markSize}px`}
-                disabled={disabled || !settings.replaceMark}
-                onChange={actions.setMarkSize}
-              />
-
-              <SliderRow
-                id="whale-leap-mark-label-size"
-                label={t('labelSize')}
-                hint={t('labelSizeHint')}
-                value={settings.markLabelSize}
-                min={MARK_LABEL_SIZE_RANGE.min}
-                max={MARK_LABEL_SIZE_RANGE.max}
-                step={MARK_LABEL_SIZE_RANGE.step}
-                display={`${settings.markLabelSize}px`}
-                disabled={disabled || !settings.replaceMark}
-                onChange={actions.setMarkLabelSize}
-              />
-
-              <SliderRow
-                id="whale-leap-mark-offset-x"
-                label={t('offsetX')}
-                hint={t('offsetXHint')}
-                value={settings.markOffsetX}
-                min={MARK_OFFSET_RANGE.min}
-                max={MARK_OFFSET_RANGE.max}
-                step={MARK_OFFSET_RANGE.step}
-                display={formatOffsetPx(settings.markOffsetX)}
-                disabled={disabled || !settings.replaceMark}
-                onChange={actions.setMarkOffsetX}
-              />
-
-              <SliderRow
-                id="whale-leap-mark-offset-y"
-                label={t('offsetY')}
-                hint={t('offsetYHint')}
-                value={settings.markOffsetY}
-                min={MARK_OFFSET_RANGE.min}
-                max={MARK_OFFSET_RANGE.max}
-                step={MARK_OFFSET_RANGE.step}
-                display={formatOffsetPx(settings.markOffsetY)}
-                disabled={disabled || !settings.replaceMark}
-                onChange={actions.setMarkOffsetY}
-              />
-            </Group>
-
-            <Group title={t('motion')}>
-              <div className={css.motionGrid} role="group" aria-label={t('motion')}>
-                {MARK_MOTIONS.map(motion => {
-                  const selected = settings.markMotion === motion
-                  return (
-                    <button
-                      key={motion}
-                      type="button"
-                      className={css.motionOption}
-                      aria-pressed={selected}
-                      disabled={disabled || !settings.replaceMark}
-                      onClick={() => {
-                        actions.setMarkMotion(motion)
-                      }}
-                    >
-                      <span className={css.motionFish}>
-                        <WhaleMarkFish size={OPTION_FISH_SIZE} motion={motion} swing={settings.markSwing} />
-                      </span>
-                      <span className={css.motionFooter}>
-                        <span className={css.motionLabel}>{t(MOTION_LABELS[motion])}</span>
-                        {selected && <span className={css.motionTick}>{t('selected')}</span>}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-              <p className={css.note}>{t('motionHint')}</p>
-
-              <SliderRow
-                id="whale-leap-mark-swing"
-                label={t('swing')}
-                hint={t('swingHint')}
-                value={settings.markSwing}
-                min={MARK_SWING_RANGE.min}
-                max={MARK_SWING_RANGE.max}
-                step={MARK_SWING_RANGE.step}
-                display={`${Math.round(settings.markSwing * 100)}%`}
-                disabled={disabled || !settings.replaceMark || settings.markMotion === 'hero'}
-                onChange={actions.setMarkSwing}
-              />
-            </Group>
-          </div>
-        )}
+            </>
+          )}
+        </Group>
       </div>
     </section>
   )

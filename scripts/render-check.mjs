@@ -34,7 +34,7 @@ globalThis.document = {
 }
 
 const { check } = await import(pathToFileURL(outfile).href)
-const { page, englishPage, markPage, englishMarkPage, mark, layer } = check()
+const { page, englishPage, markPage, englishMarkPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, mark, layer } = check()
 
 const landmarks = {
   tabs: ['whale-leap-tab-background', 'whale-leap-tab-mark'].every(token => page.includes(token)),
@@ -42,42 +42,41 @@ const landmarks = {
   updateCheck: page.includes('checkUpdate'),
   updateButton: page.includes('updateButton'),
   idleUpdateRow: !page.includes('updateRow'),
-  stackedRows: page.includes('rowStacked'),
+  playbackOnly: page.includes('groupPlayback') && !page.includes('groupAppearance'),
   runningRow: markPage.includes('data-running-label'),
   runningLabel: markPage.includes('深度求索中'),
   englishRunningLabel: englishMarkPage.includes('Deep diving'),
   englishNav: englishPage.includes('Whale leap'),
-  englishInk: englishPage.includes('Ink strength'),
+  englishInk: englishPeekPage.includes('Ink strength'),
   englishMarkTab: englishPage.includes('Running icon'),
-  motionCards: ['swim', 'explore', 'hero', 'sway'].every(motion => markPage.includes(`data-motion=` + JSON.stringify(motion))),
-  replaceSwitch: markPage.includes('role="switch"'),
-  markPreview: markPage.includes('width:14px') && markPage.includes('height:14px'),
+  motionCards: ['游动', '探索', '首页游动', '左右轻摆'].every(motion => peekMarkPage.includes(motion)),
+  replaceSwitch: peekMarkPage.includes('role="switch"'),
   markStageDivider: markPage.includes('markSimDivider'),
-  markSizeSlider: markPage.includes('whale-leap-mark-size'),
-  markLabelSizeSlider: markPage.includes('whale-leap-mark-label-size'),
-  markSwingSlider: markPage.includes('whale-leap-mark-swing'),
-  markOffsetSliders: markPage.includes('whale-leap-mark-offset-x') && markPage.includes('whale-leap-mark-offset-y'),
-  englishOffset: englishMarkPage.includes('Horizontal position') && englishMarkPage.includes('Vertical position'),
-  englishLabelSize: englishMarkPage.includes('Text size'),
-  appearanceGroup: page.includes('groupAppearance') && page.includes('groupPlayback'),
-  iconGroup: markPage.includes('任务图标'),
-  motionGroup: markPage.includes('motionGrid'),
-  englishSwing: englishMarkPage.includes('Swing amplitude'),
-  fillStyleSwitches: ['frameDots', 'frameCode', 'frameGlyphs', 'frameBinary', 'frameLines'].every(key => page.includes(key)),
-  englishFillStyle: englishPage.includes('Fill style'),
+  markSizeSlider: peekMarkPage.includes('whale-leap-mark-size'),
+  markLabelSizeSlider: peekMarkPage.includes('whale-leap-mark-label-size'),
+  markSwingSlider: peekMarkPage.includes('whale-leap-mark-swing'),
+  markOffsetSliders: peekMarkPage.includes('whale-leap-mark-offset-x') && peekMarkPage.includes('whale-leap-mark-offset-y'),
+  englishOffset: englishPeekMarkPage.includes('Horizontal position') && englishPeekMarkPage.includes('Vertical position'),
+  englishLabelSize: englishPeekMarkPage.includes('Text size'),
+  iconGroup: peekMarkPage.includes('任务图标'),
+  motionGroup: peekMarkPage.includes('aria-label="动画"'),
+  englishSwing: englishPeekMarkPage.includes('Swing amplitude'),
+  fillStyleSwitches: ['frameDots', 'frameCode', 'frameGlyphs', 'frameBinary', 'frameLines'].every(key => peekPage.includes(key)),
+  englishFillStyle: englishPeekPage.includes('Fill style'),
   autoToggle: (page.includes('autoHint') || page.includes('autoOffHint')) && page.includes('role="switch"'),
   replayButton: page.includes('stageReplay'),
   livePreviewButton: page.includes('livePreview'),
   englishLivePreview: englishPage.includes('Live preview'),
-  bgOffsetSliders: page.includes('whale-leap-bg-offset-x') && page.includes('whale-leap-bg-offset-y'),
-  englishAutoToggle: englishPage.includes('Show in conversations') && englishPage.includes('role="switch"'),
-  markColorRows: markPage.includes('whale-leap-mark-color') && markPage.includes('whale-leap-label-color'),
-  englishColors: englishMarkPage.includes('Icon color') && englishMarkPage.includes('Text color'),
+  bgOffsetSliders: peekPage.includes('whale-leap-bg-offset-x') && peekPage.includes('whale-leap-bg-offset-y'),
+  englishAutoToggle: englishPage.includes('Show in conversations') && page.includes('role="switch"'),
+  markColorRows: peekMarkPage.includes('whale-leap-mark-color') && peekMarkPage.includes('whale-leap-label-color'),
+  englishColors: englishPeekMarkPage.includes('Icon color') && englishPeekMarkPage.includes('Text color'),
   markFish: mark.includes('data-motion="swim"'),
   heroLayer: layer.includes('data-whale-layer="hero"'),
   canvas: layer.includes('<canvas'),
   body: layer.includes('<p>body</p>'),
 }
+
 
 const failed = Object.entries(landmarks).filter(([, ok]) => !ok)
 if (failed.length > 0) {

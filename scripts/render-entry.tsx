@@ -11,7 +11,7 @@ import { DEFAULT_SETTINGS } from '../shared/settings.js'
 import { DICTIONARIES } from '../src/client/i18n.js'
 import { createStore } from '../src/client/store.js'
 import { INITIAL_SETTINGS, type WhaleSettingsState } from '../src/client/settings.js'
-import { SettingsPage, type SettingsPageActions } from '../src/client/settings/SettingsPage.js'
+import { PeekBar, SettingsPage, type SettingsPageActions } from '../src/client/settings/SettingsPage.js'
 import { RunningMark } from '../src/client/whale/RunningMark.js'
 import { WhaleLayer } from '../src/client/whale/WhaleLayer.js'
 
@@ -39,6 +39,10 @@ export function check(): {
   englishPage: string
   markPage: string
   englishMarkPage: string
+  peekPage: string
+  englishPeekPage: string
+  peekMarkPage: string
+  englishPeekMarkPage: string
   mark: string
   layer: string
   initial: WhaleSettingsState
@@ -54,11 +58,21 @@ export function check(): {
   const englishMarkPage = renderToStaticMarkup(
     <SettingsPage t={translate(DICTIONARIES.en)} state={state} actions={actions} initialTab="mark" />,
   )
+  const peekPage = renderToStaticMarkup(<PeekBar t={identity} state={state} actions={actions} onReturn={() => undefined} />)
+  const englishPeekPage = renderToStaticMarkup(
+    <PeekBar t={translate(DICTIONARIES.en)} state={state} actions={actions} onReturn={() => undefined} />,
+  )
+  const peekMarkPage = renderToStaticMarkup(
+    <PeekBar t={translate(DICTIONARIES.zh)} state={state} actions={actions} onReturn={() => undefined} initialTab="mark" />,
+  )
+  const englishPeekMarkPage = renderToStaticMarkup(
+    <PeekBar t={translate(DICTIONARIES.en)} state={state} actions={actions} onReturn={() => undefined} initialTab="mark" />,
+  )
   const mark = renderToStaticMarkup(<RunningMark state={state} />)
   const layer = renderToStaticMarkup(
     <WhaleLayer hero state={state}>
       <p>body</p>
     </WhaleLayer>,
   )
-  return { page, englishPage, markPage, englishMarkPage, mark, layer, initial: INITIAL_SETTINGS }
+  return { page, englishPage, markPage, englishMarkPage, peekPage, englishPeekPage, peekMarkPage, englishPeekMarkPage, mark, layer, initial: INITIAL_SETTINGS }
 }
