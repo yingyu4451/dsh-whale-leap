@@ -554,8 +554,6 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
     })
   }
   const podOpen = groupOpen('pod', settings.podEnabled)
-  const randomOpen = groupOpen('random', !settings.randomPosition)
-  const autoOpen = groupOpen('auto', settings.autoAppear)
   const markOpen = groupOpen('mark', settings.replaceMark)
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')} title={t('peekHint')}>
@@ -689,46 +687,32 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   hint={t('randomPositionHint')}
                   checked={settings.randomPosition}
                   disabled={disabled}
-                  expand={{
-                    open: randomOpen,
-                    label: randomOpen ? t('collapseChildren') : t('expandChildren'),
-                    onToggle: () => {
-                      toggleGroup('random', !settings.randomPosition)
-                    },
-                  }}
-                  onChange={checked => {
-                    clearGroup('random')
-                    actions.setRandomPosition(checked)
-                  }}
+                  onChange={actions.setRandomPosition}
                 />
-                {randomOpen && (
-                  <AccordionBody>
-                    <SliderRow
-                      id="whale-leap-bg-offset-x"
-                      label={t('bgOffsetX')}
-                      hint={t('bgOffsetXHint')}
-                      value={settings.bgOffsetX}
-                      min={BG_OFFSET_RANGE.min}
-                      max={BG_OFFSET_RANGE.max}
-                      step={BG_OFFSET_RANGE.step}
-                      display={formatOffsetPx(settings.bgOffsetX)}
-                      disabled={disabled || settings.randomPosition}
-                      onChange={actions.setBgOffsetX}
-                    />
-                    <SliderRow
-                      id="whale-leap-bg-offset-y"
-                      label={t('bgOffsetY')}
-                      hint={t('bgOffsetYHint')}
-                      value={settings.bgOffsetY}
-                      min={BG_OFFSET_RANGE.min}
-                      max={BG_OFFSET_RANGE.max}
-                      step={BG_OFFSET_RANGE.step}
-                      display={formatOffsetPx(settings.bgOffsetY)}
-                      disabled={disabled || settings.randomPosition}
-                      onChange={actions.setBgOffsetY}
-                    />
-                  </AccordionBody>
-                )}
+                <SliderRow
+                  id="whale-leap-bg-offset-x"
+                  label={t('bgOffsetX')}
+                  hint={t('bgOffsetXHint')}
+                  value={settings.bgOffsetX}
+                  min={BG_OFFSET_RANGE.min}
+                  max={BG_OFFSET_RANGE.max}
+                  step={BG_OFFSET_RANGE.step}
+                  display={formatOffsetPx(settings.bgOffsetX)}
+                  disabled={disabled || settings.randomPosition}
+                  onChange={actions.setBgOffsetX}
+                />
+                <SliderRow
+                  id="whale-leap-bg-offset-y"
+                  label={t('bgOffsetY')}
+                  hint={t('bgOffsetYHint')}
+                  value={settings.bgOffsetY}
+                  min={BG_OFFSET_RANGE.min}
+                  max={BG_OFFSET_RANGE.max}
+                  step={BG_OFFSET_RANGE.step}
+                  display={formatOffsetPx(settings.bgOffsetY)}
+                  disabled={disabled || settings.randomPosition}
+                  onChange={actions.setBgOffsetY}
+                />
               </div>
             </PeekSection>
             <PeekSection title={t('groupFill')}>
@@ -749,41 +733,27 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
                   checked={settings.autoAppear}
                   disabled={disabled}
-                  expand={{
-                    open: autoOpen,
-                    label: autoOpen ? t('collapseChildren') : t('expandChildren'),
-                    onToggle: () => {
-                      toggleGroup('auto', settings.autoAppear)
-                    },
-                  }}
-                  onChange={checked => {
-                    clearGroup('auto')
-                    actions.setAutoAppear(checked)
-                  }}
+                  onChange={actions.setAutoAppear}
                 />
-                {autoOpen && (
-                  <AccordionBody>
-                    <ToggleRow
-                      label={t('playOnSwitch')}
-                      hint={t('playOnSwitchHint')}
-                      checked={settings.playOnSwitch}
-                      disabled={disabled || !settings.autoAppear}
-                      onChange={actions.setPlayOnSwitch}
-                    />
-                    <SliderRow
-                      id="whale-leap-interval"
-                      label={t('interval')}
-                      hint={t('intervalHint')}
-                      value={settings.intervalSeconds}
-                      min={INTERVAL_RANGE.min}
-                      max={INTERVAL_RANGE.max}
-                      step={INTERVAL_RANGE.step}
-                      display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                      disabled={disabled || !settings.autoAppear}
-                      onChange={actions.setInterval}
-                    />
-                  </AccordionBody>
-                )}
+                <ToggleRow
+                  label={t('playOnSwitch')}
+                  hint={t('playOnSwitchHint')}
+                  checked={settings.playOnSwitch}
+                  disabled={disabled || !settings.autoAppear}
+                  onChange={actions.setPlayOnSwitch}
+                />
+                <SliderRow
+                  id="whale-leap-interval"
+                  label={t('interval')}
+                  hint={t('intervalHint')}
+                  value={settings.intervalSeconds}
+                  min={INTERVAL_RANGE.min}
+                  max={INTERVAL_RANGE.max}
+                  step={INTERVAL_RANGE.step}
+                  display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
+                  disabled={disabled || !settings.autoAppear}
+                  onChange={actions.setInterval}
+                />
               </div>
             </PeekSection>
           </>
