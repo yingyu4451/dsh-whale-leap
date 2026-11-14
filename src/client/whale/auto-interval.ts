@@ -1,22 +1,23 @@
 /**
  * Timing helper for the whale's automatic replays.
  *
- * The fixed mode waits exactly the configured interval. The random mode treats
- * the configured interval as the upper bound and returns a wait between half and
- * the full interval, so consecutive appearances never feel metronomic while the
- * whale still shows up at least as often as configured. A short floor keeps the
- * smallest configured interval from firing in a burst.
+ * Fixed mode waits exactly the configured interval. Random mode ignores the
+ * configured interval and picks a fresh wait between five seconds and sixty
+ * minutes, so the whale appears at irregular, human-feeling moments.
  */
 
-/** Shortest wait random mode may produce, in milliseconds. */
-export const AUTO_RANDOM_FLOOR_MS = 400
+/** Shortest wait random mode may produce, in milliseconds (five seconds). */
+export const AUTO_RANDOM_MIN_MS = 5_000
+
+/** Longest wait random mode may produce, in milliseconds (sixty minutes). */
+export const AUTO_RANDOM_MAX_MS = 60 * 60_000
 
 /**
  * Compute the wait before the next automatic replay.
- * @param intervalMs - user-configured interval in milliseconds (also the random upper bound).
- * @param random - whether the wait should vary below the interval.
+ * @param intervalMs - user-configured interval in milliseconds (fixed mode only).
+ * @param random - whether the wait is picked randomly from the five-second to sixty-minute range.
  * @param randomValue - random source in [0, 1); injectable for tests.
- * @returns wait in milliseconds before the next replay.
+ * @returns wait in whole seconds, in milliseconds.
  */
 export function nextAutoDelay(
   intervalMs: number,
@@ -24,5 +25,7 @@ export function nextAutoDelay(
   randomValue: () => number = Math.random,
 ): number {
   if (!random) return intervalMs
-  return Math.max(AUTO_RANDOM_FLOOR_MS, intervalMs * (0.5 + randomValue() * 0.5))
+  const span = AUTO_RANDOM_MAX_MS - AUTO_RANDOM_MIN_MS
+  const wait = AUTO_RANDOM_MIN_MS + randomValue() * span
+  return Math.round(wait / 1000) * 1000
 }
