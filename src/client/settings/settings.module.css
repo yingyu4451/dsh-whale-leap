@@ -532,7 +532,19 @@
   box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
 }
 
-.choiceButton:disabled,
+/* Multi-select buttons (fill styles, motion presets) use the filled state. */
+.choiceButtonActive {
+  background: var(--dsw-alias-state-business-primary);
+  color: var(--dsw-alias-label-on-color);
+  font-weight: 500;
+}
+
+.choiceButtonActive:hover {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 88%, var(--dsw-static-neutral-00) 12%);
+  color: var(--dsw-alias-label-on-color);
+}
+
+.choiceButtonActive:disabled,
 .choiceSelected:disabled,
 .motionOption:disabled,
 .switch:disabled {
@@ -704,20 +716,20 @@
 /* Floating controls shown after the settings dialog is hidden for a live preview. */
 .peekBar {
   position: fixed;
-  left: 50%;
-  bottom: 20px;
+  top: 84px;
+  right: 16px;
   z-index: 2147483000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: min(720px, calc(100vw - 32px));
-  padding: 12px 16px;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 100px);
+  padding: 12px 14px;
   border: 0.5px solid var(--dsw-alias-border-l2);
   border-radius: var(--dsw-radius-xl);
   background: var(--dsw-alias-bg-layer-2);
   box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
   color: var(--dsw-alias-label-primary);
-  transform: translateX(-50%);
   box-sizing: border-box;
 }
 
@@ -725,21 +737,13 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .peekTitle {
   font-size: 13px;
   line-height: 20px;
   font-weight: 600;
-}
-
-.peekHint {
-  flex: 1;
-  min-width: 120px;
-  font-size: 12px;
-  line-height: 18px;
-  color: var(--dsw-alias-label-secondary);
 }
 
 .peekTabs {
@@ -789,6 +793,7 @@
 }
 
 .peekReturn {
+  margin-left: auto;
   background: var(--dsw-alias-state-business-primary);
   border-color: transparent;
   color: var(--dsw-alias-label-on-color);
@@ -797,8 +802,11 @@
 .peekBody {
   display: flex;
   flex-direction: column;
-  max-height: min(62vh, 560px);
+  flex: 0 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
 }
 
 .peekGroup {
@@ -812,20 +820,45 @@
 
 .peekGroup .choice {
   justify-content: flex-start;
+  flex-wrap: wrap;
   padding: 6px 0 2px;
+}
+
+.peekGroup .row {
+  min-height: 46px;
+  padding: 8px 0;
+}
+
+.peekGroup .rowHint {
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.peekGroup .slider {
+  width: 148px;
+}
+
+.peekGroup .sliderValue {
+  min-width: 42px;
 }
 
 .peekGroup > .row:last-child {
   border-bottom: 0;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 900px) {
   .peekBar {
+    top: auto;
+    left: 12px;
+    right: 12px;
     bottom: 12px;
+    width: auto;
+    max-height: min(72vh, 560px);
     padding: 10px 12px;
   }
 
   .peekBody {
-    max-height: 56vh;
+    flex: 1;
+    min-height: 0;
   }
 }

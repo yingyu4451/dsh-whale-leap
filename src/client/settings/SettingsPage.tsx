@@ -380,7 +380,7 @@ function FillStyleButtons({ t, styles, disabled, onToggle }: {
           <button
             key={style}
             type="button"
-            className={selected ? css.choiceButtonSelected : css.choiceButton}
+            className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
             aria-pressed={selected}
             disabled={disabled || (selected && styles.length === 1)}
             onClick={() => {
@@ -417,10 +417,9 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
   const markDisabled = disabled || !settings.replaceMark
   const [tab, setTab] = useState<'background' | 'mark'>(initialTab)
   return (
-    <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')}>
+    <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')} title={t('peekHint')}>
       <div className={css.peekHead}>
         <span className={css.peekTitle}>{t('peekTitle')}</span>
-        <span className={css.peekHint}>{t('peekHint')}</span>
         <div className={css.peekTabs} role="tablist" aria-label={t('nav')}>
           <button
             type="button"
@@ -613,7 +612,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   <button
                     key={motion}
                     type="button"
-                    className={selected ? css.choiceButtonSelected : css.choiceButton}
+                    className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
                     aria-pressed={selected}
                     disabled={markDisabled}
                     onClick={() => {
@@ -709,15 +708,18 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     )
     setPeekMode(true)
     const onKey = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setPeeking(false)
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      setPeeking(false)
     }
-    window.addEventListener('keydown', onKey)
+    window.addEventListener('keydown', onKey, true)
     const safety = window.setTimeout(() => {
       setPeeking(false)
     }, 120000)
     return () => {
       window.clearTimeout(safety)
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', onKey, true)
       setPeekMode(false)
       root.unmount()
       host.remove()
