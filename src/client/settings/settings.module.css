@@ -885,24 +885,34 @@
 .peekSection {
   display: flex;
   flex-direction: column;
+  padding: 2px 12px 8px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-md);
+  background: var(--dsw-alias-bg-module-platform);
 }
 
 .peekSection + .peekSection {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 0.5px solid var(--dsw-alias-border-l2);
+  margin-top: 10px;
 }
 
 .peekSectionTitle {
-  padding: 6px 0 4px;
-  color: var(--dsw-alias-label-secondary);
-  font-size: 12px;
-  line-height: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 0 5px;
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+  line-height: 20px;
   font-weight: 600;
 }
 
+.peekSectionIcon {
+  display: inline-flex;
+  color: var(--dsw-alias-label-secondary);
+}
+
 .peekSection:first-child .peekSectionTitle {
-  padding-top: 0;
+  padding-top: 7px;
 }
 
 .peekGroup .subTitle {

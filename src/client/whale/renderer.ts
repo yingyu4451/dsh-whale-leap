@@ -34,6 +34,13 @@ export type { WhaleFillStyle } from '../settings.ts'
  */
 const MAX_CANVAS_PIXELS = 5_000_000
 
+/**
+ * Resolution cap while the live preview keeps replaying the whale. The preview
+ * loop runs far more often than normal playback; trimming the buffer keeps the
+ * preview from competing with the chat UI on high-DPI screens.
+ */
+const PREVIEW_DPR_CAP = 1.25
+
 /** Forget cached atlas decodes; tests use this to keep each atlas load observable. */
 export function clearAtlasCache(): void {
   atlasCache.clear()
@@ -55,6 +62,11 @@ export interface PixelWhaleHandle {
    * @param playNow - whether enabling also replays once immediately.
    */
   setAutoPlay: (intervalMs: number | undefined, playNow?: boolean) => void
+  /**
+   * Cap the render resolution while the settings preview loops the whale.
+   * @param active - whether preview rendering is active.
+   */
+  setPreview: (active: boolean) => void
   /** Release frame work, atlas pixels, and observers; late atlas loads are ignored. */
   dispose: () => void
 }
@@ -65,6 +77,7 @@ const NO_WHALE: PixelWhaleHandle = {
   update: () => {},
   setFillStyles: () => {},
   setAutoPlay: () => {},
+  setPreview: () => {},
   dispose: () => {},
 }
 
@@ -104,6 +117,8 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let lastSceneWidth = -1
   let lastOffsetX = Number.NaN
   let lastOffsetY = Number.NaN
+  let dprCap: number | undefined
+  let lastDpr = 0
   let left = 0
   let top = 0
   let fill: WhaleFillStyle = 'code'
@@ -194,7 +209,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   function resize(): void {
     width = canvas.clientWidth
     height = canvas.clientHeight
-    const requested = Math.min(devicePixelRatio, 2)
+    const requested = Math.min(devicePixelRatio, dprCap ?? 2)
     // Cap the buffer, not the layout: sparse dots lose nothing visible, while a
     // 4K window stops allocating and compositing a full-resolution layer.
     const dpr = Math.min(requested, Math.sqrt(MAX_CANVAS_PIXELS / Math.max(1, width * height)))
@@ -208,10 +223,12 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     // ResizeObserver + theme mutation fire on unrelated attribute churn; layout,
     // ink, and scale unchanged means there is nothing to redraw.
     if (width === lastWidth && height === lastHeight && nextColor === lastColor
-      && nextSceneWidth === sceneWidth && nextOffsetX === lastOffsetX && nextOffsetY === lastOffsetY) return
+      && nextSceneWidth === sceneWidth && nextOffsetX === lastOffsetX && nextOffsetY === lastOffsetY
+      && dpr === lastDpr) return
     lastColor = nextColor
     lastWidth = width
     lastHeight = height
+    lastDpr = dpr
     lastSceneWidth = nextSceneWidth
     lastOffsetX = nextOffsetX
     lastOffsetY = nextOffsetY
@@ -351,6 +368,14 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     autoTimer = setInterval(play, next)
   }
 
+  function setPreview(active: boolean): void {
+    if (disposed) return
+    const next = active ? PREVIEW_DPR_CAP : undefined
+    if (dprCap === next) return
+    dprCap = next
+    scheduleResize()
+  }
+
   const sizeObserver = new ResizeObserver(scheduleResize)
   const visibilityObserver = new IntersectionObserver(([entry]) => {
     visible = entry?.isIntersecting ?? false
@@ -385,5 +410,5 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     document.removeEventListener('visibilitychange', resume)
     media.removeEventListener('change', resume)
   }
-  return { play, prefetch, update, setAutoPlay, setFillStyles, dispose }
+  return { play, prefetch, update, setAutoPlay, setFillStyles, setPreview, dispose }
 }

@@ -13,8 +13,12 @@ export const PEEK_EVENT = 'whale-leap:peek'
 /** Window event requesting one more playback while preview mode is active. */
 export const PEEK_PLAY_EVENT = 'whale-leap:peek-play'
 
-/** Minimum pause between forced replays while preview mode is active. */
-export const PEEK_INTERVAL_MS = 3400
+/**
+ * Minimum pause between forced replays while preview mode is active. The preview
+ * replays on its own schedule, so a longer pause keeps the background canvas
+ * from competing with the chat UI while the user drags controls.
+ */
+export const PEEK_INTERVAL_MS = 8000
 
 /**
  * Broadcast the preview-mode state to every mounted background layer.

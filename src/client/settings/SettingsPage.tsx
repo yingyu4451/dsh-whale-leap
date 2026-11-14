@@ -367,6 +367,96 @@ function randomBackgroundOffset(settings: WhaleSettingsState): { x: number; y: n
  * @param props.initialTab - tab rendered first (used by the render smoke check).
  * @returns the floating bar.
  */
+type PeekGroupIcon = 'look' | 'position' | 'fill' | 'playback' | 'size' | 'motion'
+
+/**
+ * Small stroke icon shown next to a floating-panel group title.
+ * @param props.kind - which semantic icon to draw.
+ * @returns the inline icon.
+ */
+function PeekSectionIcon({ kind }: { kind: PeekGroupIcon }): ReactNode {
+  const common = {
+    width: 14,
+    height: 14,
+    viewBox: '0 0 16 16',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.4,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  }
+  if (kind === 'look') {
+    return (
+      <svg {...common}>
+        <circle cx="8" cy="8" r="5.6" />
+        <circle cx="8" cy="5.4" r=".9" fill="currentColor" stroke="none" />
+        <circle cx="10.4" cy="8" r=".9" fill="currentColor" stroke="none" />
+        <circle cx="8" cy="10.6" r=".9" fill="currentColor" stroke="none" />
+        <circle cx="5.6" cy="8" r=".9" fill="currentColor" stroke="none" />
+      </svg>
+    )
+  }
+  if (kind === 'position') {
+    return (
+      <svg {...common}>
+        <circle cx="8" cy="8" r="4.2" />
+        <path d="M8 2.2v2.2M8 11.6v2.2M2.2 8h2.2M11.6 8h2.2" />
+      </svg>
+    )
+  }
+  if (kind === 'fill') {
+    return (
+      <svg {...common}>
+        <rect x="2.6" y="2.6" width="4.4" height="4.4" rx="1" />
+        <rect x="9" y="2.6" width="4.4" height="4.4" rx="1" />
+        <rect x="2.6" y="9" width="4.4" height="4.4" rx="1" />
+        <rect x="9" y="9" width="4.4" height="4.4" rx="1" />
+      </svg>
+    )
+  }
+  if (kind === 'playback') {
+    return (
+      <svg {...common}>
+        <path d="M5.6 3.6v8.8L12.4 8z" />
+      </svg>
+    )
+  }
+  if (kind === 'size') {
+    return (
+      <svg {...common}>
+        <path d="M9.6 2.6h3.8v3.8M6.4 13.4H2.6V9.6M13.4 2.6 8.9 7.1M2.6 13.4l4.5-4.5" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...common}>
+      <path d="M1.8 9.2c1.4 0 1.6-4.4 3.1-4.4s1.7 6.6 3.2 6.6 1.6-6.8 3.1-6.8 1.4 4.6 2.8 4.6" />
+    </svg>
+  )
+}
+
+/**
+ * One titled block inside the floating preview panel.
+ * @param props.title - localized section title.
+ * @param props.icon - semantic section icon.
+ * @param props.children - rows belonging to the section.
+ * @returns the section card.
+ */
+function PeekSection({ title, icon, children }: { title: string; icon: PeekGroupIcon; children: ReactNode }) {
+  return (
+    <section className={css.peekSection}>
+      <h3 className={css.peekSectionTitle}>
+        <span className={css.peekSectionIcon}>
+          <PeekSectionIcon kind={icon} />
+        </span>
+        <span>{title}</span>
+      </h3>
+      {children}
+    </section>
+  )
+}
+
 export function PeekBar({ t, state, actions, onReturn, initialTab = 'background' }: {
   t: Translate
   state: Store<WhaleSettingsState>
@@ -412,8 +502,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
       <div className={css.peekBody} ref={bodyRef}>
         {tab === 'background' ? (
           <>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupLook')}</div>
+            <PeekSection title={t('groupLook')} icon="look">
               <div className={css.peekGroup}>
             <ColorPickerRow
               id="whale-leap-custom-color"
@@ -452,9 +541,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onChange={actions.setOpacity}
             />
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupPosition')}</div>
+            </PeekSection>
+            <PeekSection title={t('groupPosition')} icon="position">
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-bg-offset-x"
@@ -500,9 +588,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               }
             />
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupFill')}</div>
+            </PeekSection>
+            <PeekSection title={t('groupFill')} icon="fill">
               <div className={css.peekGroup}>
             <FillStyleButtons
               t={t}
@@ -512,9 +599,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
             <p className={css.note}>{t('fillStyleHint')}</p>
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('tabPlayback')}</div>
+            </PeekSection>
+            <PeekSection title={t('tabPlayback')} icon="playback">
               <div className={css.peekGroup}>
                 <ToggleRow
                   label={t('auto')}
@@ -547,12 +633,11 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   </>
                 )}
               </div>
-            </div>
+            </PeekSection>
           </>
         ) : (
           <>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupLook')}</div>
+            <PeekSection title={t('groupLook')} icon="look">
               <div className={css.peekGroup}>
             <ToggleRow
               label={t('replaceMark')}
@@ -586,9 +671,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onColor={actions.setLabelColor}
             />
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupSize')}</div>
+            </PeekSection>
+            <PeekSection title={t('groupSize')} icon="size">
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-size"
@@ -615,9 +699,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onChange={actions.setMarkLabelSize}
             />
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupPosition')}</div>
+            </PeekSection>
+            <PeekSection title={t('groupPosition')} icon="position">
               <div className={css.peekGroup}>
             <SliderRow
               id="whale-leap-mark-offset-x"
@@ -644,9 +727,8 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               onChange={actions.setMarkOffsetY}
             />
               </div>
-            </div>
-            <div className={css.peekSection}>
-              <div className={css.peekSectionTitle}>{t('groupMotion')}</div>
+            </PeekSection>
+            <PeekSection title={t('groupMotion')} icon="motion">
               <div className={css.peekGroup}>
             <div className={css.choice} role="group" aria-label={t('motion')}>
               {MARK_MOTIONS.map(motion => {
@@ -681,7 +763,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
             <p className={css.note}>{t('motionHint')}</p>
               </div>
-            </div>
+            </PeekSection>
           </>
         )}
       </div>
@@ -723,17 +805,36 @@ interface ConversationThread {
 }
 
 /**
+ * Read a pixel or clamp() width declaration without creating any DOM nodes.
+ * @param value - computed custom-property value.
+ * @returns the resolved pixel width, or 0 when the value is not a width.
+ */
+function parseChatWidth(value: string): number {
+  const px = /^\s*(\d+(?:\.\d+)?)px\s*$/.exec(value)
+  if (px !== null) return Number.parseFloat(px[1])
+  const clamp = /^\s*clamp\(\s*([\d.]+)px\s*,\s*calc\(\s*([\d.]+)px\s*\*\s*([\d.]+)\s*\)\s*,\s*([\d.]+)px\s*\)\s*$/.exec(value)
+  if (clamp === null) return 0
+  const resolved = Number.parseFloat(clamp[2]) * Number.parseFloat(clamp[3])
+  return Math.min(Number.parseFloat(clamp[4]), Math.max(Number.parseFloat(clamp[1]), resolved))
+}
+
+/**
  * Measure the conversation column width the real messages are laid out in.
+ * Reads the same custom properties the shipped width handles publish; no probe
+ * node is inserted, so syncing the preview never mutates the chat container.
  * @param scroll - the real conversation scroll container.
  * @returns the resolved chat content width in pixels.
  */
 function measureChatWidth(scroll: HTMLElement): number {
-  const probe = document.createElement('div')
-  probe.style.cssText = 'position:absolute;left:-9999px;visibility:hidden;width:var(--dsh-chat-content-width);'
-  scroll.append(probe)
-  const width = probe.getBoundingClientRect().width
-  probe.remove()
-  return width
+  const userWidth = parseChatWidth(getComputedStyle(scroll).getPropertyValue('--dsh-chat-user-width'))
+  if (userWidth > 0) return userWidth
+  const content = scroll.querySelector<HTMLElement>('[data-conversation-content]')
+  const owner = content ?? scroll
+  const declared = parseChatWidth(getComputedStyle(owner).getPropertyValue('--dsh-chat-content-width'))
+  if (declared > 0) return declared
+  const width = owner.getBoundingClientRect().width
+  if (width <= 0) return 0
+  return Math.min(920, Math.max(680, width * 0.64))
 }
 
 /**
@@ -930,26 +1031,47 @@ export function SettingsPage({ t, state, actions }: SettingsPageProps) {
       // The chat column can change width (window resize, width handles), and the
       // composer follows it. Mirror the measured column width into the demo host
       // and keep the running dock aligned to the column above the composer.
-      const syncDock = (): void => {
-        if (dockHost === null || demoHost === null) return
-        const column = demoHost.getBoundingClientRect()
-        if (column.width <= 0) return
-        dockHost.style.left = `${column.left}px`
-        dockHost.style.width = `${column.width}px`
-        const composer = thread.composer?.getBoundingClientRect()
-        const gap = composer === undefined ? 0 : window.innerHeight - composer.top + 6
-        dockHost.style.bottom = `${Math.max(24, gap)}px`
-      }
-      const syncWidth = (): void => {
+      // Layout reads are coalesced into one animation frame and only written when
+      // the measurements actually changed, so dragging a handle cannot queue a
+      // stream of forced reflows.
+      let lastWidth = 0
+      let lastLeft = Number.NaN
+      let lastDockWidth = Number.NaN
+      let lastBottom = Number.NaN
+      let syncQueued = false
+      const applySync = (): void => {
         if (demoHost === null) return
         const width = measureChatWidth(thread.scroll)
-        if (width <= 0) return
-        demoHost.style.width = `${width}px`
-        demoHost.style.margin = '0 auto'
-        syncDock()
+        if (width > 0 && Math.abs(width - lastWidth) > 0.5) {
+          lastWidth = width
+          demoHost.style.width = `${width}px`
+          demoHost.style.margin = '0 auto'
+        }
+        if (dockHost === null) return
+        const column = demoHost.getBoundingClientRect()
+        if (column.width <= 0) return
+        const composer = thread.composer?.getBoundingClientRect()
+        const gap = composer === undefined ? 0 : window.innerHeight - composer.top + 6
+        const bottom = Math.max(24, gap)
+        if (Math.abs(column.left - lastLeft) < 0.5 && Math.abs(column.width - lastDockWidth) < 0.5 && Math.abs(bottom - lastBottom) < 0.5) return
+        lastLeft = column.left
+        lastDockWidth = column.width
+        lastBottom = bottom
+        dockHost.style.left = `${column.left}px`
+        dockHost.style.width = `${column.width}px`
+        dockHost.style.bottom = `${bottom}px`
       }
-      const widthTimer = window.setInterval(syncWidth, 250)
-      syncTimers.push(widthTimer)
+      const syncWidth = (): void => {
+        if (syncQueued) return
+        syncQueued = true
+        requestAnimationFrame(() => {
+          syncQueued = false
+          applySync()
+        })
+      }
+      // Observers and resize fire on real changes; the timer is only a cheap
+      // once-per-second safety net that reads style values, not the layout tree.
+      syncTimers.push(window.setInterval(syncWidth, 1000))
       syncTimers.push(window.setTimeout(syncWidth, 120))
       // Width handles and ResizeObserver publish the width through inline style
       // custom properties on the conversation shell; mirror those updates at once.

@@ -103,6 +103,7 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
   }, [])
 
   useEffect(() => {
+    whale.current?.setPreview(peek)
     if (!peek) return
     whale.current?.play()
     const replay = (): void => {
