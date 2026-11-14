@@ -871,6 +871,9 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     let demoRoot: Root | null = null
     let hiddenSession: { element: HTMLElement; display: string } | null = null
     let scrollTimer: number | null = null
+    const syncTimers: number[] = []
+    const widthObservers: MutationObserver[] = []
+    let onResize: (() => void) | null = null
     const thread = findConversationThread()
     let savedScrollTop: number | null = null
     if (thread !== null) {
@@ -894,6 +897,29 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
       const toTop = (): void => { thread.scroll.scrollTop = 0 }
       requestAnimationFrame(() => { requestAnimationFrame(toTop) })
       scrollTimer = window.setTimeout(toTop, 80)
+      // The chat column can change width (window resize, width handles), and the
+      // composer follows it. Mirror the measured column width into the demo host.
+      const syncWidth = (): void => {
+        if (demoHost === null) return
+        const width = measureChatWidth(thread.scroll)
+        if (width <= 0) return
+        demoHost.style.width = `${width}px`
+        demoHost.style.margin = '0 auto'
+      }
+      const widthTimer = window.setInterval(syncWidth, 250)
+      syncTimers.push(widthTimer)
+      syncTimers.push(window.setTimeout(syncWidth, 120))
+      // Width handles and ResizeObserver publish the width through inline style
+      // custom properties on the conversation shell; mirror those updates at once.
+      let shell: HTMLElement | null = thread.scroll.parentElement
+      for (let depth = 0; depth < 4 && shell !== null && shell !== document.body; depth += 1) {
+        const observer = new MutationObserver(syncWidth)
+        observer.observe(shell, { attributes: true, attributeFilter: ['style'] })
+        widthObservers.push(observer)
+        shell = shell.parentElement
+      }
+      onResize = syncWidth
+      window.addEventListener('resize', onResize)
     }
     const host = document.createElement('div')
     document.body.append(host)
@@ -922,6 +948,12 @@ export function SettingsPage({ t, state, actions, initialTab = 'background' }: S
     return () => {
       window.clearTimeout(safety)
       if (scrollTimer !== null) window.clearTimeout(scrollTimer)
+      for (const timer of syncTimers) {
+        window.clearInterval(timer)
+        window.clearTimeout(timer)
+      }
+      for (const observer of widthObservers) observer.disconnect()
+      if (onResize !== null) window.removeEventListener('resize', onResize)
       window.removeEventListener('keydown', onKey, true)
       setPeekMode(false)
       demoRoot?.unmount()
