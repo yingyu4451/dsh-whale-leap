@@ -681,6 +681,49 @@
   transform: translate(20px, -50%);
 }
 
+/* Chevrons on parent switches that own dependent rows. */
+.rowControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.expandButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--dsw-radius-sm);
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+}
+
+.expandButton:hover {
+  background: var(--dsw-alias-bg-module-platform);
+  color: var(--dsw-alias-label-primary);
+}
+
+.expandButton svg {
+  transition: transform 0.12s ease;
+}
+
+.expandButtonOpen svg {
+  transform: rotate(180deg);
+}
+
+/* Dependent block of an accordion parent, indented from its switch row. */
+.accordionBody {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 6px 6px;
+  padding-left: 12px;
+  border-left: 1.5px solid var(--dsw-alias-border-l2);
+}
+
 .motionGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -823,10 +866,15 @@
   width: min(420px, calc(100vw - 16px));
   max-height: calc(100vh - 100px);
   padding: 12px 16px 14px;
-  border: 0.5px solid var(--dsw-alias-border-l2);
+  border: 1px solid color-mix(in srgb, var(--dsw-alias-label-primary) 14%, transparent);
   border-radius: var(--dsw-radius-xl);
-  background: var(--dsw-alias-bg-layer-2);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 86%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow:
+    0 24px 64px rgb(0 0 0 / 16%),
+    0 6px 20px rgb(0 0 0 / 8%),
+    inset 0 1px 0 color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
   color: var(--dsw-alias-label-primary);
   box-sizing: border-box;
 }

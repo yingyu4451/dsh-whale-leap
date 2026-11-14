@@ -21,9 +21,14 @@ function depthInk(depth: number): number {
   return DEPTH_INK_FLOOR + (1 - DEPTH_INK_FLOOR) * depth
 }
 
-/** A random appearance shows two whales, sometimes three when there is room. */
-const POD_TWO = 2
-const POD_THREE = 3
+/** A pod appearance draws one to three whales, chosen at random each time. */
+const POD_MIN = 1
+const POD_MAX = 3
+
+/** Number of whales in the next pod appearance. */
+function podCount(): number {
+  return POD_MIN + Math.floor(Math.random() * (POD_MAX - POD_MIN + 1))
+}
 
 /** Least distance kept between the measured drawing boxes of two pod members, in CSS pixels. */
 const POD_GAP_MIN = 28
@@ -361,7 +366,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.fillStyle = nextColor
     sceneWidth = nextSceneWidth
-    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
+    scenes = layScenes()
     if (code !== undefined && sceneWidth > 0) code.resize(canvas, sceneWidth)
     resume()
   }
@@ -435,26 +440,128 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   }
 
   /**
+   * Size of every pod member, from the nearest (first) to the farthest.
+   *
+   * The configured range maps the nearest whale to `podSizeMax` and the farthest
+   * one to `podSizeMin`; a single whale keeps the nearest size.
+   * @param total - number of whales in the appearance.
+   * @returns one scale factor per whale, in near-to-far order.
+   */
+  function podScales(total: number): number[] {
+    const span = Math.max(0, podSizeMax - podSizeMin)
+    if (total <= 1) return [podSizeMax]
+    return Array.from({ length: total }, (_, rank) => podSizeMin + span * (1 - rank / (total - 1)))
+  }
+
+  /**
+   * Put one whale of the given scene width anywhere the whole drawing stays
+   * on the canvas.
+   * @param sceneW - scene width of this whale.
+   * @returns one randomly placed scene.
+   */
+  function placeRandomScene(sceneW: number): WhaleScene[] {
+    if (whaleBox === undefined || sceneW <= 0 || width <= 0 || height <= 0) return []
+    const sceneHeight = sceneW * ATLAS.height / ATLAS.width
+    const marginX = Math.max(16, width * 0.02)
+    const marginTop = height * 0.08
+    const marginBottom = height * 0.07
+    const minLeft = marginX - whaleBox.x0 * sceneW
+    const maxLeft = width - marginX - whaleBox.x1 * sceneW
+    const minTop = marginTop - whaleBox.y0 * sceneHeight
+    const maxTop = height - marginBottom - whaleBox.y1 * sceneHeight
+    return [{
+      left: maxLeft > minLeft ? minLeft + Math.random() * (maxLeft - minLeft) : (width - sceneW) / 2,
+      top: maxTop > minTop ? minTop + Math.random() * (maxTop - minTop) : height * 0.43 - sceneHeight / 2,
+      width: sceneW,
+      depth: 1,
+      delay: 0,
+    }]
+  }
+
+  /**
    * Place the single whale of a random appearance that is not a pod.
    * @returns one scene anywhere the whole drawing stays inside the canvas.
    */
   function placeRandom(): WhaleScene[] {
+    return placeRandomScene(sceneWidth)
+  }
+
+  /**
+   * Lay out the pod at a fixed formation anchored at the artwork offsets.
+   *
+   * Used when the pod is enabled but the random-position switch is off: the
+   * composition stays the same for every appearance, while the pod size, size
+   * range, depth ink, and entrance timing still apply. One to three whales are
+   * drawn, stacked from the nearest at the bottom to the farthest at the top,
+   * with the outer ones drifting slightly sideways so it does not read as one
+   * column.
+   * @returns the scenes of the fixed pod, empty before the atlas bounds exist.
+   */
+  function placeFixedPod(): WhaleScene[] {
     if (whaleBox === undefined || sceneWidth <= 0 || width <= 0 || height <= 0) return []
-    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    const box = whaleBox
+    const boxWidth = Math.max(0.04, box.x1 - box.x0)
+    const boxHeight = Math.max(0.05, box.y1 - box.y0)
+    const aspect = ATLAS.height / ATLAS.width
+    const total = podCount()
+    const distanceGap = Math.max(POD_GAP_MIN, width * 0.06)
     const marginX = Math.max(16, width * 0.02)
     const marginTop = height * 0.08
     const marginBottom = height * 0.07
-    const minLeft = marginX - whaleBox.x0 * sceneWidth
-    const maxLeft = width - marginX - whaleBox.x1 * sceneWidth
-    const minTop = marginTop - whaleBox.y0 * sceneHeight
-    const maxTop = height - marginBottom - whaleBox.y1 * sceneHeight
-    return [{
-      left: maxLeft > minLeft ? minLeft + Math.random() * (maxLeft - minLeft) : (width - sceneWidth) / 2,
-      top: maxTop > minTop ? minTop + Math.random() * (maxTop - minTop) : height * 0.43 - sceneHeight / 2,
-      width: sceneWidth,
-      depth: 1,
-      delay: 0,
-    }]
+    const unit = width / 1000
+    const anchorX = width / 2 + artwork.offsetX * unit
+    const anchorY = height * 0.43 + artwork.offsetY * unit
+    const scaleFactors = podScales(total)
+    const depthFactors = [1, 0.62, 0.34]
+    const xFactors = [0, -0.14, 0.12]
+    const delays = planDelays(total)
+    const widths = scaleFactors.map(scale => Math.max(150, sceneWidth * scale))
+    const heights = widths.map(value => value * aspect)
+    const rectHeights = heights.map(value => boxHeight * value)
+    const available = Math.max(80, height - marginTop - marginBottom)
+    const stackHeight = () => rectHeights.reduce((sum, value) => sum + value, 0) + distanceGap * (total - 1)
+    // Shrink the whole formation uniformly when the configured sizes cannot stack.
+    let fit = Math.min(1, available / Math.max(1, stackHeight()))
+    for (let round = 0; round < 6 && fit < 1; round++) {
+      for (let index = 0; index < total; index++) {
+        widths[index] = Math.max(150, (widths[index] as number) * fit)
+        heights[index] = (widths[index] as number) * aspect
+        rectHeights[index] = boxHeight * (heights[index] as number)
+      }
+      fit = Math.min(1, available / Math.max(1, stackHeight()))
+    }
+    const stack = stackHeight()
+    const cursor = Math.max(marginTop, Math.min(anchorY - stack / 2, height - marginBottom - stack))
+    const scenes: WhaleScene[] = []
+    let top = cursor
+    for (let rank = total - 1; rank >= 0; rank--) {
+      const sceneW = widths[rank] as number
+      const sceneH = heights[rank] as number
+      const rectW = boxWidth * sceneW
+      const wantedLeft = anchorX + (xFactors[rank] as number) * width - rectW / 2
+      const left = Math.max(marginX, Math.min(wantedLeft, width - marginX - rectW))
+      scenes[rank] = {
+        left: left - box.x0 * sceneW,
+        top: top - box.y0 * sceneH,
+        width: sceneW,
+        depth: depthFactors[rank] as number,
+        delay: delays[rank] as number,
+      }
+      top += (rectHeights[rank] as number) + distanceGap
+    }
+    return scenes
+  }
+
+  /**
+   * Lay out the scenes for the current switches.
+   *
+   * A single whale follows the sliders or a random spot; an enabled pod keeps
+   * working with the random-position switch off by using a fixed formation.
+   * @returns the scenes of the current appearance.
+   */
+  function layScenes(): WhaleScene[] {
+    if (!podEnabled) return randomMode ? placeRandom() : placeFromArtwork()
+    return randomMode ? planPod() : placeFixedPod()
   }
 
   /**
@@ -484,15 +591,17 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   /**
    * Lay out one pod appearance.
    *
-   * Two or three whales are chosen with decreasing scale and depth. The nearest
-   * whale claims the lower band of the canvas first and each farther one is
-   * rejected until its measured drawing box keeps a clear gap from every whale
-   * already placed, so the pod neither overlaps nor crowds. On dense viewports
-   * the placement falls back to a compact vertical stack.
+   * One to three whales are chosen at random with decreasing scale and depth.
+   * The nearest whale claims the lower band of the canvas first and each farther
+   * one is rejected until its measured drawing box keeps a clear gap from every
+   * whale already placed, so the pod neither overlaps nor crowds. On dense
+   * viewports the placement falls back to a compact vertical stack.
    * @returns the scenes to paint; empty before the atlas bounds are known.
    */
   function planPod(): WhaleScene[] {
     if (whaleBox === undefined || sceneWidth <= 0 || width <= 0 || height <= 0) return []
+    const total = podCount()
+    if (total === 1) return placeRandomScene(Math.max(150, sceneWidth * podSizeMax))
     const box = whaleBox
     const boxWidth = Math.max(0.04, box.x1 - box.x0)
     const boxHeight = Math.max(0.05, box.y1 - box.y0)
@@ -501,19 +610,15 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     const marginX = Math.max(16, width * 0.02)
     const marginTop = height * 0.08
     const marginBottom = height * 0.07
-    const three = Math.random() < 0.4
-    const total = three ? POD_THREE : POD_TWO
     // Band centers of the measured drawing box, nearest at the bottom: the depth
     // order is also the vertical order, so far whales sit above the near ones.
-    const bandFactors = total === POD_THREE ? [0.64, 0.4, 0.2] : [0.62, 0.3]
-    const depthFactors = total === POD_THREE
+    const bandFactors = total === 3 ? [0.64, 0.4, 0.2] : [0.62, 0.3]
+    const depthFactors = total === 3
       ? [1, 0.6 + Math.random() * 0.12, 0.3 + Math.random() * 0.14]
       : [1, 0.4 + Math.random() * 0.16]
     // Sizes walk from the user's maximum at the nearest whale to the minimum at
     // the farthest one, so the range keeps reading as one consistent depth cue.
-    const sizeSpan = Math.max(0, podSizeMax - podSizeMin)
-    const scaleFactors = Array.from({ length: total }, (_, rank) =>
-      podSizeMin + sizeSpan * (1 - rank / (total - 1)))
+    const scaleFactors = podScales(total)
     const delays = planDelays(total)
     const placed: { rect: PodRect; scene: WhaleScene }[] = []
     for (let index = 0; index < total; index++) {
@@ -589,7 +694,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
-    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
+    scenes = layScenes()
     started = performance.now()
     resume()
   }
@@ -690,23 +795,15 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   function setRandomPosition(enabled: boolean): void {
     if (disposed || randomMode === enabled) return
     randomMode = enabled
-    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
+    scenes = layScenes()
     // Toggling the switch should show the new arrangement right away instead of
     // waiting for the next automatic appearance; play() also decodes the atlas.
-    if (randomMode && started === undefined && moving() && drawable()) play()
+    if (started === undefined && moving() && drawable()) play()
     else resume()
   }
 
   function setPodOptions(options: WhalePodOptions): void {
     if (disposed) return
-    if (!randomMode) {
-      podEnabled = options.enabled
-      depthInkOn = options.depthInk
-      podTiming = options.timing
-      podSizeMin = options.sizeMin
-      podSizeMax = options.sizeMax
-      return
-    }
     const layoutChanged = options.enabled !== podEnabled
       || options.timing !== podTiming
       || options.sizeMin !== podSizeMin
@@ -721,10 +818,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       paint(performance.now())
       return
     }
+    if (started === undefined && !layoutChanged) return
     // Re-lay the pod and replay at once, so a switch change is visible now
     // instead of on the next automatic appearance.
     started = undefined
-    scenes = podEnabled ? planPod() : placeRandom()
+    scenes = layScenes()
     clear()
     // play() also triggers the atlas decode, so a switch flipped before the
     // first appearance still shows the new layout right away.

@@ -395,29 +395,58 @@ function ColorPickerRow(props: {
   )
 }
 
-/** One switch row. */
-function ToggleRow(props: { label: string; hint: string; checked: boolean; disabled: boolean; onChange: (checked: boolean) => void }) {
+/** One switch row, optionally owning dependent rows shown by the chevron button. */
+function ToggleRow(props: {
+  label: string
+  hint: string
+  checked: boolean
+  disabled: boolean
+  onChange: (checked: boolean) => void
+  /** Expand control for a parent switch whose dependent rows can be previewed. */
+  expand?: { open: boolean; label: string; onToggle: () => void }
+}) {
   return (
     <Row
       label={props.label}
       hint={props.hint}
       control={
-        <button
-          type="button"
-          role="switch"
-          aria-checked={props.checked}
-          aria-label={props.label}
-          disabled={props.disabled}
-          className={css.switch}
-          onClick={() => {
-            props.onChange(!props.checked)
-          }}
-        >
-          <span className={css.switchThumb} />
-        </button>
+        <span className={css.rowControls}>
+          {props.expand !== undefined && (
+            <button
+              type="button"
+              className={props.expand.open ? `${css.expandButton} ${css.expandButtonOpen}` : css.expandButton}
+              aria-expanded={props.expand.open}
+              aria-label={props.expand.label}
+              title={props.expand.label}
+              onClick={props.expand.onToggle}
+            >
+              <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                <path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={props.checked}
+            aria-label={props.label}
+            disabled={props.disabled}
+            className={css.switch}
+            onClick={() => {
+              props.onChange(!props.checked)
+            }}
+          >
+            <span className={css.switchThumb} />
+          </button>
+        </span>
       }
     />
   )
+}
+
+/** Indented block holding the dependent rows of an accordion parent. */
+function AccordionBody({ children }: { children: ReactNode }) {
+  return <div className={css.accordionBody}>{children}</div>
 }
 
 /**
@@ -490,10 +519,44 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
   const disabled = !settings.writable
   const markDisabled = disabled || !settings.replaceMark
   const [tab, setTab] = useState<PeekTab>(initialTab)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean | undefined>>({})
   const bodyRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0 })
   }, [tab])
+  /**
+   * Whether a parent row's dependent block is shown: it follows the parent
+   * switch by default, while the chevron can preview the block either way.
+   * @param key - accordion identity.
+   * @param auto - open state implied by the parent switch.
+   * @returns whether the dependent block renders.
+   */
+  const groupOpen = (key: string, auto: boolean): boolean => openGroups[key] ?? auto
+  /**
+   * Flip a parent row's dependent block and keep that choice until the parent
+   * switch itself changes (which drops the manual override).
+   * @param key - accordion identity.
+   * @param auto - open state implied by the parent switch.
+   */
+  const toggleGroup = (key: string, auto: boolean): void => {
+    setOpenGroups(previous => ({ ...previous, [key]: !(previous[key] ?? auto) }))
+  }
+  /**
+   * Drop a manual override so the block follows its parent switch again.
+   * @param key - accordion identity.
+   */
+  const clearGroup = (key: string): void => {
+    setOpenGroups(previous => {
+      if (previous[key] === undefined) return previous
+      const next = { ...previous }
+      delete next[key]
+      return next
+    })
+  }
+  const podOpen = groupOpen('pod', settings.podEnabled)
+  const randomOpen = groupOpen('random', !settings.randomPosition)
+  const autoOpen = groupOpen('auto', settings.autoAppear)
+  const markOpen = groupOpen('mark', settings.replaceMark)
   return (
     <div className={css.peekBar} role="dialog" aria-label={t('peekTitle')} title={t('peekHint')}>
       <div className={css.peekHead}>
@@ -564,57 +627,27 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
             />
               </div>
             </PeekSection>
-            <PeekSection title={t('groupPosition')}>
+            <PeekSection title={t('groupAppear')}>
               <div className={css.peekGroup}>
-            <SliderRow
-              id="whale-leap-bg-offset-x"
-              label={t('bgOffsetX')}
-              hint={t('bgOffsetXHint')}
-              value={settings.bgOffsetX}
-              min={BG_OFFSET_RANGE.min}
-              max={BG_OFFSET_RANGE.max}
-              step={BG_OFFSET_RANGE.step}
-              display={formatOffsetPx(settings.bgOffsetX)}
-              disabled={disabled || settings.randomPosition}
-              onChange={actions.setBgOffsetX}
-            />
-            <SliderRow
-              id="whale-leap-bg-offset-y"
-              label={t('bgOffsetY')}
-              hint={t('bgOffsetYHint')}
-              value={settings.bgOffsetY}
-              min={BG_OFFSET_RANGE.min}
-              max={BG_OFFSET_RANGE.max}
-              step={BG_OFFSET_RANGE.step}
-              display={formatOffsetPx(settings.bgOffsetY)}
-              disabled={disabled || settings.randomPosition}
-              onChange={actions.setBgOffsetY}
-            />
-            <ToggleRow
-              label={t('randomPosition')}
-              hint={t('randomPositionHint')}
-              checked={settings.randomPosition}
-              disabled={disabled}
-              onChange={actions.setRandomPosition}
-            />
-            {settings.randomPosition && (
-              <>
                 <ToggleRow
                   label={t('podEnabled')}
                   hint={t('podEnabledHint')}
                   checked={settings.podEnabled}
                   disabled={disabled}
-                  onChange={actions.setPodEnabled}
+                  expand={{
+                    open: podOpen,
+                    label: podOpen ? t('collapseChildren') : t('expandChildren'),
+                    onToggle: () => {
+                      toggleGroup('pod', settings.podEnabled)
+                    },
+                  }}
+                  onChange={checked => {
+                    clearGroup('pod')
+                    actions.setPodEnabled(checked)
+                  }}
                 />
-                {settings.podEnabled && (
-                  <>
-                    <ToggleRow
-                      label={t('depthInk')}
-                      hint={t('depthInkHint')}
-                      checked={settings.depthInk}
-                      disabled={disabled}
-                      onChange={actions.setDepthInk}
-                    />
+                {podOpen && (
+                  <AccordionBody>
                     <Row
                       label={t('podTiming')}
                       hint={t('podTimingHint')}
@@ -622,7 +655,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                         <ChoiceRow
                           label={t('podTiming')}
                           value={settings.podTiming}
-                          disabled={disabled}
+                          disabled={disabled || !settings.podEnabled}
                           options={POD_TIMINGS.map(timing => ({
                             value: timing,
                             label: t(POD_TIMING_LABELS[timing]),
@@ -638,14 +671,64 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       maxLabel={t('podSizeMax')}
                       min={settings.podSizeMin}
                       max={settings.podSizeMax}
-                      disabled={disabled}
+                      disabled={disabled || !settings.podEnabled}
                       onMin={actions.setPodSizeMin}
                       onMax={actions.setPodSizeMax}
                     />
-                  </>
+                    <ToggleRow
+                      label={t('depthInk')}
+                      hint={t('depthInkHint')}
+                      checked={settings.depthInk}
+                      disabled={disabled || !settings.podEnabled}
+                      onChange={actions.setDepthInk}
+                    />
+                  </AccordionBody>
                 )}
-              </>
-            )}
+                <ToggleRow
+                  label={t('randomPosition')}
+                  hint={t('randomPositionHint')}
+                  checked={settings.randomPosition}
+                  disabled={disabled}
+                  expand={{
+                    open: randomOpen,
+                    label: randomOpen ? t('collapseChildren') : t('expandChildren'),
+                    onToggle: () => {
+                      toggleGroup('random', !settings.randomPosition)
+                    },
+                  }}
+                  onChange={checked => {
+                    clearGroup('random')
+                    actions.setRandomPosition(checked)
+                  }}
+                />
+                {randomOpen && (
+                  <AccordionBody>
+                    <SliderRow
+                      id="whale-leap-bg-offset-x"
+                      label={t('bgOffsetX')}
+                      hint={t('bgOffsetXHint')}
+                      value={settings.bgOffsetX}
+                      min={BG_OFFSET_RANGE.min}
+                      max={BG_OFFSET_RANGE.max}
+                      step={BG_OFFSET_RANGE.step}
+                      display={formatOffsetPx(settings.bgOffsetX)}
+                      disabled={disabled || settings.randomPosition}
+                      onChange={actions.setBgOffsetX}
+                    />
+                    <SliderRow
+                      id="whale-leap-bg-offset-y"
+                      label={t('bgOffsetY')}
+                      hint={t('bgOffsetYHint')}
+                      value={settings.bgOffsetY}
+                      min={BG_OFFSET_RANGE.min}
+                      max={BG_OFFSET_RANGE.max}
+                      step={BG_OFFSET_RANGE.step}
+                      display={formatOffsetPx(settings.bgOffsetY)}
+                      disabled={disabled || settings.randomPosition}
+                      onChange={actions.setBgOffsetY}
+                    />
+                  </AccordionBody>
+                )}
               </div>
             </PeekSection>
             <PeekSection title={t('groupFill')}>
@@ -666,15 +749,25 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                   hint={settings.autoAppear ? t('autoHint') : t('autoOffHint')}
                   checked={settings.autoAppear}
                   disabled={disabled}
-                  onChange={actions.setAutoAppear}
+                  expand={{
+                    open: autoOpen,
+                    label: autoOpen ? t('collapseChildren') : t('expandChildren'),
+                    onToggle: () => {
+                      toggleGroup('auto', settings.autoAppear)
+                    },
+                  }}
+                  onChange={checked => {
+                    clearGroup('auto')
+                    actions.setAutoAppear(checked)
+                  }}
                 />
-                {settings.autoAppear && (
-                  <>
+                {autoOpen && (
+                  <AccordionBody>
                     <ToggleRow
                       label={t('playOnSwitch')}
                       hint={t('playOnSwitchHint')}
                       checked={settings.playOnSwitch}
-                      disabled={disabled}
+                      disabled={disabled || !settings.autoAppear}
                       onChange={actions.setPlayOnSwitch}
                     />
                     <SliderRow
@@ -686,141 +779,143 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       max={INTERVAL_RANGE.max}
                       step={INTERVAL_RANGE.step}
                       display={t('intervalSeconds', { seconds: settings.intervalSeconds })}
-                      disabled={disabled}
+                      disabled={disabled || !settings.autoAppear}
                       onChange={actions.setInterval}
                     />
-                  </>
+                  </AccordionBody>
                 )}
               </div>
             </PeekSection>
           </>
         ) : (
           <>
-            <PeekSection title={t('groupLook')}>
+            <PeekSection title={t('tabMark')}>
               <div className={css.peekGroup}>
-            <ToggleRow
-              label={t('replaceMark')}
-              hint={t('replaceMarkHint')}
-              checked={settings.replaceMark}
-              disabled={disabled}
-              onChange={actions.setReplaceMark}
-            />
-            <ColorPickerRow
-              id="whale-leap-mark-color"
-              label={t('markColor')}
-              hint={t('markColorHint')}
-              themeLabel={t('colorTheme')}
-              customLabel={t('colorCustom')}
-              mode={settings.markColorMode}
-              color={settings.markColor}
-              disabled={markDisabled}
-              onMode={actions.setMarkColorMode}
-              onColor={actions.setMarkColor}
-            />
-            <ColorPickerRow
-              id="whale-leap-label-color"
-              label={t('labelColor')}
-              hint={t('labelColorHint')}
-              themeLabel={t('colorTheme')}
-              customLabel={t('colorCustom')}
-              mode={settings.labelColorMode}
-              color={settings.labelColor}
-              disabled={markDisabled}
-              onMode={actions.setLabelColorMode}
-              onColor={actions.setLabelColor}
-            />
-              </div>
-            </PeekSection>
-            <PeekSection title={t('groupSize')}>
-              <div className={css.peekGroup}>
-            <SliderRow
-              id="whale-leap-mark-size"
-              label={t('markSize')}
-              hint={t('markSizeHint')}
-              value={settings.markSize}
-              min={MARK_SIZE_RANGE.min}
-              max={MARK_SIZE_RANGE.max}
-              step={MARK_SIZE_RANGE.step}
-              display={`${settings.markSize}px`}
-              disabled={markDisabled}
-              onChange={actions.setMarkSize}
-            />
-            <SliderRow
-              id="whale-leap-mark-label-size"
-              label={t('labelSize')}
-              hint={t('labelSizeHint')}
-              value={settings.markLabelSize}
-              min={MARK_LABEL_SIZE_RANGE.min}
-              max={MARK_LABEL_SIZE_RANGE.max}
-              step={MARK_LABEL_SIZE_RANGE.step}
-              display={`${settings.markLabelSize}px`}
-              disabled={markDisabled}
-              onChange={actions.setMarkLabelSize}
-            />
-              </div>
-            </PeekSection>
-            <PeekSection title={t('groupPosition')}>
-              <div className={css.peekGroup}>
-            <SliderRow
-              id="whale-leap-mark-offset-x"
-              label={t('offsetX')}
-              hint={t('offsetXHint')}
-              value={settings.markOffsetX}
-              min={MARK_OFFSET_RANGE.min}
-              max={MARK_OFFSET_RANGE.max}
-              step={MARK_OFFSET_RANGE.step}
-              display={formatOffsetPx(settings.markOffsetX)}
-              disabled={markDisabled}
-              onChange={actions.setMarkOffsetX}
-            />
-            <SliderRow
-              id="whale-leap-mark-offset-y"
-              label={t('offsetY')}
-              hint={t('offsetYHint')}
-              value={settings.markOffsetY}
-              min={MARK_OFFSET_RANGE.min}
-              max={MARK_OFFSET_RANGE.max}
-              step={MARK_OFFSET_RANGE.step}
-              display={formatOffsetPx(settings.markOffsetY)}
-              disabled={markDisabled}
-              onChange={actions.setMarkOffsetY}
-            />
-              </div>
-            </PeekSection>
-            <PeekSection title={t('groupMotion')}>
-              <div className={css.peekGroup}>
-            <div className={css.choice} role="group" aria-label={t('motion')}>
-              {MARK_MOTIONS.map(motion => {
-                const selected = settings.markMotion === motion
-                return (
-                  <button
-                    key={motion}
-                    type="button"
-                    className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
-                    aria-pressed={selected}
-                    disabled={markDisabled}
-                    onClick={() => {
-                      actions.setMarkMotion(motion)
-                    }}
-                  >
-                    {t(MOTION_LABELS[motion])}
-                  </button>
-                )
-              })}
-            </div>
-            <SliderRow
-              id="whale-leap-mark-swing"
-              label={t('swing')}
-              hint={t('swingHint')}
-              value={settings.markSwing}
-              min={MARK_SWING_RANGE.min}
-              max={MARK_SWING_RANGE.max}
-              step={MARK_SWING_RANGE.step}
-              display={`${Math.round(settings.markSwing * 100)}%`}
-              disabled={markDisabled || settings.markMotion === 'hero'}
-              onChange={actions.setMarkSwing}
-            />
-            <p className={css.note}>{t('motionHint')}</p>
+                <ToggleRow
+                  label={t('replaceMark')}
+                  hint={t('replaceMarkHint')}
+                  checked={settings.replaceMark}
+                  disabled={disabled}
+                  expand={{
+                    open: markOpen,
+                    label: markOpen ? t('collapseChildren') : t('expandChildren'),
+                    onToggle: () => {
+                      toggleGroup('mark', settings.replaceMark)
+                    },
+                  }}
+                  onChange={checked => {
+                    clearGroup('mark')
+                    actions.setReplaceMark(checked)
+                  }}
+                />
+                {markOpen && (
+                  <AccordionBody>
+                    <ColorPickerRow
+                      id="whale-leap-mark-color"
+                      label={t('markColor')}
+                      hint={t('markColorHint')}
+                      themeLabel={t('colorTheme')}
+                      customLabel={t('colorCustom')}
+                      mode={settings.markColorMode}
+                      color={settings.markColor}
+                      disabled={markDisabled}
+                      onMode={actions.setMarkColorMode}
+                      onColor={actions.setMarkColor}
+                    />
+                    <ColorPickerRow
+                      id="whale-leap-label-color"
+                      label={t('labelColor')}
+                      hint={t('labelColorHint')}
+                      themeLabel={t('colorTheme')}
+                      customLabel={t('colorCustom')}
+                      mode={settings.labelColorMode}
+                      color={settings.labelColor}
+                      disabled={markDisabled}
+                      onMode={actions.setLabelColorMode}
+                      onColor={actions.setLabelColor}
+                    />
+                    <SliderRow
+                      id="whale-leap-mark-size"
+                      label={t('markSize')}
+                      hint={t('markSizeHint')}
+                      value={settings.markSize}
+                      min={MARK_SIZE_RANGE.min}
+                      max={MARK_SIZE_RANGE.max}
+                      step={MARK_SIZE_RANGE.step}
+                      display={`${settings.markSize}px`}
+                      disabled={markDisabled}
+                      onChange={actions.setMarkSize}
+                    />
+                    <SliderRow
+                      id="whale-leap-mark-label-size"
+                      label={t('labelSize')}
+                      hint={t('labelSizeHint')}
+                      value={settings.markLabelSize}
+                      min={MARK_LABEL_SIZE_RANGE.min}
+                      max={MARK_LABEL_SIZE_RANGE.max}
+                      step={MARK_LABEL_SIZE_RANGE.step}
+                      display={`${settings.markLabelSize}px`}
+                      disabled={markDisabled}
+                      onChange={actions.setMarkLabelSize}
+                    />
+                    <SliderRow
+                      id="whale-leap-mark-offset-x"
+                      label={t('offsetX')}
+                      hint={t('offsetXHint')}
+                      value={settings.markOffsetX}
+                      min={MARK_OFFSET_RANGE.min}
+                      max={MARK_OFFSET_RANGE.max}
+                      step={MARK_OFFSET_RANGE.step}
+                      display={formatOffsetPx(settings.markOffsetX)}
+                      disabled={markDisabled}
+                      onChange={actions.setMarkOffsetX}
+                    />
+                    <SliderRow
+                      id="whale-leap-mark-offset-y"
+                      label={t('offsetY')}
+                      hint={t('offsetYHint')}
+                      value={settings.markOffsetY}
+                      min={MARK_OFFSET_RANGE.min}
+                      max={MARK_OFFSET_RANGE.max}
+                      step={MARK_OFFSET_RANGE.step}
+                      display={formatOffsetPx(settings.markOffsetY)}
+                      disabled={markDisabled}
+                      onChange={actions.setMarkOffsetY}
+                    />
+                    <div className={css.choice} role="group" aria-label={t('motion')}>
+                      {MARK_MOTIONS.map(motion => {
+                        const selected = settings.markMotion === motion
+                        return (
+                          <button
+                            key={motion}
+                            type="button"
+                            className={selected ? `${css.choiceButton} ${css.choiceButtonActive}` : css.choiceButton}
+                            aria-pressed={selected}
+                            disabled={markDisabled}
+                            onClick={() => {
+                              actions.setMarkMotion(motion)
+                            }}
+                          >
+                            {t(MOTION_LABELS[motion])}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <SliderRow
+                      id="whale-leap-mark-swing"
+                      label={t('swing')}
+                      hint={t('swingHint')}
+                      value={settings.markSwing}
+                      min={MARK_SWING_RANGE.min}
+                      max={MARK_SWING_RANGE.max}
+                      step={MARK_SWING_RANGE.step}
+                      display={`${Math.round(settings.markSwing * 100)}%`}
+                      disabled={markDisabled || settings.markMotion === 'hero'}
+                      onChange={actions.setMarkSwing}
+                    />
+                    <p className={css.note}>{t('motionHint')}</p>
+                  </AccordionBody>
+                )}
               </div>
             </PeekSection>
           </>
