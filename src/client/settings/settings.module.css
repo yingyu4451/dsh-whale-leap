@@ -999,6 +999,26 @@
   min-width: 42px;
 }
 
+/* Compact pair of native range inputs for the pod size range. */
+.rangePair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.rangePair .sliderCompact {
+  width: 96px;
+}
+
+.rangePair .sliderValueCompact {
+  min-width: 32px;
+}
+
+.rangeDash {
+  color: var(--dsw-alias-label-secondary);
+}
+
 .peekGroup > .row:last-child {
   border-bottom: 0;
 }

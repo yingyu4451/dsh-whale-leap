@@ -5,7 +5,7 @@
  * observable store that both the settings page and the two artwork slots read.
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
-import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
+import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, POD_SIZE_RANGE, SIZE_RANGE } from '../../shared/settings.js'
 import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFillStyle, type WhaleMarkMotion, type WhalePodTiming, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
@@ -274,6 +274,44 @@ export class WhaleSettingsRuntime {
   setPodTiming(timing: WhalePodTiming): void {
     this.patch({ podTiming: timing })
     this.commit('podTiming', timing)
+  }
+
+  /**
+   * Set the smallest pod whale scale.
+   *
+   * Pod members are ordered by depth: the farthest whale uses this minimum and
+   * the nearest uses {@link setPodSizeMax}. Raising it above the current maximum
+   * lifts the maximum too, so the range stays ordered.
+   * @param scale - requested scale, as a fraction of one full scene width.
+   */
+  setPodSizeMin(scale: number): void {
+    const next = clamp(scale, POD_SIZE_RANGE)
+    const current = this.store.getSnapshot()
+    const max = Math.max(next, current.podSizeMax)
+    this.patch({ podSizeMin: next })
+    this.schedule('podSizeMin', next)
+    if (max !== current.podSizeMax) {
+      this.patch({ podSizeMax: max })
+      this.schedule('podSizeMax', max)
+    }
+  }
+
+  /**
+   * Set the largest pod whale scale.
+   *
+   * Lowering it below the current minimum pulls the minimum down too.
+   * @param scale - requested scale, as a fraction of one full scene width.
+   */
+  setPodSizeMax(scale: number): void {
+    const next = clamp(scale, POD_SIZE_RANGE)
+    const current = this.store.getSnapshot()
+    const min = Math.min(next, current.podSizeMin)
+    this.patch({ podSizeMax: next })
+    this.schedule('podSizeMax', next)
+    if (min !== current.podSizeMin) {
+      this.patch({ podSizeMin: min })
+      this.schedule('podSizeMin', min)
+    }
   }
 
   /** Restore every field to its factory default. */

@@ -114,6 +114,20 @@ interface WhaleBox {
   y1: number
 }
 
+/** Composition of one random pod appearance. */
+export interface WhalePodOptions {
+  /** Whether a random appearance lays out a pod instead of one whale. */
+  enabled: boolean
+  /** Whether farther pod members use lighter ink. */
+  depthInk: boolean
+  /** Whether the pod leaps at once or each whale picks its own start time. */
+  timing: WhalePodTiming
+  /** Farthest pod whale scale, as a fraction of one full scene width. */
+  sizeMin: number
+  /** Nearest pod whale scale, as a fraction of one full scene width. */
+  sizeMax: number
+}
+
 /** Control of one attached whale decoration. */
 export interface PixelWhaleHandle {
   /** Request one playback; ignored while playing, failed, hidden, or under reduced motion. */
@@ -146,9 +160,9 @@ export interface PixelWhaleHandle {
   setRandomPosition: (enabled: boolean) => void
   /**
    * Configure the random-appearance composition.
-   * @param options - pod switch, depth-ink switch, and pod entrance timing.
+   * @param options - pod switch, depth-ink switch, entrance timing, and pod size range.
    */
-  setPodOptions: (options: { enabled: boolean; depthInk: boolean; timing: WhalePodTiming }) => void
+  setPodOptions: (options: WhalePodOptions) => void
   /** Release frame work, atlas pixels, and observers; late atlas loads are ignored. */
   dispose: () => void
 }
@@ -215,6 +229,8 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let podEnabled = true
   let depthInkOn = true
   let podTiming: WhalePodTiming = 'random'
+  let podSizeMin = 0.34
+  let podSizeMax = 0.68
   let whaleBox: WhaleBox | undefined
 
   const moving = () => !media.matches
@@ -271,7 +287,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       if (fill !== 'pixels' && code !== undefined) {
         // The code fill boosts its own coverage and mask, so the strength maps
         // linearly here; the dotted fill squares it to keep the same response.
-        code.paint(ctx, pixels, index, scene.left, scene.top, scene.width, artwork.activeOpacity * fade * ink)
+        code.paint(ctx, pixels, index, scene.left, scene.top, scene.width, artwork.activeOpacity * fade * ink, whaleBox)
         continue
       }
       for (let y = 0; y < ATLAS.height; y++) {
@@ -493,9 +509,11 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     const depthFactors = total === POD_THREE
       ? [1, 0.6 + Math.random() * 0.12, 0.3 + Math.random() * 0.14]
       : [1, 0.4 + Math.random() * 0.16]
-    const scaleFactors = total === POD_THREE
-      ? [0.6 + Math.random() * 0.05, 0.44 + Math.random() * 0.04, 0.3 + Math.random() * 0.03]
-      : [0.68 + Math.random() * 0.05, 0.42 + Math.random() * 0.04]
+    // Sizes walk from the user's maximum at the nearest whale to the minimum at
+    // the farthest one, so the range keeps reading as one consistent depth cue.
+    const sizeSpan = Math.max(0, podSizeMax - podSizeMin)
+    const scaleFactors = Array.from({ length: total }, (_, rank) =>
+      podSizeMin + sizeSpan * (1 - rank / (total - 1)))
     const delays = planDelays(total)
     const placed: { rect: PodRect; scene: WhaleScene }[] = []
     for (let index = 0; index < total; index++) {
@@ -679,18 +697,25 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     else resume()
   }
 
-  function setPodOptions(options: { enabled: boolean; depthInk: boolean; timing: WhalePodTiming }): void {
+  function setPodOptions(options: WhalePodOptions): void {
     if (disposed) return
     if (!randomMode) {
       podEnabled = options.enabled
       depthInkOn = options.depthInk
       podTiming = options.timing
+      podSizeMin = options.sizeMin
+      podSizeMax = options.sizeMax
       return
     }
-    const layoutChanged = options.enabled !== podEnabled || options.timing !== podTiming
+    const layoutChanged = options.enabled !== podEnabled
+      || options.timing !== podTiming
+      || options.sizeMin !== podSizeMin
+      || options.sizeMax !== podSizeMax
     podEnabled = options.enabled
     depthInkOn = options.depthInk
     podTiming = options.timing
+    podSizeMin = options.sizeMin
+    podSizeMax = options.sizeMax
     if (started !== undefined && !layoutChanged) {
       // Only the ink changed: repaint the live frame without restarting the leap.
       paint(performance.now())

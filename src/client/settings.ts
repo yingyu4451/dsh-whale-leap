@@ -51,6 +51,10 @@ export interface WhaleSettings {
   depthInk: boolean
   /** Whether a pod leaps together or each whale starts at its own random time. */
   podTiming: WhalePodTiming
+  /** Smallest pod whale scale, relative to one full scene width. */
+  podSizeMin: number
+  /** Largest pod whale scale, relative to one full scene width. */
+  podSizeMax: number
   /** Running mark color source. */
   markColorMode: WhaleColorMode
   /** Lowercase custom running mark color. */

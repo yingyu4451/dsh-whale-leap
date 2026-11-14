@@ -89,6 +89,12 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setPodTiming: timing => {
       runtime.setPodTiming(timing)
     },
+    setPodSizeMin: scale => {
+      runtime.setPodSizeMin(scale)
+    },
+    setPodSizeMax: scale => {
+      runtime.setPodSizeMax(scale)
+    },
     reset: () => {
       runtime.reset()
     },

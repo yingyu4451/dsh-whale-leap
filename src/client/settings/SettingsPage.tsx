@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, POD_TIMINGS, SIZE_RANGE } from '../../../shared/settings.js'
+import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, POD_SIZE_RANGE, POD_TIMINGS, SIZE_RANGE } from '../../../shared/settings.js'
 import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhalePodTiming, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
@@ -75,6 +75,10 @@ export interface SettingsPageActions {
   setDepthInk: (enabled: boolean) => void
   /** Choose the pod entrance timing. */
   setPodTiming: (timing: WhalePodTiming) => void
+  /** Set the farthest pod whale size. */
+  setPodSizeMin: (scale: number) => void
+  /** Set the nearest pod whale size. */
+  setPodSizeMax: (scale: number) => void
   /** Restore every setting to its factory default. */
   reset: () => void
   /** Choose the running mark motion. */
@@ -185,6 +189,70 @@ function SliderRow(props: {
             }}
           />
           <span className={css.sliderValue}>{props.display}</span>
+        </span>
+      }
+    />
+  )
+}
+
+/**
+ * One row with a pair of sliders for the pod whale size range.
+ *
+ * The low thumb is the farthest pod member and the high thumb the nearest one,
+ * both as a share of one full scene width. Each slider is bounded by the other
+ * value, so the range can never invert.
+ */
+function PodSizeRangeRow(props: {
+  label: string
+  hint: string
+  minLabel: string
+  maxLabel: string
+  min: number
+  max: number
+  disabled: boolean
+  onMin: (scale: number) => void
+  onMax: (scale: number) => void
+}) {
+  return (
+    <Row
+      stack
+      label={props.label}
+      hint={props.hint}
+      control={
+        <span className={css.rangePair}>
+          <span className={css.sliderField}>
+            <input
+              type="range"
+              className={`${css.slider} ${css.sliderCompact}`}
+              aria-label={props.minLabel}
+              min={POD_SIZE_RANGE.min}
+              max={props.max}
+              step={POD_SIZE_RANGE.step}
+              value={props.min}
+              disabled={props.disabled}
+              onChange={event => {
+                props.onMin(Number(event.target.value))
+              }}
+            />
+            <span className={`${css.sliderValue} ${css.sliderValueCompact}`}>{Math.round(props.min * 100)}%</span>
+          </span>
+          <span className={css.rangeDash} aria-hidden="true">–</span>
+          <span className={css.sliderField}>
+            <input
+              type="range"
+              className={`${css.slider} ${css.sliderCompact}`}
+              aria-label={props.maxLabel}
+              min={props.min}
+              max={POD_SIZE_RANGE.max}
+              step={POD_SIZE_RANGE.step}
+              value={props.max}
+              disabled={props.disabled}
+              onChange={event => {
+                props.onMax(Number(event.target.value))
+              }}
+            />
+            <span className={`${css.sliderValue} ${css.sliderValueCompact}`}>{Math.round(props.max * 100)}%</span>
+          </span>
         </span>
       }
     />
@@ -503,6 +571,17 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                           onChange={actions.setPodTiming}
                         />
                       }
+                    />
+                    <PodSizeRangeRow
+                      label={t('podSizeRange')}
+                      hint={t('podSizeRangeHint')}
+                      minLabel={t('podSizeMin')}
+                      maxLabel={t('podSizeMax')}
+                      min={settings.podSizeMin}
+                      max={settings.podSizeMax}
+                      disabled={disabled}
+                      onMin={actions.setPodSizeMin}
+                      onMax={actions.setPodSizeMax}
                     />
                   </>
                 )}

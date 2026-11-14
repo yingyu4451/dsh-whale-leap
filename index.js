@@ -20,6 +20,7 @@ import {
   MARK_SIZE_RANGE,
   MARK_SWING_RANGE,
   OPACITY_RANGE,
+  POD_SIZE_RANGE,
   POD_TIMINGS,
   SIZE_RANGE,
 } from './shared/settings.js'
@@ -59,6 +60,10 @@ export const Config = z.object({
   depthInk: z.boolean().default(DEFAULT_SETTINGS.depthInk).volatile(),
   /** Whether a pod leaps together or each whale starts at its own random time. */
   podTiming: z.union([...POD_TIMINGS]).default(DEFAULT_SETTINGS.podTiming).volatile(),
+  /** Smallest pod whale scale, relative to one full scene width. */
+  podSizeMin: z.number().step(POD_SIZE_RANGE.step).min(POD_SIZE_RANGE.min).max(POD_SIZE_RANGE.max).default(DEFAULT_SETTINGS.podSizeMin).volatile(),
+  /** Largest pod whale scale, relative to one full scene width. */
+  podSizeMax: z.number().step(POD_SIZE_RANGE.step).min(POD_SIZE_RANGE.min).max(POD_SIZE_RANGE.max).default(DEFAULT_SETTINGS.podSizeMax).volatile(),
   /** Running mark color source: theme tone or a custom pick. */
   markColorMode: z.union([...COLOR_MODES]).default(DEFAULT_SETTINGS.markColorMode).volatile(),
   /** Lowercase custom running mark color. */

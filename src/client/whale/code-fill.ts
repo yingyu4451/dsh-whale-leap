@@ -43,10 +43,18 @@ const TEXTURES: Record<Exclude<WhaleTextureMode, 'lines'>, {
   binary: { scale: 1.05, weight: 600, passes: 3, lineStep: 1.05, gapMin: 0.3, gapRand: 0.6 },
 }
 
+/** Normalized bounds of the drawn whale inside one atlas cell. */
+export interface WhaleFillRegion {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
 interface CodeFill {
   resize(canvas: HTMLCanvasElement, width: number): void
   paint(ctx: CanvasRenderingContext2D, pixels: Uint8ClampedArray, frame: number,
-    left: number, top: number, width: number, level: number): void
+    left: number, top: number, width: number, level: number, region?: WhaleFillRegion): void
   dispose(): void
 }
 
@@ -63,13 +71,19 @@ export function createCodeFill(
 ): CodeFill | undefined {
   const texture = document.createElement('canvas')
   const mask = document.createElement('canvas')
+  // Pods paint several whales per frame, and `destination-in` on the shared
+  // canvas would erase the whales painted before it. Each whale is masked on
+  // this scratch layer and then composited once, so earlier whales are kept.
+  const scratch = document.createElement('canvas')
   const ink = texture.getContext('2d')
   const matte = mask.getContext('2d')
-  if (ink === null || matte === null) return undefined
+  const layer = scratch.getContext('2d')
+  if (ink === null || matte === null || layer === null) return undefined
   mask.width = atlas.width
   mask.height = atlas.height
   const alpha = matte.createImageData(atlas.width, atlas.height)
   const stride = atlas.width * atlas.columns
+  let textureScale = 1
 
   function opacity(pixels: Uint8ClampedArray, frame: number, x: number, y: number): number {
     const offsetX = (frame % atlas.columns) * atlas.width
@@ -91,6 +105,7 @@ export function createCodeFill(
       const dpr = Math.min(devicePixelRatio, 2)
       texture.width = Math.ceil(width * dpr)
       texture.height = Math.ceil(height * dpr)
+      textureScale = texture.width / Math.max(1, width)
       ink.setTransform(dpr, 0, 0, dpr, 0, 0)
       const style = getComputedStyle(canvas)
       const color = style.getPropertyValue('--home-whale-code-ink')
@@ -137,31 +152,48 @@ export function createCodeFill(
     },
 
     paint(ctx: CanvasRenderingContext2D, pixels: Uint8ClampedArray, frame: number,
-      left: number, top: number, width: number, level: number): void {
+      left: number, top: number, width: number, level: number, region?: WhaleFillRegion): void {
       for (let y = 0; y < atlas.height; y++) {
         for (let x = 0; x < atlas.width; x++) {
           alpha.data[(y * atlas.width + x) * 4 + 3] = Math.min(255, opacity(pixels, frame, x, y) * MASK_GAIN)
         }
       }
       matte.putImageData(alpha, 0, 0)
+      const box = region ?? { x0: 0, y0: 0, x1: 1, y1: 1 }
+      const cellWidth = box.x1 - box.x0
+      const cellHeight = box.y1 - box.y0
+      if (cellWidth <= 0 || cellHeight <= 0) return
       const height = width * atlas.height / atlas.width
-      // destination-in erases every destination pixel the source leaves
-      // transparent, so the matte must be confined to this whale's rect;
-      // otherwise painting one pod member would wipe the ones already drawn.
+      const boxWidth = cellWidth * width
+      const boxHeight = cellHeight * height
+      const pixelWidth = Math.max(1, Math.round(boxWidth * textureScale))
+      const pixelHeight = Math.max(1, Math.round(boxHeight * textureScale))
+      // Grow-only: pod members request slightly different sizes each appearance,
+      // and resizing the layer every frame would clear and reallocate it.
+      if (scratch.width < pixelWidth || scratch.height < pixelHeight) {
+        scratch.width = Math.max(scratch.width, pixelWidth)
+        scratch.height = Math.max(scratch.height, pixelHeight)
+      }
+      layer.globalCompositeOperation = 'copy'
+      layer.globalAlpha = 1
+      layer.drawImage(texture,
+        box.x0 * texture.width, box.y0 * texture.height, cellWidth * texture.width, cellHeight * texture.height,
+        0, 0, pixelWidth, pixelHeight)
+      layer.globalCompositeOperation = 'destination-in'
+      layer.drawImage(mask,
+        box.x0 * atlas.width, box.y0 * atlas.height, cellWidth * atlas.width, cellHeight * atlas.height,
+        0, 0, pixelWidth, pixelHeight)
+      layer.globalCompositeOperation = 'source-over'
       ctx.save()
-      ctx.beginPath()
-      ctx.rect(left, top, width, height)
-      ctx.clip()
       ctx.globalAlpha = level
-      ctx.drawImage(texture, left, top, width, height)
-      ctx.globalAlpha = 1
-      ctx.globalCompositeOperation = 'destination-in'
-      ctx.drawImage(mask, left, top, width, height)
+      ctx.drawImage(scratch, 0, 0, pixelWidth, pixelHeight,
+        left + box.x0 * width, top + box.y0 * height, boxWidth, boxHeight)
       ctx.restore()
     },
 
     dispose(): void {
       texture.width = texture.height = mask.width = mask.height = 0
+      scratch.width = scratch.height = 0
     },
   }
 }

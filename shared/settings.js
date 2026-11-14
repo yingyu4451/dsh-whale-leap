@@ -65,6 +65,12 @@ export const DEPTH_INK_FIELD = 'depthInk'
 /** Field holding how the pod enters: all at once or each at its own random time. */
 export const POD_TIMING_FIELD = 'podTiming'
 
+/** Field holding the smallest pod whale scale, relative to one full scene width. */
+export const POD_SIZE_MIN_FIELD = 'podSizeMin'
+
+/** Field holding the largest pod whale scale, relative to one full scene width. */
+export const POD_SIZE_MAX_FIELD = 'podSizeMax'
+
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
@@ -122,6 +128,9 @@ export const MARK_MOTIONS = ['swim', 'explore', 'hero', 'sway']
 /** Pod entrance timings, in display order: leap together or each at a random time. */
 export const POD_TIMINGS = ['together', 'random']
 
+/** Pod whale size bounds, as a fraction of the full scene width. */
+export const POD_SIZE_RANGE = { min: 0.2, max: 1, step: 0.01 }
+
 /** Accepted lowercase custom colors. */
 export const CUSTOM_COLOR_PATTERN = /^#[0-9a-f]{6}$/
 
@@ -142,6 +151,8 @@ export const DEFAULT_SETTINGS = {
   podEnabled: true,
   depthInk: true,
   podTiming: 'random',
+  podSizeMin: 0.34,
+  podSizeMax: 0.68,
   markColorMode: 'theme',
   markColor: '#345ebe',
   labelColorMode: 'theme',

@@ -80,7 +80,7 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
     handle.prefetch()
   }, [])
 
-  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY, randomPosition, podEnabled, depthInk, podTiming } = settings
+  const { opacity, size, colorMode, customColor, fillStyles, bgOffsetX, bgOffsetY, randomPosition, podEnabled, depthInk, podTiming, podSizeMin, podSizeMax } = settings
   useEffect(() => {
     whale.current?.update({ ...WHALE_ARTWORK, activeOpacity: opacity, scale: size, offsetX: bgOffsetX, offsetY: bgOffsetY })
   }, [opacity, size, colorMode, customColor, bgOffsetX, bgOffsetY])
@@ -91,8 +91,8 @@ export function WhaleLayer({ hero, children, state }: WhaleLayerProps) {
   }, [fillStyleKey])
 
   useEffect(() => {
-    whale.current?.setPodOptions({ enabled: podEnabled, depthInk, timing: podTiming })
-  }, [podEnabled, depthInk, podTiming])
+    whale.current?.setPodOptions({ enabled: podEnabled, depthInk, timing: podTiming, sizeMin: podSizeMin, sizeMax: podSizeMax })
+  }, [podEnabled, depthInk, podTiming, podSizeMin, podSizeMax])
 
   const [peek, setPeek] = useState(false)
   useEffect(() => {
