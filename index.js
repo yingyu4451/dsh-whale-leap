@@ -20,6 +20,7 @@ import {
   MARK_SIZE_RANGE,
   MARK_SWING_RANGE,
   OPACITY_RANGE,
+  POD_TIMINGS,
   SIZE_RANGE,
 } from './shared/settings.js'
 
@@ -52,6 +53,12 @@ export const Config = z.object({
   bgOffsetY: z.number().step(BG_OFFSET_RANGE.step).min(BG_OFFSET_RANGE.min).max(BG_OFFSET_RANGE.max).default(DEFAULT_SETTINGS.bgOffsetY).volatile(),
   /** Whether each appearance picks a random, fully visible position. */
   randomPosition: z.boolean().default(DEFAULT_SETTINGS.randomPosition).volatile(),
+  /** Whether a random appearance lays out a pod of several whales. */
+  podEnabled: z.boolean().default(DEFAULT_SETTINGS.podEnabled).volatile(),
+  /** Whether pod members farther away use lighter ink. */
+  depthInk: z.boolean().default(DEFAULT_SETTINGS.depthInk).volatile(),
+  /** Whether a pod leaps together or each whale starts at its own random time. */
+  podTiming: z.union([...POD_TIMINGS]).default(DEFAULT_SETTINGS.podTiming).volatile(),
   /** Running mark color source: theme tone or a custom pick. */
   markColorMode: z.union([...COLOR_MODES]).default(DEFAULT_SETTINGS.markColorMode).volatile(),
   /** Lowercase custom running mark color. */

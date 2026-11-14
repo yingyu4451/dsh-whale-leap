@@ -80,6 +80,15 @@ function pageActions(runtime: WhaleSettingsRuntime): SettingsPageActions {
     setRandomPosition: enabled => {
       runtime.setRandomPosition(enabled)
     },
+    setPodEnabled: enabled => {
+      runtime.setPodEnabled(enabled)
+    },
+    setDepthInk: enabled => {
+      runtime.setDepthInk(enabled)
+    },
+    setPodTiming: timing => {
+      runtime.setPodTiming(timing)
+    },
     reset: () => {
       runtime.reset()
     },

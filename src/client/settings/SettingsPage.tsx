@@ -8,8 +8,8 @@
  */
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../../shared/settings.js'
-import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhaleSettingsState } from '../settings.js'
+import { BG_OFFSET_RANGE, COLOR_MODES, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_MOTIONS, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, POD_TIMINGS, SIZE_RANGE } from '../../../shared/settings.js'
+import type { WhaleColorMode, WhaleFillStyle, WhaleMarkMotion, WhalePodTiming, WhaleSettingsState } from '../settings.js'
 import type { Store } from '../store.js'
 import type { LocaleKey } from '../i18n.js'
 import { replayPeek, setPeekMode } from '../whale/peek.js'
@@ -69,6 +69,12 @@ export interface SettingsPageActions {
   setBgOffsetY: (px: number) => void
   /** Pick a random visible position for every appearance. */
   setRandomPosition: (enabled: boolean) => void
+  /** Enable or disable the multi-whale pod. */
+  setPodEnabled: (enabled: boolean) => void
+  /** Enable or disable depth-faded ink on far pod members. */
+  setDepthInk: (enabled: boolean) => void
+  /** Choose the pod entrance timing. */
+  setPodTiming: (timing: WhalePodTiming) => void
   /** Restore every setting to its factory default. */
   reset: () => void
   /** Choose the running mark motion. */
@@ -108,6 +114,12 @@ const FRAME_LABELS: Record<WhaleFillStyle, LocaleKey> = {
   glyphs: 'frameGlyphs',
   binary: 'frameBinary',
   lines: 'frameLines',
+}
+
+/** Labels for the pod entrance timings. */
+const POD_TIMING_LABELS: Record<WhalePodTiming, LocaleKey> = {
+  together: 'podTimingTogether',
+  random: 'podTimingRandom',
 }
 
 /**
@@ -458,6 +470,44 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
               disabled={disabled}
               onChange={actions.setRandomPosition}
             />
+            {settings.randomPosition && (
+              <>
+                <ToggleRow
+                  label={t('podEnabled')}
+                  hint={t('podEnabledHint')}
+                  checked={settings.podEnabled}
+                  disabled={disabled}
+                  onChange={actions.setPodEnabled}
+                />
+                {settings.podEnabled && (
+                  <>
+                    <ToggleRow
+                      label={t('depthInk')}
+                      hint={t('depthInkHint')}
+                      checked={settings.depthInk}
+                      disabled={disabled}
+                      onChange={actions.setDepthInk}
+                    />
+                    <Row
+                      label={t('podTiming')}
+                      hint={t('podTimingHint')}
+                      control={
+                        <ChoiceRow
+                          label={t('podTiming')}
+                          value={settings.podTiming}
+                          disabled={disabled}
+                          options={POD_TIMINGS.map(timing => ({
+                            value: timing,
+                            label: t(POD_TIMING_LABELS[timing]),
+                          }))}
+                          onChange={actions.setPodTiming}
+                        />
+                      }
+                    />
+                  </>
+                )}
+              </>
+            )}
               </div>
             </PeekSection>
             <PeekSection title={t('groupFill')}>

@@ -6,7 +6,7 @@
  * Discrete choices commit at once, sliders coalesce for {@link WRITE_DELAY_MS}.
  */
 import { DEFAULT_SETTINGS, BG_OFFSET_RANGE, CUSTOM_COLOR_PATTERN, FRAME_MODES, INTERVAL_RANGE, MARK_LABEL_SIZE_RANGE, MARK_OFFSET_RANGE, MARK_SIZE_RANGE, MARK_SWING_RANGE, OPACITY_RANGE, SIZE_RANGE } from '../../shared/settings.js'
-import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFillStyle, type WhaleMarkMotion, type WhaleSettings, type WhaleSettingsState } from './settings.js'
+import { INITIAL_SETTINGS, type WhaleColorMode, type WhaleFillStyle, type WhaleMarkMotion, type WhalePodTiming, type WhaleSettings, type WhaleSettingsState } from './settings.js'
 
 /** Delay that batches slider writes into one durable update. */
 export const WRITE_DELAY_MS = 150
@@ -247,6 +247,33 @@ export class WhaleSettingsRuntime {
   setRandomPosition(enabled: boolean): void {
     this.patch({ randomPosition: enabled })
     this.commit('randomPosition', enabled)
+  }
+
+  /**
+   * Enable or disable laying out several whales per random appearance.
+   * @param enabled - whether a random appearance draws a pod.
+   */
+  setPodEnabled(enabled: boolean): void {
+    this.patch({ podEnabled: enabled })
+    this.commit('podEnabled', enabled)
+  }
+
+  /**
+   * Enable or disable lighter ink for farther pod members.
+   * @param enabled - whether depth fades the ink.
+   */
+  setDepthInk(enabled: boolean): void {
+    this.patch({ depthInk: enabled })
+    this.commit('depthInk', enabled)
+  }
+
+  /**
+   * Choose whether a pod leaps all at once or picks random start times.
+   * @param timing - pod entrance timing.
+   */
+  setPodTiming(timing: WhalePodTiming): void {
+    this.patch({ podTiming: timing })
+    this.commit('podTiming', timing)
   }
 
   /** Restore every field to its factory default. */

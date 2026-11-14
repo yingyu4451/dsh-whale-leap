@@ -56,6 +56,15 @@ export const BG_OFFSET_Y_FIELD = 'bgOffsetY'
 /** Field holding whether each appearance picks a random, fully visible position. */
 export const RANDOM_POSITION_FIELD = 'randomPosition'
 
+/** Field holding whether a random appearance lays out a pod of several whales. */
+export const POD_ENABLED_FIELD = 'podEnabled'
+
+/** Field holding whether pod members farther away use lighter ink. */
+export const DEPTH_INK_FIELD = 'depthInk'
+
+/** Field holding how the pod enters: all at once or each at its own random time. */
+export const POD_TIMING_FIELD = 'podTiming'
+
 /** Field holding the running mark size in pixels. */
 export const MARK_SIZE_FIELD = 'markSize'
 
@@ -110,6 +119,9 @@ export const MARK_OFFSET_RANGE = { min: -12, max: 12, step: 0.5 }
 /** Accepted running-mark motion presets, in display order. */
 export const MARK_MOTIONS = ['swim', 'explore', 'hero', 'sway']
 
+/** Pod entrance timings, in display order: leap together or each at a random time. */
+export const POD_TIMINGS = ['together', 'random']
+
 /** Accepted lowercase custom colors. */
 export const CUSTOM_COLOR_PATTERN = /^#[0-9a-f]{6}$/
 
@@ -127,6 +139,9 @@ export const DEFAULT_SETTINGS = {
   bgOffsetX: 0,
   bgOffsetY: 0,
   randomPosition: false,
+  podEnabled: true,
+  depthInk: true,
+  podTiming: 'random',
   markColorMode: 'theme',
   markColor: '#345ebe',
   labelColorMode: 'theme',

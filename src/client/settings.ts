@@ -16,6 +16,9 @@ export type WhaleFillStyle = 'pixels' | 'code' | 'glyphs' | 'binary' | 'lines'
 /** Running-mark motion presets. */
 export type WhaleMarkMotion = 'swim' | 'explore' | 'hero' | 'sway'
 
+/** How a pod of whales enters the scene: together, or each at a random time. */
+export type WhalePodTiming = 'together' | 'random'
+
 /** Durable settings section of the plugin. */
 export interface WhaleSettings {
   /** Ink source. */
@@ -42,6 +45,12 @@ export interface WhaleSettings {
   bgOffsetY: number
   /** Whether each appearance picks a random, fully visible position. */
   randomPosition: boolean
+  /** Whether a random appearance lays out a pod of several whales. */
+  podEnabled: boolean
+  /** Whether pod members farther away use lighter ink. */
+  depthInk: boolean
+  /** Whether a pod leaps together or each whale starts at its own random time. */
+  podTiming: WhalePodTiming
   /** Running mark color source. */
   markColorMode: WhaleColorMode
   /** Lowercase custom running mark color. */

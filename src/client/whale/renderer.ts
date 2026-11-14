@@ -1,5 +1,5 @@
 /** Alternating dot and code breaches sharing one bundled animation atlas. */
-import type { WhaleFillStyle } from '../settings.ts'
+import type { WhaleFillStyle, WhalePodTiming } from '../settings.ts'
 import type { WhaleArtwork } from './artwork.ts'
 import { createCodeFill, type WhaleTextureMode } from './code-fill.ts'
 
@@ -138,11 +138,17 @@ export interface PixelWhaleHandle {
   /**
    * Randomize the scene before every playback.
    *
-   * Random mode lays out a small pod of two or three whales, spaced apart and
-   * painted with depth-dependent ink, instead of the single fixed whale.
-   * @param enabled - whether every playback lays out a new random pod.
+   * Random mode lays out a random position; when the pod switch is on it draws
+   * two or three whales, spaced apart, with depth-dependent ink and a
+   * configurable entrance timing.
+   * @param enabled - whether every playback lays out a new random arrangement.
    */
   setRandomPosition: (enabled: boolean) => void
+  /**
+   * Configure the random-appearance composition.
+   * @param options - pod switch, depth-ink switch, and pod entrance timing.
+   */
+  setPodOptions: (options: { enabled: boolean; depthInk: boolean; timing: WhalePodTiming }) => void
   /** Release frame work, atlas pixels, and observers; late atlas loads are ignored. */
   dispose: () => void
 }
@@ -155,6 +161,7 @@ const NO_WHALE: PixelWhaleHandle = {
   setAutoPlay: () => {},
   setPreview: () => {},
   setRandomPosition: () => {},
+  setPodOptions: () => {},
   dispose: () => {},
 }
 
@@ -205,6 +212,9 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   let autoInterval: number | undefined
   let autoTimer: ReturnType<typeof setInterval> | undefined
   let randomMode = false
+  let podEnabled = true
+  let depthInkOn = true
+  let podTiming: WhalePodTiming = 'random'
   let whaleBox: WhaleBox | undefined
 
   const moving = () => !media.matches
@@ -256,7 +266,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
       const offsetX = (index % ATLAS.columns) * ATLAS.width
       const offsetY = Math.floor(index / ATLAS.columns) * ATLAS.height
       const cell = scene.width / ATLAS.width
-      const ink = depthInk(scene.depth)
+      const ink = depthInkOn ? depthInk(scene.depth) : 1
       const fade = Math.min(1, progress * 15, (1 - progress) * 10)
       if (fill !== 'pixels' && code !== undefined) {
         // The code fill boosts its own coverage and mask, so the strength maps
@@ -335,7 +345,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.fillStyle = nextColor
     sceneWidth = nextSceneWidth
-    scenes = randomMode ? planPod() : placeFromArtwork()
+    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
     if (code !== undefined && sceneWidth > 0) code.resize(canvas, sceneWidth)
     resume()
   }
@@ -409,6 +419,53 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   }
 
   /**
+   * Place the single whale of a random appearance that is not a pod.
+   * @returns one scene anywhere the whole drawing stays inside the canvas.
+   */
+  function placeRandom(): WhaleScene[] {
+    if (whaleBox === undefined || sceneWidth <= 0 || width <= 0 || height <= 0) return []
+    const sceneHeight = sceneWidth * ATLAS.height / ATLAS.width
+    const marginX = Math.max(16, width * 0.02)
+    const marginTop = height * 0.08
+    const marginBottom = height * 0.07
+    const minLeft = marginX - whaleBox.x0 * sceneWidth
+    const maxLeft = width - marginX - whaleBox.x1 * sceneWidth
+    const minTop = marginTop - whaleBox.y0 * sceneHeight
+    const maxTop = height - marginBottom - whaleBox.y1 * sceneHeight
+    return [{
+      left: maxLeft > minLeft ? minLeft + Math.random() * (maxLeft - minLeft) : (width - sceneWidth) / 2,
+      top: maxTop > minTop ? minTop + Math.random() * (maxTop - minTop) : height * 0.43 - sceneHeight / 2,
+      width: sceneWidth,
+      depth: 1,
+      delay: 0,
+    }]
+  }
+
+  /**
+   * Delay of every pod member relative to the first frame of the pod.
+   * @param total - number of whales in the pod.
+   * @returns all-zero delays when the pod leaps together, otherwise one
+   *   distinct random start time per whale, in scene order.
+   */
+  function planDelays(total: number): number[] {
+    if (podTiming === 'together') return new Array<number>(total).fill(0)
+    const span = artwork.rippleDurationMs * 0.4
+    const spacing = artwork.rippleDurationMs * 0.1
+    const delays: number[] = []
+    for (let index = 0; index < total; index++) {
+      let delay = Math.random() * span
+      // Keep the starts clearly apart, so the pod reads as separate entrances
+      // instead of a near-simultaneous fallback.
+      for (let attempt = 0; attempt < 20; attempt++) {
+        if (delays.every((known) => Math.abs(known - delay) >= spacing)) break
+        delay = Math.random() * span
+      }
+      delays.push(delay)
+    }
+    return delays
+  }
+
+  /**
    * Lay out one pod appearance.
    *
    * Two or three whales are chosen with decreasing scale and depth. The nearest
@@ -439,7 +496,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     const scaleFactors = total === POD_THREE
       ? [0.6 + Math.random() * 0.05, 0.44 + Math.random() * 0.04, 0.3 + Math.random() * 0.03]
       : [0.68 + Math.random() * 0.05, 0.42 + Math.random() * 0.04]
-    const delayStep = artwork.rippleDurationMs * (0.12 + Math.random() * 0.05)
+    const delays = planDelays(total)
     const placed: { rect: PodRect; scene: WhaleScene }[] = []
     for (let index = 0; index < total; index++) {
       const sceneW = Math.max(150, sceneWidth * (scaleFactors[index] as number))
@@ -452,8 +509,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
         top: 0,
         width: sceneW,
         depth: depthFactors[index] as number,
-        // The nearest whale leaps first; the distant ones follow it in.
-        delay: index * delayStep,
+        delay: delays[index] as number,
       }
       let found = false
       for (let attempt = 0; attempt < 120 && !found; attempt++) {
@@ -515,7 +571,7 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     if (!ensureTexture(playing)) return
     fill = playing
     canvas.dataset.whaleFill = playing
-    scenes = randomMode ? planPod() : placeFromArtwork()
+    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
     started = performance.now()
     resume()
   }
@@ -616,10 +672,38 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
   function setRandomPosition(enabled: boolean): void {
     if (disposed || randomMode === enabled) return
     randomMode = enabled
-    scenes = randomMode ? planPod() : placeFromArtwork()
+    scenes = randomMode ? (podEnabled ? planPod() : placeRandom()) : placeFromArtwork()
     // Toggling the switch should show the new arrangement right away instead of
-    // waiting for the next automatic appearance.
-    if (randomMode && started === undefined && pixels !== undefined && moving() && drawable()) play()
+    // waiting for the next automatic appearance; play() also decodes the atlas.
+    if (randomMode && started === undefined && moving() && drawable()) play()
+    else resume()
+  }
+
+  function setPodOptions(options: { enabled: boolean; depthInk: boolean; timing: WhalePodTiming }): void {
+    if (disposed) return
+    if (!randomMode) {
+      podEnabled = options.enabled
+      depthInkOn = options.depthInk
+      podTiming = options.timing
+      return
+    }
+    const layoutChanged = options.enabled !== podEnabled || options.timing !== podTiming
+    podEnabled = options.enabled
+    depthInkOn = options.depthInk
+    podTiming = options.timing
+    if (started !== undefined && !layoutChanged) {
+      // Only the ink changed: repaint the live frame without restarting the leap.
+      paint(performance.now())
+      return
+    }
+    // Re-lay the pod and replay at once, so a switch change is visible now
+    // instead of on the next automatic appearance.
+    started = undefined
+    scenes = podEnabled ? planPod() : placeRandom()
+    clear()
+    // play() also triggers the atlas decode, so a switch flipped before the
+    // first appearance still shows the new layout right away.
+    if (moving() && drawable()) play()
     else resume()
   }
 
@@ -658,5 +742,5 @@ export function attachPixelWhale(canvas: HTMLCanvasElement, options: WhaleArtwor
     document.removeEventListener('visibilitychange', resume)
     media.removeEventListener('change', resume)
   }
-  return { play, prefetch, update, setAutoPlay, setFillStyles, setPreview, setRandomPosition, dispose }
+  return { play, prefetch, update, setAutoPlay, setFillStyles, setPreview, setRandomPosition, setPodOptions, dispose }
 }
