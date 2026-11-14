@@ -999,7 +999,7 @@
 .peekGroup .choice {
   display: flex;
   width: 100%;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: flex-start;
   gap: 2px;
   padding: 2px;
@@ -1007,15 +1007,15 @@
 
 .peekGroup .choice .choiceButton,
 .peekGroup .choice .choiceSelected {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: max-content;
   justify-content: center;
   padding: 0 6px;
   white-space: nowrap;
 }
 
 .peekGroup .colorGroup {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .peekGroup .colorGroup .choice {

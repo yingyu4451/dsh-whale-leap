@@ -677,6 +677,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                 {podOpen && (
                   <AccordionBody>
                     <Row
+                      stack
                       label={t('podTiming')}
                       hint={t('podTimingHint')}
                       control={
