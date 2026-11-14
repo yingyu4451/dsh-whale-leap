@@ -715,13 +715,28 @@
   transform: rotate(180deg);
 }
 
-/* Dependent block of an accordion parent, indented from its switch row. */
+/* Collapsible block holding the dependent rows of an accordion parent. */
+.accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 220ms ease, opacity 160ms ease;
+}
+
+.accordionOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.accordionClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .accordionBody {
   display: flex;
   flex-direction: column;
-  margin: 2px 0 6px 6px;
-  padding-left: 12px;
-  border-left: 1.5px solid var(--dsw-alias-border-l2);
+  margin: 2px 0 6px;
 }
 
 .motionGrid {

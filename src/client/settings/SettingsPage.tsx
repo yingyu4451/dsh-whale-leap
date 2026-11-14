@@ -460,9 +460,31 @@ function ToggleRow(props: {
   )
 }
 
-/** Indented block holding the dependent rows of an accordion parent. */
-function AccordionBody({ children }: { children: ReactNode }) {
-  return <div className={css.accordionBody}>{children}</div>
+/**
+ * Collapsible block holding the dependent rows of an accordion parent.
+ *
+ * The block stays mounted so its height can transition; while closed it is
+ * inert and hidden from assistive technology.
+ * @param props.open - whether the dependent rows are expanded.
+ * @param props.children - dependent rows.
+ * @returns the collapsible block.
+ */
+function AccordionBody({ open, children }: { open: boolean; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    ref.current?.toggleAttribute('inert', !open)
+  }, [open])
+  return (
+    <div
+      ref={ref}
+      className={open ? `${css.accordion} ${css.accordionOpen}` : css.accordion}
+      aria-hidden={!open}
+    >
+      <div className={css.accordionClip}>
+        <div className={css.accordionBody}>{children}</div>
+      </div>
+    </div>
+  )
 }
 
 /**
@@ -690,8 +712,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                     actions.setPodEnabled(checked)
                   }}
                 />
-                {podOpen && (
-                  <AccordionBody>
+                <AccordionBody open={podOpen}>
                     <Row
                       stack
                       label={t('podTiming')}
@@ -729,8 +750,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       disabled={disabled || !settings.podEnabled}
                       onChange={actions.setDepthInk}
                     />
-                  </AccordionBody>
-                )}
+                </AccordionBody>
                 <ToggleRow
                   label={t('randomPosition')}
                   hint={t('randomPositionHint')}
@@ -797,8 +817,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                     actions.setReplaceMark(checked)
                   }}
                 />
-                {markOpen && (
-                  <AccordionBody>
+                <AccordionBody open={markOpen}>
                     <ColorPickerRow
                       id="whale-leap-mark-color"
                       label={t('markColor')}
@@ -903,8 +922,7 @@ export function PeekBar({ t, state, actions, onReturn, initialTab = 'background'
                       onChange={actions.setMarkSwing}
                     />
                     <p className={css.note}>{t('motionHint')}</p>
-                  </AccordionBody>
-                )}
+                </AccordionBody>
               </div>
             </PeekSection>
           </>
