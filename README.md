@@ -5,7 +5,7 @@
 
 [English](README.md) · [简体中文](README.zh.md)
 
-The whale-wallpaper animation introduced in DSH 0.2.2-rc.2 now breaches inside ongoing conversations as well as on the blank home. The small mark to the left of DeepSeek in the running row can also be replaced with an animated whale logo.
+The whale-wallpaper animation introduced in DSH 0.2.2-rc.2 now breaches inside ongoing conversations as well as on the blank home. The small mark to the left of the “Deep diving” status can also be replaced with an animated whale logo.
 
 ![Whale Leap playing inside a conversation](docs/images/preview.png)
 
@@ -17,7 +17,7 @@ Live preview hides the settings dialog and replays the whale in the real convers
 
 - **Background whales** — dot matrix, code, glyph, binary and line fills, with any number of them rotating. Ink follows the theme or a custom colour; background size, ink strength and horizontal/vertical offsets are adjustable.
 - **Pods** — with *Multiple whales* on, each appearance brings 1–3 whales that never overlap. Random position scatters them and keeps every breach on screen; with random position off they hold a fixed formation that the offsets move as a group. Entrance timing can be *together* or *independent*; distance ink fades far whales; size range sets the farthest-to-nearest sizes (20%–100%).
-- **Running icon** — replaces the small fish beside 深度求索 with a pixel whale. Motions: swim, explore, home swim and sway; icon/text colours, sizes (8–28 px / 11–20 px), offsets and swing amplitude are adjustable.
+- **Running icon** — replaces the small fish beside the “Deep diving” status with a pixel whale. Motions: swim, explore, home swim and sway; icon/text colours, sizes (8–28 px / 11–20 px), offsets and swing amplitude are adjustable.
 - **Accordion settings** — dependent options live under their parent switch: expanded automatically when the parent is on, collapsed when it is off, and can be peeked at any time with the chevron next to the parent while the children stay disabled.
 - **Settings are the preview** — all appearance controls are tuned in the floating panel, which sits on a frosted, outlined surface so it reads clearly against the page. `Esc` or *Back to settings* restores the settings dialog.
 - **One-click upgrade** — *Check for updates* queries the GitHub release and the jsDelivr mirror in parallel. *Upgrade* resolves the tag to its commit and reinstalls the plugin through the DSH plugin manager, rolling back if the install fails. The restart prompt matches the shell: restart `dsh web` in a browser, restart the DSH app on desktop.
