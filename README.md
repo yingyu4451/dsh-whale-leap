@@ -5,7 +5,7 @@
 
 [English](README.md) · [简体中文](README.zh.md)
 
-The whale-wallpaper animation introduced in DSH 0.2.2-rc.2 now breaches inside ongoing conversations as well as on the blank home. The small mark to the left of the “Deep diving” status can also be replaced with an animated whale logo.
+The whale-wallpaper animation added in DSH 0.2.2-rc.2 now also appears inside ongoing conversations, and the small mark to the left of the “Deep diving” status can be replaced with an animated DeepSeek logo.
 
 ![Whale Leap playing inside a conversation](docs/images/preview.png)
 
