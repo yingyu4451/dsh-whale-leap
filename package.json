@@ -2,7 +2,7 @@
   "name": "dsh-whale-leap",
   "version": "1.3.0",
   "type": "module",
-  "description": "A swimming whale background, a running-status fish mark, and matching appearance settings.",
+  "description": "Play the whale-wallpaper animation from DSH 0.2.2-rc.2 inside ongoing conversations, and replace the small mark beside DeepSeek with an animated whale logo.",
   "exports": {
     ".": "./index.js",
     "./client": "./lib/client.js",

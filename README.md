@@ -1,145 +1,141 @@
-# 鲸跃
+# Whale Leap
 
 [![release](https://img.shields.io/github/v/release/yingyu4451/dsh-whale-leap?style=flat-square)](https://github.com/yingyu4451/dsh-whale-leap/releases)
 [![powered by dsh](https://img.shields.io/badge/powered_by_dsh-4D6BFE?style=flat-square&logo=deepseek&logoColor=white)](https://github.com/deepseek-ai/deepseek-harness)
 
-[English](README.en.md) · [中文](README.md)
+[English](README.md) · [简体中文](README.zh.md)
 
-给 DeepSeek Harness 网页端加一只会游动的鲸鱼：空白首页与进行中的会话都有鲸鱼跃起的背景动画，任务状态行的小鱼也能换成一枚持续游动的鲸鱼图标。
+The whale-wallpaper animation introduced in DSH 0.2.2-rc.2 now breaches inside ongoing conversations as well as on the blank home. The small mark to the left of DeepSeek in the running row can also be replaced with an animated whale logo.
 
-![空白首页](docs/images/home.png)
+![Whale Leap playing inside a conversation](docs/images/preview.png)
 
-## 预览
+## Preview
 
-「实时预览」会隐藏设置窗口，在真实会话里循环播放，并浮出控制条，边看边调；空白首页没有真实会话时，会挂上一段演示对话与运行状态行。
+Live preview hides the settings dialog and replays the whale in the real conversation while a floating panel stays open for tuning. On the blank home — where there is no conversation yet — it stages a demo transcript and a running row, so the animation can still be judged against a realistic layout.
 
-![实时预览浮层](docs/images/preview-panel.png)
+## Features
 
-「任务图标」标签用来调整状态行里的小鱼图标与运行文字：
+- **Background whales** — dot matrix, code, glyph, binary and line fills, with any number of them rotating. Ink follows the theme or a custom colour; background size, ink strength and horizontal/vertical offsets are adjustable.
+- **Pods** — with *Multiple whales* on, each appearance brings 1–3 whales that never overlap. Random position scatters them and keeps every breach on screen; with random position off they hold a fixed formation that the offsets move as a group. Entrance timing can be *together* or *independent*; distance ink fades far whales; size range sets the farthest-to-nearest sizes (20%–100%).
+- **Running icon** — replaces the small fish beside 深度求索 with a pixel whale. Motions: swim, explore, home swim and sway; icon/text colours, sizes (8–28 px / 11–20 px), offsets and swing amplitude are adjustable.
+- **Accordion settings** — dependent options live under their parent switch: expanded automatically when the parent is on, collapsed when it is off, and can be peeked at any time with the chevron next to the parent while the children stay disabled.
+- **Settings are the preview** — all appearance controls are tuned in the floating panel, which sits on a frosted, outlined surface so it reads clearly against the page. `Esc` or *Back to settings* restores the settings dialog.
+- **One-click upgrade** — *Check for updates* queries the GitHub release and the jsDelivr mirror in parallel. *Upgrade* resolves the tag to its commit and reinstalls the plugin through the DSH plugin manager, rolling back if the install fails. The restart prompt matches the shell: restart `dsh web` in a browser, restart the DSH app on desktop.
+- **Daily check** — the first time the Whale Leap settings are opened each day, the update check runs once; same-day revisits stay quiet.
+- **Eight locales** out of the box: 简体中文, English, 日本語, Español, Français, Deutsch, Русский, Português.
 
-![任务图标](docs/images/preview-mark.png)
+## Install
 
-## 功能
+From GitHub:
 
-- **背景鲸鱼**：点阵、代码填充、字符、二进制、线条五种填充，可多选轮换；墨色可跟随主题或自定义；支持背景大小、墨色浓度、水平/垂直位置。
-- **多条鲸鱼**：「多条鲸鱼」开启后一次出现 1–3 条，彼此不重叠；随机位置时分开散落，关闭随机位置时按固定编队居中，可用水平/垂直位置整体平移。出现时机可选同时出现或各自随机时间；远近墨色让越远的鲸鱼墨色越浅；大小范围控制最远到最近的尺寸（20%–100%）。
-- **任务图标**：可替换「深度求索中」左侧的鲸鱼图标，提供游动、探索、首页游动、左右轻摆四种动作；图标颜色、文字颜色、图标大小（8–28 px）、文字大小（11–20 px）、起始位置与摆动幅度都可调。
-- **手风琴式设置**：从属设置收在父开关下面。父开关打开时自动展开，关闭时收起；点父开关旁的展开箭头可以单独展开预览子项，子项在父开关关闭时保持禁用。
-- **设置即预览**：设置页只保留播放控制与「实时预览」入口，所有外观控制在浮层里调整，按 `Esc` 或「返回设置」即可恢复设置窗口。
-- **一键升级**：检查更新会并行查询 GitHub Release 与 jsDelivr 镜像，发现新版本时直接点「升级」即可让插件管理器重装到该版本（失败自动回滚），重启 `dsh web` 后生效。
-- 界面跟随 Harness 语言，内置中文、English、日本語、Español、Français、Deutsch, Русский, Português。
+1. Open **Plugins** in the Harness web app.
+2. Choose **Add plugin** and enter `github:yingyu4451/dsh-whale-leap`.
+3. Restart `dsh web` once, then refresh the page.
+4. Open **Settings › Whale Leap**.
 
-## 安装
-
-从 GitHub 安装：
-
-1. 打开 Harness 网页端的 **插件**。
-2. 选择 **添加插件**，填入 `github:yingyu4451/dsh-whale-leap`。
-3. 重启一次 `dsh web`，然后刷新页面。
-4. 打开 **设置 › 鲸跃**。
-
-从本地目录安装（开发调试时）：
+From a local checkout (development):
 
 ```bash
 dsh plugin --profile <profile> add /path/to/dsh-whale-leap
 ```
 
-之后重新构建时，把新的构建覆盖到 `$DSH_HOME/profiles/<profile>/node_modules/dsh-whale-leap`，重启 `dsh web` 即可；也可以在「插件」里移除后重新添加。
+After rebuilding, copy the new build over `$DSH_HOME/profiles/<profile>/node_modules/dsh-whale-leap` and restart `dsh web`; alternatively remove and re-add the plugin in Plugins.
 
-## 更新
+## Update
 
-设置页头部显示当前版本与「检查更新」按钮。检查到新版本时会显示「升级」按钮：点击后把标签解析成 commit，通过 DSH 插件管理器重装到该版本（安装失败会自动回滚），完成后重启 `dsh web` 加载新版本。插件管理器不可用或检查失败时，保留打开 Release 页面的链接，并区分限流、网络不可达、超时等原因。
+The settings header shows the current version and a **Check for updates** button. When a newer version is found, an **Upgrade** button appears: it resolves the release tag to its commit and reinstalls that exact revision through the DSH plugin manager (a failed install rolls back automatically). Restart `dsh web` afterwards to load the new build. If the plugin manager is unavailable or the check fails, the row keeps a link to the release page and distinguishes rate limiting, network errors and timeouts.
 
-## 设置
+## Settings
 
-设置页只保留播放控制、每个标签页上方的预览画布和「实时预览」入口；所有外观控制在实时预览浮层里调整，浮层背景为半透明磨砂并带描边与阴影，与页面内容区分。
+The settings page keeps only playback controls, a preview canvas per tab, and the *Live preview* entry; every appearance control lives in the floating panel.
 
-### 背景
+### Playback
 
-| 选项 | 含义 |
+| Option | Meaning |
 | --- | --- |
-| 颜色 | 跟随主题或自定义墨色。 |
-| 背景大小 | 场景缩放 50%–150%。 |
-| 墨色浓度 | 10%–100%；100% 为纯黑的点。 |
-| 填充样式 | 点阵、代码填充、字符画、二进制、线条，可多选；启用的样式按顺序交替出现，至少保留一项。 |
+| Appear automatically in conversations | Whether the whale appears on its own once a conversation starts. |
+| Play immediately on conversation switch | When off, entering a conversation waits for the next interval instead of replaying at once. Available only while auto-appear is on. |
+| Appearance interval | Minutes and seconds pickers, 5 s–59 min 59 s. Available only while auto-appear is on. |
+| Random interval | When on, each wait is a fresh random 5 s–60 min instead of the fixed interval; the interval pickers are disabled. Off by default. |
 
-### 出现方式
+### Appearance
 
-| 选项 | 含义 |
+| Option | Meaning |
 | --- | --- |
-| 多条鲸鱼 | 一次出现 1–3 条鲸鱼；关闭时固定只出现一条。 |
-| 出现时机 | 同时出现（几条一起跃出）或各自随机时间（每条单独起跳）。仅在多条鲸鱼开启时可用。 |
-| 大小范围 | 多条鲸鱼从最远到最近的尺寸，20%–100%。仅在多条鲸鱼开启时可用。 |
-| 远近墨色 | 越远的鲸鱼墨色越浅，便于区分远近。仅在多条鲸鱼开启时可用。 |
-| 随机位置 | 开启后每条鲸鱼都换位置，并保证整段跃起完整可见；关闭时以固定编队居中。 |
-| 水平位置 / 垂直位置 | 固定位置时的整体偏移，各 −200 到 +200 px。仅在随机位置关闭时可用。 |
+| Colour | Follow the theme, or a custom ink colour. |
+| Background size | Scene scale, 50%–150%. |
+| Ink strength | 10%–100%; 100% is solid black dots. |
+| Fill styles | Dot matrix, code, glyphs, binary and lines. Any number can be enabled; enabled styles rotate in order, at least one is required. |
 
-### 播放
+### Occurrence
 
-| 选项 | 含义 |
+| Option | Meaning |
 | --- | --- |
-| 在会话中自动出现 | 开始对话后，鲸鱼是否按间隔自行出现。 |
-| 切换会话时立即出现 | 关闭后，进入会话不会立刻播放，而是等下一个间隔。仅在自动出现开启时可用。 |
-| 出现间隔 | 自动重播的间隔，5–300 秒。仅在自动出现开启时可用。 |
+| Multiple whales | 1–3 whales per appearance; off means a single whale. |
+| Entrance timing | *Together* (all breach at once) or *Independent* (each picks its own moment). Only with multiple whales. |
+| Size range | Farthest-to-nearest pod whale sizes, 20%–100%. Only with multiple whales. |
+| Distance ink | Farther whales use lighter ink so the pod reads with depth. Only with multiple whales. |
+| Random position | On: every whale gets a new spot, with the whole breach kept on screen. Off: a fixed formation, centred by default. |
+| Horizontal / vertical position | Group offset while random position is off, −200 to +200 px each. |
 
-### 任务图标
+### Running icon
 
-浮层「任务图标」标签里可调整：替换任务状态图标（开关）、图标颜色、文字颜色、图标大小、文字大小、水平/垂直位置（各 −12 到 +12 px）、动画与摆动幅度。文字大小只改字号，不改变行高与内边距。
+The *Task icon* tab in the floating panel adjusts: replace the running icon (switch), icon colour, text colour, icon size (8–28 px), text size (11–20 px), horizontal/vertical offsets (−12 to +12 px each), motion style and swing amplitude (50%–200%). Text size only changes the font size; it does not alter the row height or padding.
 
-## 快捷操作
+## Shortcuts
 
-- 点击会话空白处：背景鲸鱼重播一次。
-- 浮层「重播」：立即重放预览。
-- 按 `Esc` 或「返回设置」：退出实时预览，恢复设置窗口。
+- Click a blank area of the conversation: replay the background whale once.
+- *Replay* in the floating panel: replay the preview immediately.
+- `Esc` or *Back to settings*: leave live preview and restore the settings dialog.
 
-## 行为与限制
+## Behaviour and limits
 
-- 仅网页端。插件注册 `conversation.hero.frame`、`conversation.chat.running.mark` 与 `settings.section`，需要 `ui-conversation`、`ui-chat`、`ui-settings`。
-- 任务图标优先通过 `conversation.chat.running.mark` 插槽替换；官方构建没有该插槽时改用 DOM 适配器挂载并隐藏原图标，开关关闭后原图标恢复。
-- 设置是工作区级的，保存在分区命名空间 `whale-leap`。
-- 帧图集随包内置（webp → data URL），离线可用；画布后备缓冲区上限 500 万像素。
-- 多条鲸鱼使用非点阵填充时，每条鲸鱼先在离屏画布上按自身轮廓遮罩再合成，不会互相擦除或留下裁切竖线。
-- 减少动态效果开启时，所有播放与摆动停止。
-- 「首页游动」不受摆动幅度影响；代码文字字号随场景宽度等比缩放，预览与真实会话比例一致。
+- Web client only. The plugin registers `conversation.hero.frame`, `conversation.chat.running.mark` and `settings.section`, so it needs `ui-conversation`, `ui-chat` and `ui-settings`.
+- The running icon prefers the `conversation.chat.running.mark` slot; when the official build lacks that slot it falls back to a DOM adapter that hides the original icon (and restores it when the switch is off).
+- Settings are workspace-scoped and stored in the `whale-leap` partition namespace.
+- The frame atlas is bundled (webp → data URL), so the decoration works offline; the canvas backing store is capped at 5,000,000 pixels.
+- With non-dot fills, each pod whale is masked offscreen by its own outline before compositing, so neighbours are never erased and no clipping seams appear.
+- All playback and swinging stop when reduced motion is requested.
+- The *home swim* motion ignores swing amplitude; code glyph size scales with scene width so preview and real conversations keep the same proportions.
 
-## 构建
+## Build
 
 ```bash
-pnpm install        # esbuild、react 与 Host 侧 schemastery 开发副本
-pnpm run build      # 生成 ModuleLoader 产物 lib/client.js
-pnpm run check      # 构建 + smoke + 渲染 + Host 路由检查
+pnpm install        # esbuild, react and a Host-side schemastery dev copy
+pnpm run build      # produce the ModuleLoader bundle lib/client.js
+pnpm run check      # build + smoke + render + Host routing checks
 ```
 
-`lib/client.js` 内嵌帧图（webp → data URL）与版本号；Host 半部分 `index.js` 只从运行中的 profile 引入 `@deepseek-ai/schemastery` 并注册设置页。
+`lib/client.js` embeds the frame atlas (webp → data URL) and the version; the Host half `index.js` only pulls `@deepseek-ai/schemastery` from the running profile and registers the settings page.
 
-## 发布
+## Release
 
-GitHub 是发布与更新的唯一来源：设置页比较仓库最新的 Release（没有 Release 时退回标签）。
+GitHub is the single source of releases and updates: the settings page compares against the repository's latest release (falling back to tags when no release exists).
 
-1. `pnpm run release:patch`（或 `release:minor` / `release:major`）提升版本、提交并创建 `vX.Y.Z` 标签。
-2. `git push --follow-tags`。
-3. `gh release create vX.Y.Z --title "vX.Y.Z" --notes "…"`。
+1. `pnpm run release:patch` (or `release:minor` / `release:major`) bumps the version, commits and creates the `vX.Y.Z` tag.
+2. `git push --follow-tags`.
+3. `gh release create vX.Y.Z --title "vX.Y.Z" --notes "…"`.
 
-## 目录
+## Layout
 
 ```text
-index.js                     Host：Config schema、settings.configure 与图集路由
-shared/settings.js           两半共享的字段名、范围与默认值
-src/client/index.tsx         客户端入口：注册三个插槽
-src/client/atlas.ts          内置帧图的 data URL
-src/client/store.ts          设置运行时（镜像 + 防抖写入）
-src/client/i18n.ts           8 种语言词典
-src/client/settings/         设置页与模块 CSS
-src/client/whale/            鲸鱼画布、渲染器、代码填充、鱼形图标与路径
-src/client/update.ts         GitHub Release 检查
-src/client/upgrade.ts        一键升级（解析标签为 commit，经插件管理器重装）
-docs/images/                 README 截图
-locale/*.json                插件管理器标题/描述/详情元数据
+index.js                     Host: Config schema, settings.configure and atlas route
+shared/settings.js           Field names, ranges and defaults shared by both halves
+src/client/index.tsx         Client entry: registers the three slots
+src/client/atlas.ts          Inlined frame atlas data URL
+src/client/store.ts          Settings runtime (mirror + debounced writes)
+src/client/i18n.ts           Eight locale dictionaries
+src/client/platform.ts       Web vs desktop shell detection
+src/client/settings/         Settings page and CSS modules
+src/client/whale/            Canvas, renderer, code fill, running icon artwork and paths
+src/client/update.ts         GitHub release check
+src/client/upgrade.ts        One-click upgrade (tag → commit, via the plugin manager)
+docs/images/                 README screenshot
+locale/*.json                Plugin manager title/description/detail metadata
 ```
 
-## 致谢与许可
+## Credits and licence
 
-鲸鱼渲染器、代码填充、鱼形路径与任务图标动画改编自 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（MIT License，Copyright (c) 2026 DeepSeek），帧图集来自同一仓库并随本包分发。完整许可与改编清单见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+The whale renderer, code fill, fish paths and running-icon animation are adapted from [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (MIT License, Copyright (c) 2026 DeepSeek); the frame atlas comes from the same repository and ships with this package. Full licence and adaptation notes are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-本插件为非官方项目，与 DeepSeek 无隶属关系，也未获其背书。MIT 许可只授予著作权相关权限，不授予 DeepSeek 名称、标识或素材上的商标权。
-
+This is an unofficial project — not affiliated with or endorsed by DeepSeek. The MIT licence grants copyright permissions only; it does not grant trademark rights in the DeepSeek name, logo or artwork.
